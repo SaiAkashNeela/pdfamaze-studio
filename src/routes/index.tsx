@@ -21,52 +21,55 @@ function Home() {
 
   return (
     <>
-      {/* Hero — restrained: a claim, a sentence, two actions. */}
+      {/* Hero + tools split: claim on the left, immediate tool boxes on the right. */}
       <section className="relative overflow-hidden">
         <div aria-hidden className="rule-grid pointer-events-none absolute inset-0" />
-        <div className="relative mx-auto max-w-[1180px] px-4 pt-16 pb-14 sm:px-6 sm:pt-20 lg:px-8 lg:pt-28 lg:pb-20">
-          <p className="label-xs">Local PDF workbench</p>
-          <h1 className="mt-4 max-w-[19ch] text-[clamp(2rem,5.2vw,3.25rem)] leading-[1.05] font-semibold tracking-[-0.035em]">
-            Do the thing to your PDF. Nothing leaves your laptop.
-          </h1>
-          <p className="text-muted-foreground mt-5 max-w-[58ch] text-[15px] leading-relaxed sm:text-[16px]">
-            {siteConfig.name} is a set of small, fast PDF tools that run entirely inside this
-            browser tab — merge, split, rotate, compress, convert. There is no upload step, no
-            queue, and no account.
-          </p>
-          <div className="mt-8 flex flex-wrap items-center gap-3">
-            <Link
-              to="/tools"
-              className="bg-accent text-accent-foreground hover:bg-accent/90 inline-flex h-11 items-center rounded-[3px] px-5 text-[14px] font-medium transition-colors"
-            >
-              Browse the tools
-            </Link>
-            <Link
-              to="/tools/$slug"
-              params={{ slug: "merge" }}
-              className="border-border-strong hover:bg-secondary inline-flex h-11 items-center rounded-[3px] border px-5 text-[14px] transition-colors"
-            >
-              Merge a PDF now
-            </Link>
+        <div className="relative mx-auto grid max-w-[1180px] gap-8 px-4 pt-12 pb-10 sm:px-6 sm:pt-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)] lg:gap-10 lg:px-8 lg:pt-24 lg:pb-16">
+          {/* Left: the claim */}
+          <div className="lg:pt-4">
+            <p className="label-xs">Local PDF workbench</p>
+            <h1 className="mt-4 max-w-[18ch] text-[clamp(2rem,5.2vw,3.25rem)] leading-[1.05] font-semibold tracking-[-0.035em]">
+              Do the thing to your PDF. Nothing leaves your laptop.
+            </h1>
+            <p className="text-muted-foreground mt-5 max-w-[54ch] text-[15px] leading-relaxed sm:text-[16px]">
+              {siteConfig.name} is a set of small, fast PDF tools that run entirely inside this
+              browser tab — merge, split, rotate, compress, convert. No upload step, no queue, no
+              account.
+            </p>
+            <div className="mt-7 flex flex-wrap items-center gap-3">
+              <Link
+                to="/tools"
+                className="bg-accent text-accent-foreground hover:bg-accent/90 inline-flex h-11 items-center rounded-[3px] px-5 text-[14px] font-medium transition-colors"
+              >
+                Browse all tools
+              </Link>
+              <Link
+                to="/tools/$slug"
+                params={{ slug: "merge" }}
+                className="border-border-strong hover:bg-secondary inline-flex h-11 items-center rounded-[3px] border px-5 text-[14px] transition-colors"
+              >
+                Merge a PDF now
+              </Link>
+            </div>
           </div>
-        </div>
-      </section>
 
-      {/* Tools */}
-      <section className="mx-auto max-w-[1180px] px-4 sm:px-6 lg:px-8">
-        <div className="border-border flex items-baseline justify-between border-t pt-6">
-          <h2 className="label-xs">Tools</h2>
-          <Link
-            to="/tools"
-            className="text-muted-foreground hover:text-foreground text-[13px]"
-          >
-            All {tools.length}
-          </Link>
-        </div>
-        <div className="mt-5 grid gap-px sm:grid-cols-2 lg:grid-cols-3">
-          {[...featured, ...rest].slice(0, 6).map((tool) => (
-            <ToolCard key={tool.slug} tool={tool} />
-          ))}
+          {/* Right: tool grid in small boxes */}
+          <div className="border-border bg-surface-raised/30 border p-3 sm:p-4">
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <h2 className="label-xs">Jump in</h2>
+              <Link
+                to="/tools"
+                className="text-muted-foreground hover:text-foreground text-[12.5px]"
+              >
+                All {tools.length}
+              </Link>
+            </div>
+            <div className="grid gap-px sm:grid-cols-2">
+              {[...featured, ...rest].map((tool) => (
+                <ToolCard key={tool.slug} tool={tool} compact />
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
