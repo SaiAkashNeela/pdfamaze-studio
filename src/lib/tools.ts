@@ -87,7 +87,7 @@ export const tools: Tool[] = [
     minFiles: 1,
     featured: true,
     tag: "ORGANIZE",
-      {
+    fields: [
         name: "mode",
         label: "Method",
         type: "select",
@@ -127,6 +127,7 @@ export const tools: Tool[] = [
     multiple: false,
     minFiles: 1,
     featured: true,
+    tag: "OPTIMIZE",
     caveat: "Re-rendering pages removes selectable text, links and form fields.",
     fields: [
       {
@@ -166,7 +167,7 @@ export const tools: Tool[] = [
     multiple: false,
     minFiles: 1,
     tag: "EDIT",
-      {
+    fields: [
         name: "angle",
         label: "Turn by",
         type: "select",
@@ -198,7 +199,7 @@ export const tools: Tool[] = [
     multiple: false,
     minFiles: 1,
     tag: "ORGANIZE",
-      {
+    fields: [
         name: "order",
         label: "Page order",
         type: "text",
@@ -259,7 +260,7 @@ export const tools: Tool[] = [
     minFiles: 1,
     featured: true,
     tag: "CONVERT",
-      {
+    fields: [
         name: "fit",
         label: "Page size",
         type: "select",
@@ -290,7 +291,7 @@ export const tools: Tool[] = [
     multiple: false,
     minFiles: 1,
     tag: "CONVERT",
-      {
+    fields: [
         name: "format",
         label: "Format",
         type: "select",
@@ -325,6 +326,7 @@ export const tools: Tool[] = [
     acceptLabel: "One password-protected PDF",
     multiple: false,
     minFiles: 1,
+    tag: "SECURITY",
     caveat: "Unlocked pages are rebuilt as images, so text is no longer selectable.",
     fields: [{ name: "password", label: "Document password", type: "password", default: "" }],
     seo: {
