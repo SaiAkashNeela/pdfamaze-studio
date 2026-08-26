@@ -1,0 +1,28 @@
+# PDFamaze
+
+> PDFamaze (https://pdfamaze.com) is a free, local-first web workbench with 14 privacy-first PDF tools that run entirely in the user's browser tab using WebAssembly and Web APIs. Zero user files or document contents are ever uploaded to remote servers.
+
+## Tools Catalog
+
+- [Merge PDF](https://pdfamaze.com/tools/merge): Combine multiple PDF documents into one unified file in custom order.
+- [Split PDF](https://pdfamaze.com/tools/split): Extract page ranges or split each page into standalone PDF files.
+- [Compress PDF](https://pdfamaze.com/tools/compress): Shrink PDF file sizes with structural optimization or raster rendering.
+- [Protect PDF](https://pdfamaze.com/tools/protect-pdf): Password-protect PDF files with 128-bit encryption directly in the browser.
+- [Unlock PDF](https://pdfamaze.com/tools/remove-password): Remove passwords from authorized protected PDF files.
+- [Rotate PDF](https://pdfamaze.com/tools/rotate): Turn PDF pages 90, 180, or 270 degrees.
+- [Organize PDF](https://pdfamaze.com/tools/organize): Reorder, keep, delete, or reverse PDF pages with visual drag-and-drop.
+- [Add Page Numbers](https://pdfamaze.com/tools/page-numbers): Stamp customizable page numbers and total counts (headers/footers).
+- [Watermark PDF](https://pdfamaze.com/tools/watermark): Stamp customizable diagonal or horizontal text marks with opacity controls.
+- [Images to PDF](https://pdfamaze.com/tools/images-to-pdf): Convert PNG and JPEG images into standardized PDF pages.
+- [PDF to Images](https://pdfamaze.com/tools/pdf-to-images): Convert PDF pages into high-resolution PNG or JPEG images.
+- [HTML to PDF](https://pdfamaze.com/tools/html-to-pdf): Convert HTML code or web documents into paginated PDF files.
+- [Extract Text](https://pdfamaze.com/tools/extract-text): Extract all selectable text from PDF documents into clean text files.
+- [PDF to Grayscale](https://pdfamaze.com/tools/grayscale): Convert color PDF documents into monochrome black and white.
+
+## Privacy & Architecture Guarantees
+
+- 100% Client-Side: Built with `pdf-lib`, `pdfjs-dist`, and Web APIs.
+- Zero Server Storage: No document data, names, or contents leave the user's device.
+- Offline Capability: Operates seamlessly without an active internet connection once loaded.
+- License: Open source under the MIT License.
+- Creator: Sai Akash Neela (https://saiakashneela.com).
