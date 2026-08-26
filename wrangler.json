@@ -9,5 +9,11 @@
   "assets": {
     "directory": ".output/public",
     "binding": "ASSETS"
-  }
+  },
+  "routes": [
+    {
+      "pattern": "pdfamaze.com",
+      "custom_domain": true
+    }
+  ]
 }
