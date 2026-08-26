@@ -58,7 +58,7 @@ export const tools: Tool[] = [
     action: "Merge PDFs",
     summary: "Combine several PDFs into one, in the order you choose.",
     about:
-      "Pages are copied from each document into a single new file. Drag files in the list to change the order before merging.",
+      "Pages are copied from each document into a single new file. Use the arrows in the list to change the order before merging.",
     accept: "application/pdf",
     acceptLabel: "PDF files",
     multiple: true,
