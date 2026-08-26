@@ -41,7 +41,7 @@ function ToolsIndex() {
 
       <section className="mt-10">
         <h2 className="label-xs border-border border-t pt-5">Everyday</h2>
-        <div className="mt-4 grid gap-px sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {featured.map((tool) => (
             <ToolCard key={tool.slug} tool={tool} />
           ))}
@@ -50,7 +50,7 @@ function ToolsIndex() {
 
       <section className="mt-12">
         <h2 className="label-xs border-border border-t pt-5">Page-level edits &amp; conversion</h2>
-        <div className="mt-4 grid gap-px sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {rest.map((tool) => (
             <ToolCard key={tool.slug} tool={tool} />
           ))}
