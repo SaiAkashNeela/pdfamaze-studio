@@ -46,6 +46,36 @@ function isH3SwallowedErrorBody(body: string): boolean {
 
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
+    const url = new URL(request.url);
+
+    // Provide Cloudflare edge geographic telemetry
+    if (url.pathname === "/api/geo") {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const cf = (request as any).cf || {};
+      const country = cf.country || request.headers.get("cf-ipcountry") || "GB";
+      const city = cf.city || request.headers.get("cf-ipcity") || "London";
+      const region = cf.region || request.headers.get("cf-region") || "England";
+      const colo = cf.colo || request.headers.get("cf-ray")?.split("-").pop() || "LHR";
+      const timezone = cf.timezone || request.headers.get("cf-timezone") || "UTC";
+
+      return new Response(
+        JSON.stringify({
+          country,
+          city,
+          region,
+          colo,
+          timezone,
+        }),
+        {
+          headers: {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store",
+            "access-control-allow-origin": "*",
+          },
+        },
+      );
+    }
+
     try {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);

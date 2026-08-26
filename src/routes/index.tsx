@@ -4,8 +4,16 @@ import { ToolCard } from "@/components/site/ToolCard";
 import { siteConfig } from "@/lib/site-config";
 import { tools } from "@/lib/tools";
 import { trackPageView } from "@/lib/analytics";
+import { getGeoTelemetry } from "@/lib/server/geo";
 
 export const Route = createFileRoute("/")({
+  loader: async () => {
+    try {
+      return await getGeoTelemetry();
+    } catch {
+      return null;
+    }
+  },
   head: () => ({
     meta: [
       { title: `${siteConfig.name} — PDF tools that run in your browser` },
@@ -18,9 +26,15 @@ export const Route = createFileRoute("/")({
 });
 
 function Home() {
+  const geo = Route.useLoaderData();
+
   useEffect(() => {
-    trackPageView();
-  }, []);
+    if (geo?.country) {
+      trackPageView(geo);
+    } else {
+      trackPageView();
+    }
+  }, [geo]);
 
   const featured = tools.filter((t) => t.featured);
   const rest = tools.filter((t) => !t.featured);
