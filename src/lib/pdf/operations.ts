@@ -13,6 +13,12 @@ import {
   type ProgressFn,
 } from "./core";
 
+function requireFile(files: File[]): File {
+  const file = files[0];
+  if (!file) fail("Choose a file to get started.");
+  return file;
+}
+
 /* ------------------------------------------------------------------ merge */
 
 export async function mergePdfs(files: File[], progress: ProgressFn): Promise<OutputFile[]> {
@@ -20,8 +26,8 @@ export async function mergePdfs(files: File[], progress: ProgressFn): Promise<Ou
   const { PDFDocument } = await loadPdfLib();
   const out = await PDFDocument.create();
   for (let i = 0; i < files.length; i++) {
-    progress(`Reading ${files[i].name}`, (i + 1) / (files.length + 1));
-    const doc = await openDocument(files[i]);
+    progress(`Reading ${files[i]!.name}`, (i + 1) / (files.length + 1));
+    const doc = await openDocument(files[i]!);
     const pages = await out.copyPages(doc, doc.getPageIndices());
     pages.forEach((p) => out.addPage(p));
   }
@@ -36,7 +42,7 @@ export async function splitPdf(
   opts: { mode: string; ranges: string },
   progress: ProgressFn,
 ): Promise<OutputFile[]> {
-  const file = files[0];
+  const file = requireFile(files);
   const { PDFDocument } = await loadPdfLib();
   const src = await openDocument(file);
   const count = src.getPageCount();
@@ -73,7 +79,7 @@ export async function rotatePdf(
   opts: { angle: string; pages: string },
   progress: ProgressFn,
 ): Promise<OutputFile[]> {
-  const file = files[0];
+  const file = requireFile(files);
   const { degrees } = await loadPdfLib();
   const doc = await openDocument(file);
   const targets = new Set(parsePageRanges(opts.pages, doc.getPageCount()));
@@ -94,7 +100,7 @@ export async function organizePdf(
   opts: { order: string; reverse: boolean },
   progress: ProgressFn,
 ): Promise<OutputFile[]> {
-  const file = files[0];
+  const file = requireFile(files);
   const { PDFDocument } = await loadPdfLib();
   const src = await openDocument(file);
   const count = src.getPageCount();
@@ -115,7 +121,7 @@ export async function watermarkPdf(
   opts: { text: string; opacity: number; size: number; diagonal: boolean },
   progress: ProgressFn,
 ): Promise<OutputFile[]> {
-  const file = files[0];
+  const file = requireFile(files);
   const text = opts.text.trim();
   if (!text) fail("Type the watermark text you want stamped on each page.");
   const { StandardFonts, degrees, rgb } = await loadPdfLib();
@@ -155,7 +161,7 @@ export async function compressPdf(
   opts: { mode: string; quality: number; scale: number },
   progress: ProgressFn,
 ): Promise<OutputFile[]> {
-  const file = files[0];
+  const file = requireFile(files);
   const name = baseName(file.name);
 
   if (opts.mode === "structure") {
@@ -195,7 +201,7 @@ export async function imagesToPdf(
   const doc = await PDFDocument.create();
   const A4: [number, number] = [595.28, 841.89];
   for (let i = 0; i < files.length; i++) {
-    const file = files[i];
+    const file = files[i]!;
     progress(`Placing ${file.name}`, (i + 1) / files.length);
     const bytes = await readBytes(file);
     const isPng = /png$/i.test(file.type) || /\.png$/i.test(file.name);
@@ -227,7 +233,7 @@ export async function pdfToImages(
   opts: { format: string; scale: number; pages: string },
   progress: ProgressFn,
 ): Promise<OutputFile[]> {
-  const file = files[0];
+  const file = requireFile(files);
   const pdfjs = await loadPdfjs();
   const src = await pdfjs
     .getDocument({ data: await readBytes(file) })
@@ -236,7 +242,7 @@ export async function pdfToImages(
   const name = baseName(file.name);
   const out: OutputFile[] = [];
   for (let n = 0; n < indices.length; n++) {
-    const i = indices[n];
+    const i = indices[n]!;
     progress(`Rendering page ${i + 1}`, (n + 1) / indices.length);
     const page = await src.getPage(i + 1);
     const canvas = await renderPageToCanvas(page, opts.scale);
@@ -258,7 +264,7 @@ export async function decryptPdf(
   opts: { password: string },
   progress: ProgressFn,
 ): Promise<OutputFile[]> {
-  const file = files[0];
+  const file = requireFile(files);
   const pdfjs = await loadPdfjs();
   const { PDFDocument } = await loadPdfLib();
   progress("Unlocking document");
