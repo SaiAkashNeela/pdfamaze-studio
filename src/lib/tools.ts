@@ -66,7 +66,7 @@ export const tools: Tool[] = [
     multiple: true,
     minFiles: 2,
     featured: true,
-    fields: [],
+    tag: "ORGANIZE",
     seo: {
       title: "Merge PDF files in your browser",
       description:
@@ -86,7 +86,7 @@ export const tools: Tool[] = [
     multiple: false,
     minFiles: 1,
     featured: true,
-    fields: [
+    tag: "ORGANIZE",
       {
         name: "mode",
         label: "Method",
@@ -165,7 +165,7 @@ export const tools: Tool[] = [
     acceptLabel: "One PDF",
     multiple: false,
     minFiles: 1,
-    fields: [
+    tag: "EDIT",
       {
         name: "angle",
         label: "Turn by",
@@ -197,7 +197,7 @@ export const tools: Tool[] = [
     acceptLabel: "One PDF",
     multiple: false,
     minFiles: 1,
-    fields: [
+    tag: "ORGANIZE",
       {
         name: "order",
         label: "Page order",
@@ -225,7 +225,7 @@ export const tools: Tool[] = [
     acceptLabel: "One PDF",
     multiple: false,
     minFiles: 1,
-    fields: [
+    tag: "EDIT",
       { name: "text", label: "Watermark text", type: "text", default: "DRAFT", placeholder: "CONFIDENTIAL" },
       { name: "size", label: "Size", type: "range", min: 18, max: 96, step: 2, default: 52, unit: "pt" },
       { name: "opacity", label: "Opacity", type: "range", min: 5, max: 60, step: 5, default: 20, unit: "%" },
@@ -258,7 +258,7 @@ export const tools: Tool[] = [
     multiple: true,
     minFiles: 1,
     featured: true,
-    fields: [
+    tag: "CONVERT",
       {
         name: "fit",
         label: "Page size",
@@ -289,7 +289,7 @@ export const tools: Tool[] = [
     acceptLabel: "One PDF",
     multiple: false,
     minFiles: 1,
-    fields: [
+    tag: "CONVERT",
       {
         name: "format",
         label: "Format",
