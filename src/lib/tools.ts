@@ -26,6 +26,8 @@ export type Field =
 
 export type FieldValues = Record<string, string | number | boolean>;
 
+export type ToolTag = "ORGANIZE" | "OPTIMIZE" | "EDIT" | "CONVERT" | "SECURITY" | "SHARE";
+
 export type Tool = {
   slug: string;
   name: string;
@@ -43,6 +45,8 @@ export type Tool = {
   featured?: boolean;
   /** Honest caveat shown near the controls, when there is one. */
   caveat?: string;
+  /** Short category label shown on the compact card. */
+  tag?: ToolTag;
   fields: Field[];
   fieldsFor?: (values: FieldValues) => string[];
   seo: { title: string; description: string };
@@ -64,6 +68,7 @@ export const tools: Tool[] = [
     multiple: true,
     minFiles: 2,
     featured: true,
+    tag: "ORGANIZE",
     fields: [],
     seo: {
       title: "Merge PDF files in your browser",
@@ -84,6 +89,7 @@ export const tools: Tool[] = [
     multiple: false,
     minFiles: 1,
     featured: true,
+    tag: "ORGANIZE",
     fields: [
       {
         name: "mode",
@@ -125,6 +131,7 @@ export const tools: Tool[] = [
     multiple: false,
     minFiles: 1,
     featured: true,
+    tag: "OPTIMIZE",
     caveat: "Re-rendering pages removes selectable text, links and form fields.",
     fields: [
       {
@@ -163,6 +170,7 @@ export const tools: Tool[] = [
     acceptLabel: "One PDF",
     multiple: false,
     minFiles: 1,
+    tag: "EDIT",
     fields: [
       {
         name: "angle",
@@ -195,6 +203,7 @@ export const tools: Tool[] = [
     acceptLabel: "One PDF",
     multiple: false,
     minFiles: 1,
+    tag: "ORGANIZE",
     fields: [
       {
         name: "order",
@@ -223,6 +232,7 @@ export const tools: Tool[] = [
     acceptLabel: "One PDF",
     multiple: false,
     minFiles: 1,
+    tag: "EDIT",
     fields: [
       { name: "text", label: "Watermark text", type: "text", default: "DRAFT", placeholder: "CONFIDENTIAL" },
       { name: "size", label: "Size", type: "range", min: 18, max: 96, step: 2, default: 52, unit: "pt" },
@@ -256,6 +266,7 @@ export const tools: Tool[] = [
     multiple: true,
     minFiles: 1,
     featured: true,
+    tag: "CONVERT",
     fields: [
       {
         name: "fit",
@@ -287,6 +298,7 @@ export const tools: Tool[] = [
     acceptLabel: "One PDF",
     multiple: false,
     minFiles: 1,
+    tag: "CONVERT",
     fields: [
       {
         name: "format",
@@ -323,6 +335,7 @@ export const tools: Tool[] = [
     acceptLabel: "One password-protected PDF",
     multiple: false,
     minFiles: 1,
+    tag: "SECURITY",
     caveat: "Unlocked pages are rebuilt as images, so text is no longer selectable.",
     fields: [{ name: "password", label: "Document password", type: "password", default: "" }],
     seo: {

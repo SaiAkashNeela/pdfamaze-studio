@@ -24,7 +24,7 @@ function Home() {
       {/* Hero + tools split: claim on the left, immediate tool boxes on the right. */}
       <section className="relative overflow-hidden">
         <div aria-hidden className="rule-grid pointer-events-none absolute inset-0" />
-        <div className="relative mx-auto grid max-w-[1180px] gap-8 px-4 pt-12 pb-10 sm:px-6 sm:pt-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)] lg:gap-10 lg:px-8 lg:pt-24 lg:pb-16">
+        <div className="relative mx-auto grid max-w-[1180px] gap-8 px-4 pt-12 pb-10 sm:px-6 sm:pt-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,680px)] lg:gap-10 lg:px-8 lg:pt-24 lg:pb-16">
           {/* Left: the claim */}
           <div className="lg:pt-4">
             <p className="label-xs">Local PDF workbench</p>
@@ -53,18 +53,18 @@ function Home() {
             </div>
           </div>
 
-          {/* Right: tool grid in small boxes */}
-          <div className="border-border bg-surface-raised/30 border p-3 sm:p-4">
-            <div className="mb-3 flex items-center justify-between gap-2">
+          {/* Right: compact tool grid */}
+          <div className="bg-surface-raised/60 border-border rounded-2xl border p-3 shadow-sm sm:p-4">
+            <div className="mb-3 flex items-center justify-between gap-2 px-1">
               <h2 className="label-xs">Jump in</h2>
               <Link
                 to="/tools"
-                className="text-muted-foreground hover:text-foreground text-[12.5px]"
+                className="text-muted-foreground hover:text-foreground text-[12.5px] font-medium"
               >
                 All {tools.length}
               </Link>
             </div>
-            <div className="grid gap-px sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {[...featured, ...rest].map((tool) => (
                 <ToolCard key={tool.slug} tool={tool} compact />
               ))}

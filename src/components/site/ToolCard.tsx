@@ -1,6 +1,29 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowRight } from "lucide-react";
-import type { Tool } from "@/lib/tools";
+import { ChevronRight } from "lucide-react";
+import type { Tool, ToolTag } from "@/lib/tools";
+
+const tagClasses: Record<ToolTag, string> = {
+  ORGANIZE: "bg-tag-organize",
+  OPTIMIZE: "bg-tag-optimize",
+  EDIT: "bg-tag-edit",
+  CONVERT: "bg-tag-convert",
+  SECURITY: "bg-tag-security",
+  SHARE: "bg-tag-share",
+};
+
+function ToolIcon({ tool, compact }: { tool: Tool; compact?: boolean }) {
+  const initial = tool.name.charAt(0).toUpperCase();
+  return (
+    <span
+      className={`grid shrink-0 place-items-center rounded-[10px] font-semibold text-tag-icon-foreground shadow-sm ${
+        compact ? "h-9 w-9 text-[13px]" : "h-10 w-10 text-[14px]"
+      } ${tool.tag ? tagClasses[tool.tag] : "bg-muted text-muted-foreground"}`}
+      aria-hidden
+    >
+      {initial}
+    </span>
+  );
+}
 
 export function ToolCard({
   tool,
@@ -15,35 +38,37 @@ export function ToolCard({
     <Link
       to="/tools/$slug"
       params={{ slug: tool.slug }}
-      className={`group border-border bg-surface-raised hover:border-border-strong relative flex flex-col border transition-colors ${
-        compact ? "p-3" : "p-4 sm:p-5"
+      className={`group bg-card text-card-foreground hover:border-border-strong hover:shadow-sm relative flex flex-col overflow-hidden rounded-xl border border-border transition-all ${
+        compact ? "p-3.5" : "p-4 sm:p-5"
       } ${emphasis ? "sm:col-span-2" : ""}`}
     >
-      <span
-        aria-hidden
-        className="bg-accent absolute top-0 left-0 h-[2px] w-0 transition-[width] duration-200 group-hover:w-10"
-      />
-      <h3 className={`font-medium tracking-[-0.01em] ${compact ? "text-[13.5px]" : "text-[15px]"}`}>
+      <div className="flex items-start justify-between gap-3">
+        <ToolIcon tool={tool} compact={compact} />
+        {tool.tag && (
+          <span className="bg-secondary text-secondary-foreground rounded-full px-2 py-[3px] text-[10px] font-medium uppercase tracking-wider">
+            {tool.tag}
+          </span>
+        )}
+      </div>
+
+      <h3 className={`mt-3 font-semibold tracking-[-0.015em] ${compact ? "text-[14px]" : "text-[16px]"}`}>
         {tool.name}
       </h3>
       <p
-        className={`text-muted-foreground mt-1 max-w-[46ch] leading-relaxed ${
-          compact ? "text-[12px]" : "mt-1.5 text-[13.5px]"
+        className={`text-muted-foreground mt-1 leading-snug ${
+          compact ? "line-clamp-2 min-h-[2.4em] text-[12.5px]" : "text-[14px]"
         }`}
       >
         {tool.summary}
       </p>
+
       <span
-        className={`text-muted-foreground group-hover:text-foreground mt-auto inline-flex items-center gap-1.5 font-mono uppercase transition-colors ${
-          compact ? "pt-3 text-[10.5px] tracking-[0.06em]" : "mt-4 text-[11.5px] tracking-[0.06em]"
+        className={`text-accent mt-auto inline-flex items-center gap-0.5 font-medium transition-all group-hover:gap-1 ${
+          compact ? "pt-3 text-[12.5px]" : "mt-4 text-[13.5px]"
         }`}
       >
-        Open
-        <ArrowRight
-          className="h-3 w-3 transition-transform group-hover:translate-x-0.5"
-          strokeWidth={2}
-          aria-hidden
-        />
+        Open Tool
+        <ChevronRight className="h-4 w-4" strokeWidth={2} aria-hidden />
       </span>
     </Link>
   );
