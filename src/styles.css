@@ -47,6 +47,15 @@
   --color-surface: var(--surface);
   --color-surface-raised: var(--surface-raised);
   --color-ring-offset-background: var(--background);
+
+  /* tool category tags */
+  --color-tag-organize: var(--tag-organize);
+  --color-tag-optimize: var(--tag-optimize);
+  --color-tag-edit: var(--tag-edit);
+  --color-tag-convert: var(--tag-convert);
+  --color-tag-security: var(--tag-security);
+  --color-tag-share: var(--tag-share);
+  --color-tag-icon-foreground: var(--tag-icon-foreground);
 }
 
 :root {
@@ -82,6 +91,15 @@
   --border-strong: oklch(0.79 0.01 80);
   --input: oklch(0.87 0.009 80);
   --ring: oklch(0.575 0.168 36);
+
+  /* tool category tags */
+  --tag-organize: oklch(0.55 0.14 250);
+  --tag-optimize: oklch(0.6 0.16 45);
+  --tag-edit: oklch(0.55 0.14 150);
+  --tag-convert: oklch(0.55 0.16 300);
+  --tag-security: oklch(0.55 0.16 15);
+  --tag-share: oklch(0.55 0.14 200);
+  --tag-icon-foreground: oklch(1 0 0);
 }
 
 .dark {
@@ -112,6 +130,15 @@
   --border-strong: oklch(0.4 0.01 70);
   --input: oklch(0.34 0.009 70);
   --ring: oklch(0.665 0.155 40);
+
+  /* tool category tags */
+  --tag-organize: oklch(0.6 0.13 250);
+  --tag-optimize: oklch(0.65 0.15 45);
+  --tag-edit: oklch(0.6 0.13 150);
+  --tag-convert: oklch(0.6 0.15 300);
+  --tag-security: oklch(0.6 0.15 15);
+  --tag-share: oklch(0.6 0.13 200);
+  --tag-icon-foreground: oklch(1 0 0);
 }
 
 @layer base {
