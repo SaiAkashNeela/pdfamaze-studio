@@ -11,7 +11,9 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CoffeeRouteImport } from './routes/coffee'
+import { Route as FaqRouteImport } from './routes/faq'
 import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as StatsRouteImport } from './routes/stats'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as ToolsIndexRouteImport } from './routes/tools/index'
 import { Route as ToolsSlugRouteImport } from './routes/tools/$slug'
@@ -26,9 +28,19 @@ const CoffeeRoute = CoffeeRouteImport.update({
   path: '/coffee',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FaqRoute = FaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StatsRoute = StatsRouteImport.update({
+  id: '/stats',
+  path: '/stats',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TermsRoute = TermsRouteImport.update({
@@ -50,7 +62,9 @@ const ToolsSlugRoute = ToolsSlugRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/coffee': typeof CoffeeRoute
+  '/faq': typeof FaqRoute
   '/privacy': typeof PrivacyRoute
+  '/stats': typeof StatsRoute
   '/terms': typeof TermsRoute
   '/tools/$slug': typeof ToolsSlugRoute
   '/tools/': typeof ToolsIndexRoute
@@ -58,7 +72,9 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/coffee': typeof CoffeeRoute
+  '/faq': typeof FaqRoute
   '/privacy': typeof PrivacyRoute
+  '/stats': typeof StatsRoute
   '/terms': typeof TermsRoute
   '/tools/$slug': typeof ToolsSlugRoute
   '/tools': typeof ToolsIndexRoute
@@ -67,7 +83,9 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/coffee': typeof CoffeeRoute
+  '/faq': typeof FaqRoute
   '/privacy': typeof PrivacyRoute
+  '/stats': typeof StatsRoute
   '/terms': typeof TermsRoute
   '/tools/$slug': typeof ToolsSlugRoute
   '/tools/': typeof ToolsIndexRoute
@@ -75,14 +93,31 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/coffee' | '/privacy' | '/terms' | '/tools/$slug' | '/tools/'
+    | '/'
+    | '/coffee'
+    | '/faq'
+    | '/privacy'
+    | '/stats'
+    | '/terms'
+    | '/tools/$slug'
+    | '/tools/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/coffee' | '/privacy' | '/terms' | '/tools/$slug' | '/tools'
+  to:
+    | '/'
+    | '/coffee'
+    | '/faq'
+    | '/privacy'
+    | '/stats'
+    | '/terms'
+    | '/tools/$slug'
+    | '/tools'
   id:
     | '__root__'
     | '/'
     | '/coffee'
+    | '/faq'
     | '/privacy'
+    | '/stats'
     | '/terms'
     | '/tools/$slug'
     | '/tools/'
@@ -91,7 +126,9 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CoffeeRoute: typeof CoffeeRoute
+  FaqRoute: typeof FaqRoute
   PrivacyRoute: typeof PrivacyRoute
+  StatsRoute: typeof StatsRoute
   TermsRoute: typeof TermsRoute
   ToolsSlugRoute: typeof ToolsSlugRoute
   ToolsIndexRoute: typeof ToolsIndexRoute
@@ -113,11 +150,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CoffeeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/faq': {
+      id: '/faq'
+      path: '/faq'
+      fullPath: '/faq'
+      preLoaderRoute: typeof FaqRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/privacy': {
       id: '/privacy'
       path: '/privacy'
       fullPath: '/privacy'
       preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/stats': {
+      id: '/stats'
+      path: '/stats'
+      fullPath: '/stats'
+      preLoaderRoute: typeof StatsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/terms': {
@@ -147,7 +198,9 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CoffeeRoute: CoffeeRoute,
+  FaqRoute: FaqRoute,
   PrivacyRoute: PrivacyRoute,
+  StatsRoute: StatsRoute,
   TermsRoute: TermsRoute,
   ToolsSlugRoute: ToolsSlugRoute,
   ToolsIndexRoute: ToolsIndexRoute,

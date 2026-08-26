@@ -1,7 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { ToolCard } from "@/components/site/ToolCard";
 import { siteConfig } from "@/lib/site-config";
 import { tools } from "@/lib/tools";
+import { trackPageView } from "@/lib/analytics";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -16,6 +18,10 @@ export const Route = createFileRoute("/")({
 });
 
 function Home() {
+  useEffect(() => {
+    trackPageView();
+  }, []);
+
   const featured = tools.filter((t) => t.featured);
   const rest = tools.filter((t) => !t.featured);
 
@@ -28,12 +34,12 @@ function Home() {
           {/* Left: the claim */}
           <div className="lg:pt-4">
             <p className="label-xs">Local PDF workbench</p>
-            <h1 className="mt-4 max-w-[18ch] text-[clamp(2rem,5.2vw,3.25rem)] leading-[1.05] font-semibold tracking-[-0.035em]">
+            <h1 className="mt-4 max-w-[18ch] text-[clamp(2rem,5.2vw,3.25rem)] leading-[1.05] font-semibold tracking-[-0.03em]">
               Do the thing to your PDF. Nothing leaves your laptop.
             </h1>
             <p className="text-muted-foreground mt-5 max-w-[54ch] text-[15px] leading-relaxed sm:text-[16px]">
-              {siteConfig.name} is a set of small, fast PDF tools that run entirely inside this
-              browser tab — merge, split, rotate, compress, convert. No upload step, no queue, no
+              {siteConfig.name} is a set of {tools.length} small, fast PDF tools that run entirely inside this
+              browser tab — merge, split, rotate, compress, protect, unlock, and convert. No upload step, no queue, no
               account.
             </p>
             <div className="mt-7 flex flex-wrap items-center gap-3">
@@ -41,7 +47,7 @@ function Home() {
                 to="/tools"
                 className="bg-accent text-accent-foreground hover:bg-accent/90 inline-flex h-11 items-center rounded-[3px] px-5 text-[14px] font-medium transition-colors"
               >
-                Browse all tools
+                Browse all {tools.length} tools
               </Link>
               <Link
                 to="/tools/$slug"

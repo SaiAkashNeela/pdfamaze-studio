@@ -1,6 +1,6 @@
 /**
  * Low-level helpers shared by every PDF operation.
- * Everything here runs in the browser; no file ever leaves the device.
+ * Everything here runs client-side in the browser; no file ever leaves the device.
  */
 
 export type OutputFile = { name: string; blob: Blob };
@@ -17,11 +17,15 @@ export async function readBytes(file: File): Promise<Uint8Array> {
   return new Uint8Array(await file.arrayBuffer());
 }
 
-export function baseName(name: string) {
+export async function readText(file: File): Promise<string> {
+  return await file.text();
+}
+
+export function baseName(name: string): string {
   return name.replace(/\.[^.]+$/, "");
 }
 
-export function formatBytes(bytes: number) {
+export function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
@@ -47,12 +51,14 @@ export function parsePageRanges(input: string, pageCount: number): number[] {
 
 let pdfjsPromise: Promise<typeof import("pdfjs-dist")> | null = null;
 
-/** pdf.js is only loaded by tools that rasterise pages. */
+/** pdf.js is only loaded by tools that rasterise pages or extract text. */
 export async function loadPdfjs() {
   if (!pdfjsPromise) {
     pdfjsPromise = (async () => {
-      const pdfjs = await import("pdfjs-dist");
-      const worker = await import("pdfjs-dist/build/pdf.worker.min.mjs?url");
+      const [pdfjs, worker] = await Promise.all([
+        import("pdfjs-dist"),
+        import("pdfjs-dist/build/pdf.worker.min.mjs?url"),
+      ]);
       pdfjs.GlobalWorkerOptions.workerSrc = worker.default;
       return pdfjs;
     })();
@@ -65,9 +71,9 @@ export async function loadPdfLib() {
 }
 
 export async function openDocument(file: File, options?: { ignoreEncryption?: boolean }) {
-  const { PDFDocument } = await loadPdfLib();
+  const [bytes, { PDFDocument }] = await Promise.all([readBytes(file), loadPdfLib()]);
   try {
-    return await PDFDocument.load(await readBytes(file), {
+    return await PDFDocument.load(bytes, {
       ignoreEncryption: options?.ignoreEncryption ?? true,
     });
   } catch {
@@ -75,11 +81,15 @@ export async function openDocument(file: File, options?: { ignoreEncryption?: bo
   }
 }
 
-export function pdfBlob(bytes: Uint8Array) {
+export function pdfBlob(bytes: Uint8Array): Blob {
   return new Blob([bytes as unknown as BlobPart], { type: "application/pdf" });
 }
 
-export function downloadFile(file: OutputFile) {
+export function textBlob(text: string): Blob {
+  return new Blob([text], { type: "text/plain;charset=utf-8" });
+}
+
+export function downloadFile(file: OutputFile): void {
   const url = URL.createObjectURL(file.blob);
   const a = document.createElement("a");
   a.href = url;
@@ -104,11 +114,11 @@ export async function renderPageToCanvas(
   if (!context) fail("Your browser blocked canvas rendering, so this page can't be drawn.");
   context.fillStyle = "#ffffff";
   context.fillRect(0, 0, canvas.width, canvas.height);
-  await page.render({ canvas, canvasContext: context, viewport }).promise;
+  await page.render({ canvasContext: context, viewport }).promise;
   return canvas;
 }
 
-export function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality?: number) {
+export function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality?: number): Promise<Blob> {
   return new Promise<Blob>((resolve) =>
     canvas.toBlob((b) => resolve(b ?? new Blob()), type, quality),
   );

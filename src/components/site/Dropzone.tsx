@@ -1,4 +1,4 @@
-import { useCallback, useId, useRef, useState } from "react";
+import { useCallback, useId, useMemo, useRef, useState } from "react";
 import { formatBytes } from "@/lib/pdf/core";
 
 type Props = {
@@ -22,6 +22,16 @@ export function Dropzone({ accept, acceptLabel, multiple, files, onFiles, disabl
   const [dragging, setDragging] = useState(false);
   const [rejected, setRejected] = useState<string | null>(null);
   const id = useId();
+
+  const fileEntries = useMemo(
+    () =>
+      files.map((file, position) => ({
+        keyId: `${file.name}-${file.size}-${file.lastModified}-${position}`,
+        file,
+        position,
+      })),
+    [files],
+  );
 
   const accepted = useCallback(
     (list: FileList | null) => {
@@ -58,7 +68,7 @@ export function Dropzone({ accept, acceptLabel, multiple, files, onFiles, disabl
           setDragging(false);
           if (!disabled) accepted(e.dataTransfer.files);
         }}
-        className={`relative rounded-[4px] border border-dashed transition-colors ${
+        className={`relative rounded-[4px] border border-dashed transition-colors duration-200 ${
           dragging
             ? "border-accent bg-accent/[0.06]"
             : "border-border-strong bg-surface hover:border-muted-foreground/60"
@@ -105,13 +115,13 @@ export function Dropzone({ accept, acceptLabel, multiple, files, onFiles, disabl
 
       {!empty ? (
         <ul className="border-border divide-border mt-3 divide-y rounded-[4px] border">
-          {files.map((file, i) => (
+          {fileEntries.map(({ keyId, file, position }) => (
             <li
-              key={`${file.name}-${i}`}
+              key={keyId}
               className="bg-surface-raised flex items-center gap-3 px-3 py-2.5 first:rounded-t-[3px] last:rounded-b-[3px]"
             >
               <span className="label-xs w-6 shrink-0 tabular-nums">
-                {String(i + 1).padStart(2, "0")}
+                {String(position + 1).padStart(2, "0")}
               </span>
               <span className="min-w-0 flex-1 truncate text-[13.5px]">{file.name}</span>
               <span className="text-muted-foreground shrink-0 font-mono text-[11.5px]">
@@ -121,12 +131,12 @@ export function Dropzone({ accept, acceptLabel, multiple, files, onFiles, disabl
                 <span className="flex shrink-0 items-center">
                   <button
                     type="button"
-                    disabled={i === 0 || disabled}
+                    disabled={position === 0 || disabled}
                     aria-label={`Move ${file.name} up`}
                     onClick={() => {
                       const next = [...files];
-                      const [f] = next.splice(i, 1);
-                      next.splice(i - 1, 0, f as File);
+                      const [f] = next.splice(position, 1);
+                      next.splice(position - 1, 0, f as File);
                       onFiles(next);
                     }}
                     className="text-muted-foreground hover:text-foreground h-7 w-6 disabled:opacity-30"
@@ -135,12 +145,12 @@ export function Dropzone({ accept, acceptLabel, multiple, files, onFiles, disabl
                   </button>
                   <button
                     type="button"
-                    disabled={i === files.length - 1 || disabled}
+                    disabled={position === files.length - 1 || disabled}
                     aria-label={`Move ${file.name} down`}
                     onClick={() => {
                       const next = [...files];
-                      const [f] = next.splice(i, 1);
-                      next.splice(i + 1, 0, f as File);
+                      const [f] = next.splice(position, 1);
+                      next.splice(position + 1, 0, f as File);
                       onFiles(next);
                     }}
                     className="text-muted-foreground hover:text-foreground h-7 w-6 disabled:opacity-30"
@@ -153,7 +163,7 @@ export function Dropzone({ accept, acceptLabel, multiple, files, onFiles, disabl
                 type="button"
                 disabled={disabled}
                 aria-label={`Remove ${file.name}`}
-                onClick={() => onFiles(files.filter((_, n) => n !== i))}
+                onClick={() => onFiles(files.filter((_, n) => n !== position))}
                 className="text-muted-foreground hover:text-destructive h-7 w-6 shrink-0 text-[15px] leading-none"
               >
                 ×

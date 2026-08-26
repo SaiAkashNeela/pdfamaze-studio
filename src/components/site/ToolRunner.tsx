@@ -1,53 +1,124 @@
-import { useMemo, useState } from "react";
+import { useMemo, useReducer } from "react";
 import { Check, Download, RotateCcw, TriangleAlert } from "lucide-react";
 import { Dropzone } from "./Dropzone";
 import { PrivacyNote } from "./PrivacyNote";
 import { downloadFile, formatBytes, PdfError, type OutputFile } from "@/lib/pdf/core";
 import { defaultValues, type FieldValues, type Tool } from "@/lib/tools";
+import { trackToolRun } from "@/lib/analytics";
 
 type Status = "idle" | "working" | "done" | "error";
 
+interface RunnerState {
+  files: File[];
+  values: FieldValues;
+  status: Status;
+  step: { label: string; ratio?: number | undefined };
+  results: OutputFile[];
+  error: string;
+}
+
+type RunnerAction =
+  | { type: "SET_FILES"; files: File[] }
+  | { type: "SET_VALUE"; name: string; value: string | number | boolean }
+  | { type: "START_RUN" }
+  | { type: "UPDATE_STEP"; label: string; ratio?: number | undefined }
+  | { type: "RUN_SUCCESS"; results: OutputFile[] }
+  | { type: "RUN_ERROR"; error: string }
+  | { type: "RESET"; tool: Tool };
+
+function runnerReducer(state: RunnerState, action: RunnerAction): RunnerState {
+  switch (action.type) {
+    case "SET_FILES":
+      return {
+        ...state,
+        files: action.files,
+        status: state.status !== "idle" ? "idle" : state.status,
+        results: state.status !== "idle" ? [] : state.results,
+        error: state.status !== "idle" ? "" : state.error,
+      };
+    case "SET_VALUE":
+      return {
+        ...state,
+        values: { ...state.values, [action.name]: action.value },
+      };
+    case "START_RUN":
+      return {
+        ...state,
+        status: "working",
+        error: "",
+        results: [],
+        step: { label: "Preparing" },
+      };
+    case "UPDATE_STEP":
+      return {
+        ...state,
+        step: { label: action.label, ratio: action.ratio },
+      };
+    case "RUN_SUCCESS":
+      return {
+        ...state,
+        status: "done",
+        results: action.results,
+      };
+    case "RUN_ERROR":
+      return {
+        ...state,
+        status: "error",
+        error: action.error,
+      };
+    case "RESET":
+      return {
+        files: [],
+        values: defaultValues(action.tool),
+        status: "idle",
+        step: { label: "" },
+        results: [],
+        error: "",
+      };
+    default:
+      return state;
+  }
+}
+
 export function ToolRunner({ tool }: { tool: Tool }) {
-  const [files, setFiles] = useState<File[]>([]);
-  const [values, setValues] = useState<FieldValues>(() => defaultValues(tool));
-  const [status, setStatus] = useState<Status>("idle");
-  const [step, setStep] = useState<{ label: string; ratio?: number | undefined }>({ label: "" });
-  const [results, setResults] = useState<OutputFile[]>([]);
-  const [error, setError] = useState<string>("");
+  const [state, dispatch] = useReducer(runnerReducer, null, () => ({
+    files: [],
+    values: defaultValues(tool),
+    status: "idle" as Status,
+    step: { label: "" },
+    results: [],
+    error: "",
+  }));
+
+  const { files, values, status, step, results, error } = state;
 
   const visible = useMemo(() => {
     const allowed = tool.fieldsFor?.(values);
-    return tool.fields.filter((f) => !allowed || allowed.includes(f.name));
+    const allowedSet = allowed ? new Set(allowed) : null;
+    return tool.fields.filter((f) => !allowedSet || allowedSet.has(f.name));
   }, [tool, values]);
 
   const enough = files.length >= tool.minFiles;
   const busy = status === "working";
 
-  const reset = () => {
-    setFiles([]);
-    setResults([]);
-    setError("");
-    setStatus("idle");
-    setStep({ label: "" });
-    setValues(defaultValues(tool));
+  const handleReset = () => {
+    dispatch({ type: "RESET", tool });
   };
 
   async function run() {
-    setStatus("working");
-    setError("");
-    setResults([]);
-    setStep({ label: "Preparing" });
+    dispatch({ type: "START_RUN" });
     try {
-      const out = await tool.run(files, values, (label, ratio) => setStep({ label, ratio }));
-      setResults(out);
-      setStatus("done");
+      const out = await tool.run(files, values, (label, ratio) => {
+        dispatch({ type: "UPDATE_STEP", label, ratio });
+      });
+      dispatch({ type: "RUN_SUCCESS", results: out });
+      trackToolRun(tool.slug);
     } catch (e) {
-      setError(
+      const msg =
         e instanceof PdfError
           ? e.message
-          : "Something went wrong while processing this file. It may be damaged or unsupported — try another file.",
-      );
-      setStatus("error");
+          : "Something went wrong while processing this file. It may be damaged or unsupported — try another file.";
+      dispatch({ type: "RUN_ERROR", error: msg });
     }
   }
 
@@ -59,14 +130,7 @@ export function ToolRunner({ tool }: { tool: Tool }) {
           acceptLabel={tool.acceptLabel}
           multiple={tool.multiple}
           files={files}
-          onFiles={(f) => {
-            setFiles(f);
-            if (status !== "idle") {
-              setStatus("idle");
-              setResults([]);
-              setError("");
-            }
-          }}
+          onFiles={(f) => dispatch({ type: "SET_FILES", files: f })}
           disabled={busy}
         />
 
@@ -124,7 +188,8 @@ export function ToolRunner({ tool }: { tool: Tool }) {
                     : `${results.length} files are ready`}
                 </span>
                 <button
-                  onClick={reset}
+                  type="button"
+                  onClick={handleReset}
                   className="text-muted-foreground hover:text-foreground ml-auto inline-flex items-center gap-1.5 text-[12.5px]"
                 >
                   <RotateCcw className="h-[13px] w-[13px]" strokeWidth={1.75} aria-hidden />
@@ -132,14 +197,16 @@ export function ToolRunner({ tool }: { tool: Tool }) {
                 </button>
               </div>
               <ul className="divide-border max-h-[320px] divide-y overflow-y-auto">
-                {results.map((f, i) => (
-                  <li key={i} className="flex items-center gap-3 px-4 py-2.5">
+                {results.map((f) => (
+                  <li key={`${f.name}-${f.blob.size}-${f.blob.type}`} className="flex items-center gap-3 px-4 py-2.5">
                     <span className="min-w-0 flex-1 truncate text-[13.5px]">{f.name}</span>
                     <span className="text-muted-foreground font-mono text-[11.5px]">
                       {formatBytes(f.blob.size)}
                     </span>
                     <button
+                      type="button"
                       onClick={() => downloadFile(f)}
+                      aria-label={`Save ${f.name}`}
                       className="border-border hover:bg-secondary inline-flex items-center gap-1.5 rounded-[3px] border px-2.5 py-1 text-[12.5px]"
                     >
                       <Download className="h-[13px] w-[13px]" strokeWidth={1.75} aria-hidden />
@@ -151,7 +218,8 @@ export function ToolRunner({ tool }: { tool: Tool }) {
               {results.length > 1 ? (
                 <div className="border-border border-t px-4 py-3">
                   <button
-                    onClick={() => results.forEach((f, i) => setTimeout(() => downloadFile(f), i * 250))}
+                    type="button"
+                    onClick={() => results.forEach((f, idx) => setTimeout(() => downloadFile(f), idx * 250))}
                     className="bg-primary text-primary-foreground w-full rounded-[3px] px-3 py-2 text-[13px] font-medium sm:w-auto"
                   >
                     Save all {results.length} files
@@ -177,7 +245,7 @@ export function ToolRunner({ tool }: { tool: Tool }) {
             const id = `field-${field.name}`;
             const value = values[field.name];
             const set = (v: string | number | boolean) =>
-              setValues((prev) => ({ ...prev, [field.name]: v }));
+              dispatch({ type: "SET_VALUE", name: field.name, value: v });
 
             return (
               <div key={field.name}>
@@ -271,6 +339,7 @@ export function ToolRunner({ tool }: { tool: Tool }) {
 
           <div className="border-border sticky bottom-0 -mx-4 border-t px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-[6px] lg:static lg:mx-0 lg:border-0 lg:px-0 lg:pb-0 lg:backdrop-blur-none">
             <button
+              type="button"
               onClick={run}
               disabled={!enough || busy}
               className="bg-accent text-accent-foreground hover:bg-accent/90 h-11 w-full rounded-[3px] text-[14px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40 lg:h-10"

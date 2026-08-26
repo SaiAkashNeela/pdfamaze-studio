@@ -1,7 +1,5 @@
 /**
  * Single place for external links and product metadata.
- * Replace the `null` values below; the UI hides or disables anything unset
- * rather than rendering a broken link.
  */
 export const siteConfig = {
   name: "PDFamaze",
@@ -9,14 +7,14 @@ export const siteConfig = {
   url: "https://pdfamaze.com",
   tagline: "PDF tools that run in your browser.",
   description:
-    "Merge, split, rotate, compress and convert PDFs in your browser. Files are processed on your device — nothing is uploaded to a server.",
+    "Merge, split, rotate, compress, encrypt, unlock, convert, and number PDFs locally in your browser tab. 100% private — zero server uploads.",
 
-  /** e.g. "https://github.com/you/pdfamaze" */
-  githubUrl: null as string | null,
-  /** e.g. "https://buymeacoffee.com/you" */
-  buyMeACoffeeUrl: null as string | null,
-  /** e.g. "hello@pdfamaze.com" */
-  contactEmail: null as string | null,
+  author: "Sai Akash Neela",
+  authorWebsite: "https://saiakashneela.com",
+  authorGithub: "https://github.com/SaiAkashNeela",
+  githubUrl: "https://github.com/SaiAkashNeela/pdfamaze-studio",
+  buyMeACoffeeUrl: "https://buymeacoffee.com/saiakashneela",
+  contactEmail: "hello@pdfamaze.com",
 };
 
 export type SiteConfig = typeof siteConfig;

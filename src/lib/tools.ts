@@ -53,7 +53,12 @@ export type Tool = {
   run: (files: File[], values: FieldValues, progress: ProgressFn) => Promise<OutputFile[]>;
 };
 
-const ops = () => import("./pdf/operations");
+const ops = () => {
+  if (typeof window === "undefined") {
+    return Promise.resolve({} as typeof import("./pdf/operations"));
+  }
+  return import("./pdf/operations");
+};
 
 export const tools: Tool[] = [
   {
@@ -110,14 +115,14 @@ export const tools: Tool[] = [
         hint: "Commas and ranges. Leave blank for every page.",
       },
     ],
-    fieldsFor: (v) => (v['mode'] === "each" ? ["mode"] : ["mode", "ranges"]),
+    fieldsFor: (v) => (v["mode"] === "each" ? ["mode"] : ["mode", "ranges"]),
     seo: {
       title: "Split a PDF without uploading it",
       description:
         "Extract page ranges or split a PDF into single pages, entirely in your browser.",
     },
     run: async (files, v, p) =>
-      (await ops()).splitPdf(files, { mode: String(v['mode']), ranges: String(v['ranges']) }, p),
+      (await ops()).splitPdf(files, { mode: String(v["mode"]), ranges: String(v["ranges"]) }, p),
   },
   {
     slug: "compress",
@@ -147,7 +152,7 @@ export const tools: Tool[] = [
       { name: "quality", label: "Image quality", type: "range", min: 30, max: 95, step: 5, default: 65, unit: "%" },
       { name: "scale", label: "Render scale", type: "range", min: 1, max: 3, step: 0.5, default: 1.5, unit: "×" },
     ],
-    fieldsFor: (v) => (v['mode'] === "raster" ? ["mode", "quality", "scale"] : ["mode"]),
+    fieldsFor: (v) => (v["mode"] === "raster" ? ["mode", "quality", "scale"] : ["mode"]),
     seo: {
       title: "Compress a PDF without uploading it to a server",
       description:
@@ -156,7 +161,7 @@ export const tools: Tool[] = [
     run: async (files, v, p) =>
       (await ops()).compressPdf(
         files,
-        { mode: String(v['mode']), quality: Number(v['quality']), scale: Number(v['scale']) },
+        { mode: String(v["mode"]), quality: Number(v["quality"]), scale: Number(v["scale"]) },
         p,
       ),
   },
@@ -190,7 +195,7 @@ export const tools: Tool[] = [
       description: "Fix sideways scans by rotating selected pages locally, with no upload.",
     },
     run: async (files, v, p) =>
-      (await ops()).rotatePdf(files, { angle: String(v['angle']), pages: String(v['pages']) }, p),
+      (await ops()).rotatePdf(files, { angle: String(v["angle"]), pages: String(v["pages"]) }, p),
   },
   {
     slug: "organize",
@@ -220,7 +225,7 @@ export const tools: Tool[] = [
       description: "Rearrange or remove pages from a PDF on your device, then download the result.",
     },
     run: async (files, v, p) =>
-      (await ops()).organizePdf(files, { order: String(v['order']), reverse: Boolean(v['reverse']) }, p),
+      (await ops()).organizePdf(files, { order: String(v["order"]), reverse: Boolean(v["reverse"]) }, p),
   },
   {
     slug: "watermark",
@@ -247,10 +252,10 @@ export const tools: Tool[] = [
       (await ops()).watermarkPdf(
         files,
         {
-          text: String(v['text']),
-          size: Number(v['size']),
-          opacity: Number(v['opacity']),
-          diagonal: Boolean(v['diagonal']),
+          text: String(v["text"]),
+          size: Number(v["size"]),
+          opacity: Number(v["opacity"]),
+          diagonal: Boolean(v["diagonal"]),
         },
         p,
       ),
@@ -280,13 +285,13 @@ export const tools: Tool[] = [
       },
       { name: "margin", label: "Margin", type: "range", min: 0, max: 72, step: 6, default: 36, unit: "pt" },
     ],
-    fieldsFor: (v) => (v['fit'] === "a4" ? ["fit", "margin"] : ["fit"]),
+    fieldsFor: (v) => (v["fit"] === "a4" ? ["fit", "margin"] : ["fit"]),
     seo: {
       title: "Convert images to a PDF in your browser",
       description: "Combine JPEG and PNG images into one PDF. Nothing is uploaded — it all runs locally.",
     },
     run: async (files, v, p) =>
-      (await ops()).imagesToPdf(files, { fit: String(v['fit']), margin: Number(v['margin']) }, p),
+      (await ops()).imagesToPdf(files, { fit: String(v["fit"]), margin: Number(v["margin"]) }, p),
   },
   {
     slug: "pdf-to-images",
@@ -320,13 +325,47 @@ export const tools: Tool[] = [
     run: async (files, v, p) =>
       (await ops()).pdfToImages(
         files,
-        { format: String(v['format']), scale: Number(v['scale']), pages: String(v['pages']) },
+        { format: String(v["format"]), scale: Number(v["scale"]), pages: String(v["pages"]) },
+        p,
+      ),
+  },
+  {
+    slug: "protect-pdf",
+    name: "Protect PDF (Encrypt)",
+    action: "Protect PDF",
+    summary: "Set a password and encrypt your PDF with 128-bit standard security.",
+    about:
+      "All encryption happens inside your browser. Your password and PDF are never sent to any server.",
+    accept: "application/pdf",
+    acceptLabel: "One PDF",
+    multiple: false,
+    minFiles: 1,
+    featured: true,
+    tag: "SECURITY",
+    fields: [
+      { name: "password", label: "Document Password", type: "password", default: "", hint: "Password required to open the PDF" },
+      { name: "confirmPassword", label: "Confirm Password", type: "password", default: "", hint: "Re-enter the password to match" },
+      { name: "ownerPassword", label: "Permissions Password (Optional)", type: "password", default: "", hint: "Optional password for editing/printing restrictions" },
+    ],
+    seo: {
+      title: "Encrypt and password protect PDF online",
+      description:
+        "Protect your sensitive PDF files with password encryption right in your browser. 100% private and secure.",
+    },
+    run: async (files, v, p) =>
+      (await ops()).encryptPdf(
+        files,
+        {
+          password: String(v["password"]),
+          confirmPassword: String(v["confirmPassword"]),
+          ownerPassword: String(v["ownerPassword"]),
+        },
         p,
       ),
   },
   {
     slug: "remove-password",
-    name: "Remove PDF password",
+    name: "Unlock PDF (Decrypt)",
     action: "Unlock PDF",
     summary: "Open a protected PDF you have the password for and save an unlocked copy.",
     about:
@@ -343,7 +382,182 @@ export const tools: Tool[] = [
       description:
         "Unlock a password-protected PDF locally in your browser and download an unrestricted copy.",
     },
-    run: async (files, v, p) => (await ops()).decryptPdf(files, { password: String(v['password']) }, p),
+    run: async (files, v, p) => (await ops()).decryptPdf(files, { password: String(v["password"]) }, p),
+  },
+  {
+    slug: "page-numbers",
+    name: "Add Page Numbers",
+    action: "Number pages",
+    summary: "Insert clean page numbering across your entire PDF document.",
+    about:
+      "Customise numbering position, starting index, font size, and layout format (e.g. Page 1 of N).",
+    accept: "application/pdf",
+    acceptLabel: "One PDF",
+    multiple: false,
+    minFiles: 1,
+    tag: "EDIT",
+    fields: [
+      {
+        name: "position",
+        label: "Number Position",
+        type: "select",
+        default: "bottom-center",
+        options: [
+          { value: "bottom-center", label: "Bottom Center" },
+          { value: "bottom-right", label: "Bottom Right" },
+          { value: "bottom-left", label: "Bottom Left" },
+          { value: "top-center", label: "Top Center" },
+          { value: "top-right", label: "Top Right" },
+        ],
+      },
+      {
+        name: "format",
+        label: "Number Format",
+        type: "select",
+        default: "Page {n} of {total}",
+        options: [
+          { value: "Page {n} of {total}", label: "Page 1 of 10" },
+          { value: "{n} / {total}", label: "1 / 10" },
+          { value: "{n}", label: "1" },
+          { value: "Page {n}", label: "Page 1" },
+        ],
+      },
+      { name: "startNumber", label: "Start Number", type: "range", min: 1, max: 100, step: 1, default: 1 },
+      { name: "fontSize", label: "Font Size", type: "range", min: 8, max: 20, step: 1, default: 10, unit: "pt" },
+      { name: "margin", label: "Page Margin", type: "range", min: 10, max: 50, step: 5, default: 25, unit: "pt" },
+    ],
+    seo: {
+      title: "Add page numbers to PDF online free",
+      description: "Stamp customized page numbers onto your PDF documents in the browser locally.",
+    },
+    run: async (files, v, p) =>
+      (await ops()).addPageNumbers(
+        files,
+        {
+          position: String(v["position"]),
+          format: String(v["format"]),
+          startNumber: Number(v["startNumber"]),
+          fontSize: Number(v["fontSize"]),
+          margin: Number(v["margin"]),
+        },
+        p,
+      ),
+  },
+  {
+    slug: "extract-text",
+    name: "Extract Text",
+    action: "Extract Text",
+    summary: "Pull all readable text from your PDF into a clean plain text (.txt) file.",
+    about:
+      "Inspect and extract text from selectable PDF pages. Image-only/scanned documents without OCR will not yield selectable text.",
+    accept: "application/pdf",
+    acceptLabel: "One PDF",
+    multiple: false,
+    minFiles: 1,
+    tag: "CONVERT",
+    fields: [
+      { name: "pageRange", label: "Pages", type: "text", default: "", placeholder: "All pages (e.g. 1-3, 5)", hint: "Blank extracts all pages" },
+      { name: "includePageHeaders", label: "Include page headers in output", type: "switch", default: true },
+    ],
+    seo: {
+      title: "Extract text from PDF online",
+      description: "Convert PDF text into clean plain text (.txt) without sending your files to any server.",
+    },
+    run: async (files, v, p) =>
+      (await ops()).extractText(
+        files,
+        {
+          pageRange: String(v["pageRange"]),
+          includePageHeaders: Boolean(v["includePageHeaders"]),
+        },
+        p,
+      ),
+  },
+  {
+    slug: "grayscale",
+    name: "PDF to Grayscale",
+    action: "Convert to Grayscale",
+    summary: "Convert all color PDF pages to crisp black-and-white / grayscale.",
+    about:
+      "Renders each page into monochrome tones, ideal for printing, archival, and saving printer ink.",
+    accept: "application/pdf",
+    acceptLabel: "One PDF",
+    multiple: false,
+    minFiles: 1,
+    tag: "OPTIMIZE",
+    fields: [
+      { name: "scale", label: "Render Scale", type: "range", min: 1, max: 3, step: 0.5, default: 1.5, unit: "×" },
+      { name: "quality", label: "JPEG Quality", type: "range", min: 40, max: 95, step: 5, default: 75, unit: "%" },
+    ],
+    seo: {
+      title: "Convert PDF to Grayscale / Black and White",
+      description: "Easily turn color PDFs into monochrome grayscale documents directly in your browser.",
+    },
+    run: async (files, v, p) =>
+      (await ops()).grayscalePdf(
+        files,
+        {
+          scale: Number(v["scale"]),
+          quality: Number(v["quality"]),
+        },
+        p,
+      ),
+  },
+  {
+    slug: "html-to-pdf",
+    name: "HTML to PDF",
+    action: "Generate PDF",
+    summary: "Render HTML markup or web documents into standardized A4 / Letter PDF.",
+    about:
+      "Upload an HTML file or supply raw HTML to render and export as an accurate PDF document.",
+    accept: ".html,.htm,text/html,text/plain",
+    acceptLabel: "HTML or text file",
+    multiple: false,
+    minFiles: 0,
+    tag: "CONVERT",
+    fields: [
+      {
+        name: "format",
+        label: "Page Format",
+        type: "select",
+        default: "a4",
+        options: [
+          { value: "a4", label: "A4 Standard (210 × 297 mm)" },
+          { value: "letter", label: "US Letter (8.5 × 11 in)" },
+        ],
+      },
+      {
+        name: "orientation",
+        label: "Orientation",
+        type: "select",
+        default: "portrait",
+        options: [
+          { value: "portrait", label: "Portrait" },
+          { value: "landscape", label: "Landscape" },
+        ],
+      },
+      {
+        name: "htmlInput",
+        label: "Or Paste HTML Markup (if no file chosen)",
+        type: "text",
+        default: "<h1>PDFamaze Document</h1><p>This PDF was generated client-side from HTML!</p>",
+        placeholder: "<h1>Your Title</h1><p>Your HTML content...</p>",
+      },
+    ],
+    seo: {
+      title: "Convert HTML to PDF in your browser",
+      description: "Convert HTML files and markup into formatted PDF documents with zero server uploads.",
+    },
+    run: async (files, v, p) =>
+      (await ops()).htmlToPdf(
+        files,
+        {
+          format: String(v["format"]),
+          orientation: String(v["orientation"]),
+          htmlInput: String(v["htmlInput"]),
+        },
+        p,
+      ),
   },
 ];
 
