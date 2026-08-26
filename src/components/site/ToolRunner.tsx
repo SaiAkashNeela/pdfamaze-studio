@@ -122,6 +122,9 @@ export function ToolRunner({ tool }: { tool: Tool }) {
     }
   }
 
+  const isGrayscale = tool.slug === "grayscale";
+  const rotationAngle = tool.slug === "rotate" ? Number(values["angle"]) || 90 : 0;
+
   return (
     <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-12">
       <div>
@@ -132,6 +135,8 @@ export function ToolRunner({ tool }: { tool: Tool }) {
           files={files}
           onFiles={(f) => dispatch({ type: "SET_FILES", files: f })}
           disabled={busy}
+          grayscale={isGrayscale}
+          rotation={rotationAngle}
         />
 
         {tool.minFiles > 1 && files.length === 1 ? (

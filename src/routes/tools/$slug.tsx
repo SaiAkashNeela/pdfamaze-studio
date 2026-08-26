@@ -1,5 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ToolRunner } from "@/components/site/ToolRunner";
+import { ToolIcon } from "@/components/site/ToolIcon";
 import { siteConfig } from "@/lib/site-config";
 import { getTool, tools } from "@/lib/tools";
 
@@ -63,11 +64,14 @@ function ToolPage() {
         <span className="text-foreground">{tool.name}</span>
       </nav>
 
-      <header className="border-border mt-5 max-w-[62ch] border-b pb-7">
-        <h1 className="text-[clamp(1.5rem,3.4vw,2rem)] leading-[1.12] font-semibold tracking-[-0.03em]">
-          {tool.name}
-        </h1>
-        <p className="text-muted-foreground mt-3 text-[14.5px] leading-relaxed">{tool.about}</p>
+      <header className="border-border mt-5 flex items-start gap-4 border-b pb-7">
+        <ToolIcon tool={tool} />
+        <div className="max-w-[62ch]">
+          <h1 className="text-[clamp(1.5rem,3.4vw,2rem)] leading-[1.12] font-semibold tracking-[-0.03em]">
+            {tool.name}
+          </h1>
+          <p className="text-muted-foreground mt-2 text-[14.5px] leading-relaxed">{tool.about}</p>
+        </div>
       </header>
 
       <div className="py-8">
@@ -82,9 +86,10 @@ function ToolPage() {
               <Link
                 to="/tools/$slug"
                 params={{ slug: t.slug }}
-                className="border-border hover:border-border-strong hover:bg-secondary inline-flex items-center rounded-[3px] border px-3 py-1.5 text-[13px]"
+                className="border-border hover:border-border-strong hover:bg-secondary inline-flex items-center gap-2 rounded-[3px] border px-3 py-1.5 text-[13px]"
               >
-                {t.name}
+                <ToolIcon tool={t} compact className="h-5 w-5 rounded-[4px]" />
+                <span>{t.name}</span>
               </Link>
             </li>
           ))}

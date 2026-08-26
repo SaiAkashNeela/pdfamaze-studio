@@ -1,32 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { Tool, ToolTag } from "@/lib/tools";
-
-const tagClasses: Record<ToolTag, string> = {
-  ORGANIZE: "bg-tag-organize",
-  OPTIMIZE: "bg-tag-optimize",
-  EDIT: "bg-tag-edit",
-  CONVERT: "bg-tag-convert",
-  SECURITY: "bg-tag-security",
-  SHARE: "bg-tag-share",
-};
-
-function ToolIcon({ tool, compact }: { tool: Tool; compact?: boolean }) {
-  const initial = tool.name.charAt(0).toUpperCase();
-  return (
-    <span
-      className={cn(
-        "grid shrink-0 place-items-center rounded-[10px] font-semibold text-tag-icon-foreground shadow-sm",
-        compact ? "h-9 w-9 text-[13px]" : "h-10 w-10 text-[14px]",
-        tool.tag ? tagClasses[tool.tag] : "bg-muted text-muted-foreground",
-      )}
-      aria-hidden
-    >
-      {initial}
-    </span>
-  );
-}
+import { ToolIcon } from "./ToolIcon";
+import type { Tool } from "@/lib/tools";
 
 export function ToolCard({
   tool,

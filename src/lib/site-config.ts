@@ -13,8 +13,8 @@ export const siteConfig = {
   authorWebsite: "https://saiakashneela.com",
   authorGithub: "https://github.com/SaiAkashNeela",
   githubUrl: "https://github.com/SaiAkashNeela/pdfamaze-studio",
-  buyMeACoffeeUrl: "https://buymeacoffee.com/saiakashneela",
-  contactEmail: "hello@pdfamaze.com",
+  buyMeACoffeeUrl: "https://buymeacoffee.com/akash.neela",
+  contactEmail: "hello@saiakash.dev",
 };
 
 export type SiteConfig = typeof siteConfig;

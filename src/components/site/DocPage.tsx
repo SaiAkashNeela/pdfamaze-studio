@@ -43,11 +43,3 @@ export function Section({ heading, children }: { heading: string; children: Reac
     </section>
   );
 }
-
-export function Placeholder({ children }: { children: ReactNode }) {
-  return (
-    <span className="border-border bg-surface text-foreground rounded-[3px] border px-1.5 py-0.5 font-mono text-[12.5px]">
-      {children}
-    </span>
-  );
-}

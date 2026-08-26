@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { DocPage, Placeholder, Section } from "@/components/site/DocPage";
+import { Coffee, Heart } from "lucide-react";
+import { DocPage, Section } from "@/components/site/DocPage";
 import { siteConfig } from "@/lib/site-config";
 
 export const Route = createFileRoute("/coffee")({
@@ -28,55 +29,62 @@ function CoffeePage() {
       title="Buy me a coffee, or don't"
       intro="Every tool here is free, and it will stay that way. There is no paid tier, no file-size gate and no upsell — partly on principle, and partly because there is no server to charge you for."
     >
-      <Section heading="Where the money would go">
+      <Section heading="Where the money goes">
         <p>
-          A domain renewal, static hosting, and the odd hour spent fixing a PDF that renders
-          strangely. That's the whole budget. Support is a thank-you, not a transaction: nothing on
-          this site unlocks, changes or speeds up if you contribute.
+          Domain registration, infrastructure maintenance, and time spent refining edge features and fixing
+          edge cases in complex PDF layouts. Support is a friendly thank-you: all tools remain 100% free and unrestricted.
         </p>
       </Section>
 
       <Section heading="If you'd rather help another way">
         <p>
-          Reporting a PDF that fails is genuinely more valuable than a coffee. Tell me what the
-          document was, which tool you used, and what happened instead — that's usually enough to
-          reproduce the bug.
+          Reporting a PDF that fails or sharing feedback is genuinely just as valuable as a coffee.
+          Reach out via <a href={`mailto:${siteConfig.contactEmail}`} className="underline underline-offset-4">{siteConfig.contactEmail}</a> or open an issue on{" "}
+          <a
+            href={siteConfig.githubUrl || "https://github.com/SaiAkashNeela/pdfamaze-studio"}
+            target="_blank"
+            rel="noreferrer noopener"
+            className="underline underline-offset-4"
+          >
+            GitHub
+          </a>
+          .
         </p>
       </Section>
 
-      <div className="border-border bg-surface rounded-[4px] border p-5">
-        {siteConfig.buyMeACoffeeUrl ? (
-          <>
-            <p className="text-[14.5px] leading-relaxed">
-              Thanks — this opens an external page, and nothing about your files is shared with it.
+      <div className="border-border bg-surface rounded-[4px] border p-6 mt-6">
+        <div className="flex items-start gap-4">
+          <div className="w-10 h-10 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 grid place-items-center shrink-0">
+            <Coffee className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="text-[15px] font-semibold text-foreground">Support {siteConfig.author}</h3>
+            <p className="text-muted-foreground mt-1 text-[13.5px] leading-relaxed">
+              Opens BuyMeACoffee in a secure external tab. Your documents and local processing stay completely isolated on your device.
             </p>
-            <a
-              href={siteConfig.buyMeACoffeeUrl}
-              target="_blank"
-              rel="noreferrer noopener"
-              className="bg-accent text-accent-foreground hover:bg-accent/90 mt-4 inline-flex h-10 items-center rounded-[3px] px-4 text-[13.5px] font-medium transition-colors"
-            >
-              Buy me a coffee
-            </a>
-          </>
-        ) : (
-          <>
-            <p className="text-[14.5px] leading-relaxed">
-              There's no donation link set up right now, so there is nothing to click here yet.
-            </p>
-            <p className="text-muted-foreground mt-3 text-[13px] leading-relaxed">
-              When one exists, set <Placeholder>buyMeACoffeeUrl</Placeholder> in{" "}
-              <Placeholder>src/lib/site-config.ts</Placeholder> and the button appears here and in
-              the footer.
-            </p>
-          </>
-        )}
+            <div className="mt-4 flex items-center gap-3">
+              <a
+                href={siteConfig.buyMeACoffeeUrl || "https://buymeacoffee.com/akash.neela"}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="bg-accent text-accent-foreground hover:bg-accent/90 inline-flex h-10 items-center gap-2 rounded-[3px] px-5 text-[13.5px] font-medium transition-colors"
+              >
+                <Coffee className="w-4 h-4" />
+                <span>Buy me a coffee</span>
+              </a>
+              <span className="text-muted-foreground text-[12px] flex items-center gap-1">
+                <Heart className="w-3.5 h-3.5 text-destructive fill-current" />
+                Optional support
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
 
       <p className="text-muted-foreground mt-8 text-[14px] leading-relaxed">
-        In the meantime, the most useful thing you can do is{" "}
+        In the meantime, feel free to{" "}
         <Link to="/tools" className="text-foreground underline underline-offset-4">
-          use the tools
+          browse all tools
         </Link>
         .
       </p>

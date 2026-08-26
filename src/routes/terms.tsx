@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { DocPage, Placeholder, Section } from "@/components/site/DocPage";
+import { DocPage, Section } from "@/components/site/DocPage";
 import { siteConfig } from "@/lib/site-config";
 
 export const Route = createFileRoute("/terms")({
@@ -26,7 +26,7 @@ function TermsPage() {
     <DocPage
       kicker="Terms"
       title="Terms of use"
-      intro="This is a small, free web utility. These terms are written to be read rather than to impress a court, and they are not legal advice. Placeholders below need to be filled in with real business details before publishing."
+      intro="This is a free, local-first web utility. These terms are written in clear, plain language outlining rights and responsibilities when using PDFamaze."
     >
       <Section heading="Using the service">
         <p>
@@ -44,8 +44,8 @@ function TermsPage() {
           recover, restore or inspect anything for you.
         </p>
         <p>
-          <strong>Keep an original.</strong> Some operations are lossy by design, and a failed or
-          interrupted run may produce an incomplete file.
+          <strong>Keep an original.</strong> Some operations are lossy by design (such as heavy compression
+          or raster rendering), and a failed or interrupted run may produce an incomplete file.
         </p>
       </Section>
 
@@ -58,18 +58,18 @@ function TermsPage() {
         </p>
       </Section>
 
-      <Section heading="Intellectual property">
+      <Section heading="Intellectual property and licensing">
         <p>
-          The name, interface and source code of {siteConfig.name} belong to their respective
-          owners; open-source components are used under their own licences. Your documents remain
-          entirely yours — processing them here grants us no rights to them whatsoever.
+          {siteConfig.name} is open source software released under the <strong>MIT License</strong>.
+          Your documents remain entirely yours — processing them in your browser grants us zero rights to them.
         </p>
       </Section>
 
       <Section heading="Availability">
         <p>
-          The site is a static bundle and may be changed, moved or taken offline at any time,
-          without notice. Tools may be added, altered or removed. No uptime is promised.
+          The service is hosted globally on serverless infrastructure. Tools may be added, improved or
+          updated over time. While we strive for continuous availability, no service level uptime guarantee
+          is promised.
         </p>
       </Section>
 
@@ -85,20 +85,17 @@ function TermsPage() {
 
       <Section heading="Changes">
         <p>
-          These terms may be updated as the project changes. The current version is always the one
-          on this page; continuing to use the site means you accept it.
+          These terms may be updated as the project evolves. The current version is always available on this
+          page; continuing to use the site means you accept the updated terms.
         </p>
       </Section>
 
-      <Section heading="Governing law and contact">
+      <Section heading="Operator and contact">
         <p>
-          Governing law: <Placeholder>ADD JURISDICTION</Placeholder>. Operator:{" "}
-          <Placeholder>ADD LEGAL ENTITY OR NAME</Placeholder>. Contact:{" "}
-          {siteConfig.contactEmail ? (
-            <a href={`mailto:${siteConfig.contactEmail}`}>{siteConfig.contactEmail}</a>
-          ) : (
-            <Placeholder>ADD CONTACT EMAIL</Placeholder>
-          )}
+          Operator: <strong>{siteConfig.author}</strong>. Contact:{" "}
+          <a href={`mailto:${siteConfig.contactEmail}`} className="underline underline-offset-4">
+            {siteConfig.contactEmail}
+          </a>
           .
         </p>
         <p>

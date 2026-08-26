@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { DocPage, Placeholder, Section } from "@/components/site/DocPage";
+import { DocPage, Section } from "@/components/site/DocPage";
 import { siteConfig } from "@/lib/site-config";
 
 export const Route = createFileRoute("/privacy")({
@@ -44,10 +44,11 @@ function PrivacyPage() {
 
       <Section heading="What is stored on your device">
         <p>
-          One thing: your theme preference (light, dark or system), saved in{" "}
-          <Placeholder>localStorage</Placeholder> so the site doesn't flash the wrong colours on
-          your next visit. It contains no personal data and never leaves your browser. Clearing
-          site data removes it.
+          Two things: your theme preference (light, dark or system) and anonymous local usage statistics
+          (which tools you ran and visit counts), saved in <code>localStorage</code> so the site remembers
+          your theme and displays your personal usage breakdown on the <Link to="/stats">Stats page</Link>.
+          It contains no personal data, no document filenames, and never leaves your browser. Clearing
+          site data removes it completely.
         </p>
         <p>
           There are no tracking cookies, no advertising identifiers and no session cookies, because
@@ -55,49 +56,47 @@ function PrivacyPage() {
         </p>
       </Section>
 
-      <Section heading="Analytics">
+      <Section heading="Analytics and telemetry">
         <p>
-          No analytics that read, sample or transmit document contents are used — that would defeat
-          the point of the product. If lightweight, aggregate page-view analytics are added later,
-          they will be named here before they go live.
+          No analytics that read, sample, or transmit document contents are used. When you visit the site,
+          Cloudflare's edge network provides an ephemeral, anonymous ISO country code header (e.g. <code>cf-ipcountry</code>)
+          to compute aggregate country distribution on the <Link to="/stats">Stats page</Link> without ever recording or
+          storing your IP address.
         </p>
       </Section>
 
-      <Section heading="Hosting and network logs">
+      <Section heading="Hosting and network infrastructure">
         <p>
-          The site is a static bundle served by a hosting provider. Like any web host, it may record
-          standard request metadata — IP address, timestamp, user agent, requested path — for
-          delivery and abuse prevention. That applies to loading the page itself, not to the files
-          you process. Hosting provider: <Placeholder>ADD PROVIDER</Placeholder>.
+          The site is served as a serverless static and edge-rendered bundle hosted on{" "}
+          <strong>Cloudflare Workers &amp; Cloudflare Global Edge Network</strong>. Standard request routing
+          metadata is handled directly at Cloudflare's edge for DDoS protection and content delivery, without
+          persisting personal data or document contents.
         </p>
       </Section>
 
       <Section heading="Third-party services">
         <p>
-          The application ships with no third-party embeds, fonts loaded from your own device or
-          the site's own domain, and no external scripts required for the tools to run. Optional
-          outbound links — a source repository, a support page — only contact those services when
-          you deliberately click them.
+          The application ships with no third-party tracking embeds or external ad networks. Optional outbound links —
+          the source repository on GitHub, the creator's portfolio, or the BuyMeACoffee support page — only contact
+          those services when you deliberately click them.
         </p>
       </Section>
 
       <Section heading="Claims we don't make">
         <p>
           We won't say "100% private", because your own environment matters too: browser
-          extensions, managed devices and operating-system features can all see what a web page
+          extensions, managed devices, and operating-system features can all see what a web page
           does. What we can honestly say is that this site does not upload your documents, and the
-          code that proves it is what your browser downloaded.
+          code that proves it is open source and runs on your machine.
         </p>
       </Section>
 
       <Section heading="Contact">
         <p>
           Questions or a correction to this page:{" "}
-          {siteConfig.contactEmail ? (
-            <a href={`mailto:${siteConfig.contactEmail}`}>{siteConfig.contactEmail}</a>
-          ) : (
-            <Placeholder>ADD CONTACT EMAIL</Placeholder>
-          )}
+          <a href={`mailto:${siteConfig.contactEmail}`} className="underline underline-offset-4">
+            {siteConfig.contactEmail}
+          </a>
           .
         </p>
         <p>

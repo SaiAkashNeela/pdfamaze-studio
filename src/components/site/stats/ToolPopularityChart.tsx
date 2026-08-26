@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { RotateCcw } from "lucide-react";
+import { ToolIcon } from "@/components/site/ToolIcon";
 import type { Tool } from "@/lib/tools";
 
 interface ChartProps {
@@ -52,9 +53,10 @@ export function ToolPopularityChart({
                 <Link
                   to="/tools/$slug"
                   params={{ slug: tool.slug }}
-                  className="hover:text-accent font-medium text-foreground transition-colors hover:underline"
+                  className="hover:text-accent flex items-center gap-2 font-medium text-foreground transition-colors hover:underline"
                 >
-                  {tool.name}
+                  <ToolIcon tool={tool} compact className="h-6 w-6 rounded-[5px]" />
+                  <span>{tool.name}</span>
                 </Link>
                 <div className="flex items-center gap-3 font-mono text-[12px]">
                   <span className="font-semibold text-foreground">{count} runs</span>

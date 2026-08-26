@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { TrendingDown } from "lucide-react";
+import { ToolIcon } from "@/components/site/ToolIcon";
 import type { Tool } from "@/lib/tools";
 
 export function LeastUsedCard({
@@ -29,9 +30,12 @@ export function LeastUsedCard({
             params={{ slug: tool.slug }}
             className="border-border hover:border-border-strong hover:bg-secondary flex items-center justify-between rounded-lg border p-2.5 text-[13px] transition-colors"
           >
-            <div>
-              <p className="font-medium text-foreground">{tool.name}</p>
-              <p className="text-muted-foreground line-clamp-1 text-[11.5px]">{tool.summary}</p>
+            <div className="flex items-center gap-2.5 min-w-0">
+              <ToolIcon tool={tool} compact className="h-7 w-7 rounded-[6px]" />
+              <div className="min-w-0">
+                <p className="font-medium text-foreground truncate">{tool.name}</p>
+                <p className="text-muted-foreground line-clamp-1 text-[11.5px]">{tool.summary}</p>
+              </div>
             </div>
             <span className="font-mono text-[11.5px] text-muted-foreground shrink-0 pl-2">
               {toolCounts[tool.slug] || 0} runs
