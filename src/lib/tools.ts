@@ -104,14 +104,14 @@ export const tools: Tool[] = [
         hint: "Commas and ranges. Leave blank for every page.",
       },
     ],
-    fieldsFor: (v) => (v.mode === "each" ? ["mode"] : ["mode", "ranges"]),
+    fieldsFor: (v) => (v['mode'] === "each" ? ["mode"] : ["mode", "ranges"]),
     seo: {
       title: "Split a PDF without uploading it",
       description:
         "Extract page ranges or split a PDF into single pages, entirely in your browser.",
     },
     run: async (files, v, p) =>
-      (await ops()).splitPdf(files, { mode: String(v.mode), ranges: String(v.ranges) }, p),
+      (await ops()).splitPdf(files, { mode: String(v['mode']), ranges: String(v['ranges']) }, p),
   },
   {
     slug: "compress",
@@ -140,7 +140,7 @@ export const tools: Tool[] = [
       { name: "quality", label: "Image quality", type: "range", min: 30, max: 95, step: 5, default: 65, unit: "%" },
       { name: "scale", label: "Render scale", type: "range", min: 1, max: 3, step: 0.5, default: 1.5, unit: "×" },
     ],
-    fieldsFor: (v) => (v.mode === "raster" ? ["mode", "quality", "scale"] : ["mode"]),
+    fieldsFor: (v) => (v['mode'] === "raster" ? ["mode", "quality", "scale"] : ["mode"]),
     seo: {
       title: "Compress a PDF without uploading it to a server",
       description:
@@ -149,7 +149,7 @@ export const tools: Tool[] = [
     run: async (files, v, p) =>
       (await ops()).compressPdf(
         files,
-        { mode: String(v.mode), quality: Number(v.quality), scale: Number(v.scale) },
+        { mode: String(v['mode']), quality: Number(v['quality']), scale: Number(v['scale']) },
         p,
       ),
   },
@@ -182,7 +182,7 @@ export const tools: Tool[] = [
       description: "Fix sideways scans by rotating selected pages locally, with no upload.",
     },
     run: async (files, v, p) =>
-      (await ops()).rotatePdf(files, { angle: String(v.angle), pages: String(v.pages) }, p),
+      (await ops()).rotatePdf(files, { angle: String(v['angle']), pages: String(v['pages']) }, p),
   },
   {
     slug: "organize",
@@ -211,7 +211,7 @@ export const tools: Tool[] = [
       description: "Rearrange or remove pages from a PDF on your device, then download the result.",
     },
     run: async (files, v, p) =>
-      (await ops()).organizePdf(files, { order: String(v.order), reverse: Boolean(v.reverse) }, p),
+      (await ops()).organizePdf(files, { order: String(v['order']), reverse: Boolean(v['reverse']) }, p),
   },
   {
     slug: "watermark",
@@ -237,10 +237,10 @@ export const tools: Tool[] = [
       (await ops()).watermarkPdf(
         files,
         {
-          text: String(v.text),
-          size: Number(v.size),
-          opacity: Number(v.opacity),
-          diagonal: Boolean(v.diagonal),
+          text: String(v['text']),
+          size: Number(v['size']),
+          opacity: Number(v['opacity']),
+          diagonal: Boolean(v['diagonal']),
         },
         p,
       ),
@@ -269,13 +269,13 @@ export const tools: Tool[] = [
       },
       { name: "margin", label: "Margin", type: "range", min: 0, max: 72, step: 6, default: 36, unit: "pt" },
     ],
-    fieldsFor: (v) => (v.fit === "a4" ? ["fit", "margin"] : ["fit"]),
+    fieldsFor: (v) => (v['fit'] === "a4" ? ["fit", "margin"] : ["fit"]),
     seo: {
       title: "Convert images to a PDF in your browser",
       description: "Combine JPEG and PNG images into one PDF. Nothing is uploaded — it all runs locally.",
     },
     run: async (files, v, p) =>
-      (await ops()).imagesToPdf(files, { fit: String(v.fit), margin: Number(v.margin) }, p),
+      (await ops()).imagesToPdf(files, { fit: String(v['fit']), margin: Number(v['margin']) }, p),
   },
   {
     slug: "pdf-to-images",
@@ -308,7 +308,7 @@ export const tools: Tool[] = [
     run: async (files, v, p) =>
       (await ops()).pdfToImages(
         files,
-        { format: String(v.format), scale: Number(v.scale), pages: String(v.pages) },
+        { format: String(v['format']), scale: Number(v['scale']), pages: String(v['pages']) },
         p,
       ),
   },
@@ -330,7 +330,7 @@ export const tools: Tool[] = [
       description:
         "Unlock a password-protected PDF locally in your browser and download an unrestricted copy.",
     },
-    run: async (files, v, p) => (await ops()).decryptPdf(files, { password: String(v.password) }, p),
+    run: async (files, v, p) => (await ops()).decryptPdf(files, { password: String(v['password']) }, p),
   },
 ];
 
