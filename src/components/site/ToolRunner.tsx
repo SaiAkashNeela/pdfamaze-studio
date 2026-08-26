@@ -11,7 +11,7 @@ export function ToolRunner({ tool }: { tool: Tool }) {
   const [files, setFiles] = useState<File[]>([]);
   const [values, setValues] = useState<FieldValues>(() => defaultValues(tool));
   const [status, setStatus] = useState<Status>("idle");
-  const [step, setStep] = useState<{ label: string; ratio?: number }>({ label: "" });
+  const [step, setStep] = useState<{ label: string; ratio?: number | undefined }>({ label: "" });
   const [results, setResults] = useState<OutputFile[]>([]);
   const [error, setError] = useState<string>("");
 
