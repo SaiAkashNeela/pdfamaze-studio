@@ -26,6 +26,8 @@ export type Field =
 
 export type FieldValues = Record<string, string | number | boolean>;
 
+export type ToolTag = "ORGANIZE" | "OPTIMIZE" | "EDIT" | "CONVERT" | "SECURITY" | "SHARE";
+
 export type Tool = {
   slug: string;
   name: string;
@@ -44,7 +46,7 @@ export type Tool = {
   /** Honest caveat shown near the controls, when there is one. */
   caveat?: string;
   /** Short category label shown on the compact card. */
-  tag?: "ORGANIZE" | "OPTIMIZE" | "EDIT" | "CONVERT" | "SECURITY" | "SHARE";
+  tag?: ToolTag;
   fields: Field[];
   fieldsFor?: (values: FieldValues) => string[];
   seo: { title: string; description: string };
@@ -67,6 +69,7 @@ export const tools: Tool[] = [
     minFiles: 2,
     featured: true,
     tag: "ORGANIZE",
+    fields: [],
     seo: {
       title: "Merge PDF files in your browser",
       description:
@@ -88,6 +91,7 @@ export const tools: Tool[] = [
     featured: true,
     tag: "ORGANIZE",
     fields: [
+      {
         name: "mode",
         label: "Method",
         type: "select",
@@ -168,6 +172,7 @@ export const tools: Tool[] = [
     minFiles: 1,
     tag: "EDIT",
     fields: [
+      {
         name: "angle",
         label: "Turn by",
         type: "select",
@@ -200,6 +205,7 @@ export const tools: Tool[] = [
     minFiles: 1,
     tag: "ORGANIZE",
     fields: [
+      {
         name: "order",
         label: "Page order",
         type: "text",
@@ -227,6 +233,7 @@ export const tools: Tool[] = [
     multiple: false,
     minFiles: 1,
     tag: "EDIT",
+    fields: [
       { name: "text", label: "Watermark text", type: "text", default: "DRAFT", placeholder: "CONFIDENTIAL" },
       { name: "size", label: "Size", type: "range", min: 18, max: 96, step: 2, default: 52, unit: "pt" },
       { name: "opacity", label: "Opacity", type: "range", min: 5, max: 60, step: 5, default: 20, unit: "%" },
@@ -261,6 +268,7 @@ export const tools: Tool[] = [
     featured: true,
     tag: "CONVERT",
     fields: [
+      {
         name: "fit",
         label: "Page size",
         type: "select",
@@ -292,6 +300,7 @@ export const tools: Tool[] = [
     minFiles: 1,
     tag: "CONVERT",
     fields: [
+      {
         name: "format",
         label: "Format",
         type: "select",
