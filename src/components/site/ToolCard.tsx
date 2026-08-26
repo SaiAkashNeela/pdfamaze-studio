@@ -12,12 +12,7 @@ const tagClasses: Record<ToolTag, string> = {
 };
 
 function ToolIcon({ tool, compact }: { tool: Tool; compact?: boolean }) {
-  const initial = tool.name
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
+  const initial = tool.name.charAt(0).toUpperCase();
   return (
     <span
       className={`grid shrink-0 place-items-center rounded-[10px] font-semibold text-tag-icon-foreground shadow-sm ${
