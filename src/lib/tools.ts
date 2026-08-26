@@ -43,6 +43,8 @@ export type Tool = {
   featured?: boolean;
   /** Honest caveat shown near the controls, when there is one. */
   caveat?: string;
+  /** Short category label shown on the compact card. */
+  tag?: "ORGANIZE" | "OPTIMIZE" | "EDIT" | "CONVERT" | "SECURITY" | "SHARE";
   fields: Field[];
   fieldsFor?: (values: FieldValues) => string[];
   seo: { title: string; description: string };
