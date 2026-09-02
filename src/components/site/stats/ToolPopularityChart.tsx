@@ -1,5 +1,4 @@
 import { Link } from "@tanstack/react-router";
-import { RotateCcw } from "lucide-react";
 import { ToolIcon } from "@/components/site/ToolIcon";
 import type { Tool } from "@/lib/tools";
 
@@ -8,7 +7,6 @@ interface ChartProps {
   toolCounts: Record<string, number>;
   totalRuns: number;
   mostUsedCount: number;
-  onReset: () => void;
 }
 
 export function ToolPopularityChart({
@@ -16,7 +14,6 @@ export function ToolPopularityChart({
   toolCounts,
   totalRuns,
   mostUsedCount,
-  onReset,
 }: ChartProps) {
   return (
     <section className="border-border bg-card rounded-xl border p-6 shadow-sm">
@@ -29,14 +26,6 @@ export function ToolPopularityChart({
             Visual volume comparison across all {sortedTools.length} PDF tools
           </p>
         </div>
-        <button
-          type="button"
-          onClick={onReset}
-          className="border-border hover:bg-secondary inline-flex items-center gap-1.5 rounded-[3px] border px-2.5 py-1 text-[12px] font-medium transition-colors"
-        >
-          <RotateCcw className="h-3 w-3" />
-          Reset Local Stats
-        </button>
       </div>
 
       <div className="mt-5 space-y-4">

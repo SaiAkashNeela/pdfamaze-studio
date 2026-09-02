@@ -5,7 +5,6 @@ import { siteConfig } from "@/lib/site-config";
 import { tools } from "@/lib/tools";
 import {
   loadAnalytics,
-  saveAnalytics,
   trackPageView,
   type ToolUsageStats,
 } from "@/lib/analytics";
@@ -68,19 +67,6 @@ function StatsPage() {
       setStats(loadAnalytics());
     }
   }, [geo]);
-
-  const handleReset = () => {
-    const empty: ToolUsageStats = {
-      totalVisits: 1,
-      totalToolRuns: 0,
-      toolCounts: {},
-      locations: geo?.country ? { [geo.country.toUpperCase()]: 1 } : {},
-      coloCounts: geo?.colo ? { [geo.colo.toUpperCase()]: 1 } : {},
-      lastActive: Date.now(),
-    };
-    saveAnalytics(empty);
-    setStats(empty);
-  };
 
   const totalRuns = stats.totalToolRuns;
   const totalVisits = stats.totalVisits;
@@ -145,7 +131,6 @@ function StatsPage() {
           toolCounts={toolCounts}
           totalRuns={totalRuns}
           mostUsedCount={mostUsedCount}
-          onReset={handleReset}
         />
 
         <div className="space-y-6">
