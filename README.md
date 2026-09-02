@@ -1,4 +1,4 @@
-# PDFamaze — Local-First PDF Studio.
+# PDFamaze — Local-First PDF Studio
 
 > **Fast, private PDF tools that run entirely inside your browser tab. Your files never leave your device.**
 
