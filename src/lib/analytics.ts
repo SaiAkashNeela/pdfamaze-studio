@@ -3,7 +3,7 @@
  *
  * Principles:
  *  1. ZERO personal data, ZERO IP collection, ZERO cookies, ZERO document contents or names.
- *  2. All metrics are aggregated on the user's device in localStorage (v1).
+ *  2. Global counts aggregated at the edge via Cloudflare KV with localStorage client backup.
  *  3. Computes aggregate metrics: total visits, tool ranking, and Cloudflare edge location distribution.
  */
 
@@ -26,7 +26,7 @@ export interface ToolUsageStats {
   lastActive: number;
 }
 
-const DEFAULT_STATS: ToolUsageStats = {
+export const DEFAULT_STATS: ToolUsageStats = {
   totalVisits: 0,
   totalToolRuns: 0,
   toolCounts: {},
@@ -72,6 +72,42 @@ export function saveAnalytics(stats: ToolUsageStats): void {
   }
 }
 
+function sendTelemetryPing(payload: {
+  type: "tool" | "pageview";
+  slug?: string | undefined;
+  country?: string | undefined;
+  colo?: string | undefined;
+}): void {
+  if (typeof window === "undefined") return;
+  try {
+    const data = JSON.stringify(payload);
+    if (typeof navigator !== "undefined" && typeof navigator.sendBeacon === "function") {
+      const blob = new Blob([data], { type: "application/json" });
+      navigator.sendBeacon("/api/track", blob);
+    } else {
+      fetch("/api/track", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: data,
+        keepalive: true,
+      }).catch(() => {});
+    }
+  } catch {
+    // Silently ignore network / telemetry errors
+  }
+}
+
+export async function fetchGlobalStats(): Promise<ToolUsageStats> {
+  if (typeof window === "undefined") return DEFAULT_STATS;
+  try {
+    const res = await fetch("/api/stats");
+    if (!res.ok) throw new Error("Failed to fetch stats");
+    return (await res.json()) as ToolUsageStats;
+  } catch {
+    return loadAnalytics();
+  }
+}
+
 export function trackPageView(geo?: Partial<GeoLocationInfo>): void {
   const stats = loadAnalytics();
   stats.totalVisits += 1;
@@ -87,6 +123,11 @@ export function trackPageView(geo?: Partial<GeoLocationInfo>): void {
   }
 
   saveAnalytics(stats);
+  sendTelemetryPing({
+    type: "pageview",
+    country: geo?.country,
+    colo: geo?.colo,
+  });
 }
 
 export function trackToolRun(slug: string): void {
@@ -95,6 +136,10 @@ export function trackToolRun(slug: string): void {
   stats.toolCounts[slug] = (stats.toolCounts[slug] || 0) + 1;
   stats.lastActive = Date.now();
   saveAnalytics(stats);
+  sendTelemetryPing({
+    type: "tool",
+    slug,
+  });
 }
 
 export function getMostUsedTools(limit = 5): { slug: string; count: number }[] {

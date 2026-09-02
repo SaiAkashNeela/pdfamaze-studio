@@ -5,6 +5,7 @@ import { siteConfig } from "@/lib/site-config";
 import { tools } from "@/lib/tools";
 import {
   loadAnalytics,
+  fetchGlobalStats,
   trackPageView,
   type ToolUsageStats,
 } from "@/lib/analytics";
@@ -64,8 +65,11 @@ function StatsPage() {
   useEffect(() => {
     if (geo?.country) {
       trackPageView(geo);
-      setStats(loadAnalytics());
     }
+    // Fetch live global statistics from Cloudflare KV
+    fetchGlobalStats().then((data) => {
+      setStats(data);
+    });
   }, [geo]);
 
   const totalRuns = stats.totalToolRuns;

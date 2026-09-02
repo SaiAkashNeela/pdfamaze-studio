@@ -44,6 +44,8 @@ function isH3SwallowedErrorBody(body: string): boolean {
   }
 }
 
+import { getGlobalStatsFromKv, recordEventInKv } from "./lib/server/kv-stats";
+
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     const url = new URL(request.url);
@@ -74,6 +76,42 @@ export default {
           },
         },
       );
+    }
+
+    // Get global aggregate stats from Cloudflare KV
+    if (url.pathname === "/api/stats" && request.method === "GET") {
+      const stats = await getGlobalStatsFromKv(env);
+      return new Response(JSON.stringify(stats), {
+        headers: {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": "no-store, no-cache, must-revalidate",
+          "access-control-allow-origin": "*",
+        },
+      });
+    }
+
+    // Track anonymous event in Cloudflare KV
+    if (url.pathname === "/api/track" && request.method === "POST") {
+      try {
+        const body = (await request.json()) as {
+          type: "tool" | "pageview";
+          slug?: string | undefined;
+          country?: string | undefined;
+          colo?: string | undefined;
+        };
+        const updated = await recordEventInKv(env, body);
+        return new Response(JSON.stringify({ success: true, stats: updated }), {
+          headers: {
+            "content-type": "application/json; charset=utf-8",
+            "access-control-allow-origin": "*",
+          },
+        });
+      } catch (err) {
+        return new Response(JSON.stringify({ error: "Invalid payload" }), {
+          status: 400,
+          headers: { "content-type": "application/json; charset=utf-8" },
+        });
+      }
     }
 
     try {
