@@ -75,14 +75,23 @@ export async function openDocument(
   options?: { ignoreEncryption?: boolean; updateMetadata?: boolean },
 ) {
   const [bytes, { PDFDocument }] = await Promise.all([readBytes(file), loadPdfLib()]);
+  let doc;
   try {
-    return await PDFDocument.load(bytes, {
+    doc = await PDFDocument.load(bytes, {
       ignoreEncryption: options?.ignoreEncryption ?? true,
       updateMetadata: options?.updateMetadata ?? true,
     });
   } catch {
     fail(`"${file.name}" couldn't be opened. It may be damaged, or password-protected.`);
   }
+  // pdf-lib parses lazily, so a broken page tree or cross-reference table only surfaces later
+  // as a cryptic error mid-operation. Walk the pages now and say something useful instead.
+  try {
+    doc.getPages().forEach((page) => page.getSize());
+  } catch {
+    fail(`"${file.name}" has damaged internal structure. Run it through Repair PDF first, then try again.`);
+  }
+  return doc;
 }
 
 /** For tools that rewrite a document: pdf-lib can't re-save encrypted files correctly. */

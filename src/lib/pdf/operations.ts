@@ -5,6 +5,7 @@ import {
   loadPdfjs,
   loadPdfLib,
   openDocument,
+  openEditableDocument,
   parsePageRanges,
   pdfBlob,
   readBytes,
@@ -28,7 +29,7 @@ export async function mergePdfs(files: File[], progress: ProgressFn): Promise<Ou
   if (files.length < 2) fail("Add at least two PDFs to merge.");
   const [{ PDFDocument }, docs] = await Promise.all([
     loadPdfLib(),
-    Promise.all(files.map((f) => openDocument(f))),
+    Promise.all(files.map((f) => openEditableDocument(f))),
   ]);
 
   progress("Assembling pages", 0.5);
@@ -50,7 +51,7 @@ export async function splitPdf(
   progress: ProgressFn,
 ): Promise<OutputFile[]> {
   const file = requireFile(files);
-  const [{ PDFDocument }, src] = await Promise.all([loadPdfLib(), openDocument(file)]);
+  const [{ PDFDocument }, src] = await Promise.all([loadPdfLib(), openEditableDocument(file)]);
   const count = src.getPageCount();
   const name = baseName(file.name);
 
@@ -88,7 +89,7 @@ export async function rotatePdf(
   progress: ProgressFn,
 ): Promise<OutputFile[]> {
   const file = requireFile(files);
-  const [{ degrees }, doc] = await Promise.all([loadPdfLib(), openDocument(file)]);
+  const [{ degrees }, doc] = await Promise.all([loadPdfLib(), openEditableDocument(file)]);
   const targets = new Set(parsePageRanges(opts.pages, doc.getPageCount()));
   const turn = parseInt(opts.angle, 10);
   progress("Rotating pages", 0.5);
@@ -110,7 +111,7 @@ export async function watermarkPdf(
   const file = requireFile(files);
   const text = opts.text.trim();
   if (!text) fail("Type the watermark text you want stamped on each page.");
-  const [{ StandardFonts, degrees, rgb }, doc] = await Promise.all([loadPdfLib(), openDocument(file)]);
+  const [{ StandardFonts, degrees, rgb }, doc] = await Promise.all([loadPdfLib(), openEditableDocument(file)]);
   const font = await doc.embedFont(StandardFonts.HelveticaBold);
   const pages = doc.getPages();
   pages.forEach((page, i) => {
@@ -145,7 +146,7 @@ export async function compressPdf(
 
   if (opts.mode === "structure") {
     progress("Rewriting document structure", 0.5);
-    const doc = await openDocument(file);
+    const doc = await openEditableDocument(file);
     doc.setTitle("");
     doc.setAuthor("");
     doc.setSubject("");
@@ -507,7 +508,7 @@ export async function addPageNumbers(
   const file = requireFile(files);
   const [{ PDFDocument, StandardFonts, rgb }, doc] = await Promise.all([
     loadPdfLib(),
-    openDocument(file),
+    openEditableDocument(file),
   ]);
   const font = await doc.embedFont(StandardFonts.Helvetica);
   const pages = doc.getPages();

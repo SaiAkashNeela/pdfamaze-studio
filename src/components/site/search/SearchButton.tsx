@@ -1,8 +1,9 @@
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { Search } from "lucide-react";
 
-const loadDialog = () => import("./ToolSearchDialog");
-const ToolSearchDialog = lazy(() => loadDialog().then((m) => ({ default: m.ToolSearchDialog })));
+// A failed preload (offline, or a navigation cutting it short) is harmless: opening retries it.
+const loadDialog = () => import("./ToolSearchDialog").catch(() => null);
+const ToolSearchDialog = lazy(() => import("./ToolSearchDialog").then((m) => ({ default: m.ToolSearchDialog })));
 
 function isTyping(target: EventTarget | null): boolean {
   const el = target as HTMLElement | null;
@@ -23,7 +24,7 @@ export function SearchButton() {
     // Load the search code while the browser is idle, so the first ⌘K never drops keystrokes.
     const idle = window.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 1200));
     const handle = idle(() => {
-      void loadDialog().then(() => setLoaded(true));
+      void loadDialog().then((m) => m && setLoaded(true));
     });
     return () => (window.cancelIdleCallback ?? window.clearTimeout)(handle);
   }, []);

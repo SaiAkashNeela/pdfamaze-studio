@@ -9,6 +9,7 @@ import {
   baseName,
   canvasToBlob,
   fail,
+  PdfError,
   htmlBlob,
   jsonBlob,
   loadPdfjs,
@@ -426,7 +427,11 @@ export async function repairPdf(files: File[], opts: { mode: string }, progress:
       if (doc.isEncrypted) fail("This PDF is encrypted. Unlock it first, then repair it.");
       if (doc.getPageCount() > 0) return [{ name, blob: pdfBlob(await doc.save({ useObjectStreams: false })) }];
     } catch (e) {
-      if (opts.mode === "structure") throw e;
+      // In automatic mode, fall through to the render-based rebuild below.
+      if (opts.mode === "structure") {
+        if (e instanceof PdfError) throw e;
+        fail("The structure couldn't be rebuilt. Choose “Automatic” or “Re-render pages” to recover the pages instead.");
+      }
     }
   }
   const src = await openPdfjsDocument(bytes);
