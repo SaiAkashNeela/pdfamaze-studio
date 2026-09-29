@@ -629,6 +629,22 @@ const coreTools: Tool[] = [
 
 export const tools: Tool[] = [...coreTools, ...organizeTools, ...editTools, ...securityTools, ...convertTools];
 
+/** Categories used by the landing page, the tools index and llms.txt. */
+export const CATEGORIES: { heading: string; tags: ToolTag[] }[] = [
+  { heading: "Sign, fill & edit", tags: ["EDIT"] },
+  { heading: "Organize & page management", tags: ["ORGANIZE"] },
+  { heading: "Convert, extract & inspect", tags: ["CONVERT"] },
+  { heading: "Optimize & repair", tags: ["OPTIMIZE"] },
+  { heading: "Security & privacy", tags: ["SECURITY", "SHARE"] },
+];
+
+export function toolsIn(tags: ToolTag[]): Tool[] {
+  const wanted = new Set(tags);
+  const list = tools.filter((t) => t.tag && wanted.has(t.tag));
+  // Headline tools lead their category; the sort is stable, so the rest keep registry order.
+  return [...list].sort((a, b) => Number(Boolean(b.featured)) - Number(Boolean(a.featured)));
+}
+
 export const getTool = (slug: string) => tools.find((t) => t.slug === slug);
 
 export function defaultValues(tool: Tool) {

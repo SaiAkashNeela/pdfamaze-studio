@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo, useEffect } from "react";
 import { Activity } from "lucide-react";
 import { siteConfig } from "@/lib/site-config";
+import { pageHead } from "@/lib/seo";
 import { tools } from "@/lib/tools";
 import {
   loadAnalytics,
@@ -39,22 +40,7 @@ export const Route = createFileRoute("/stats")({
       return null;
     }
   },
-  head: () => ({
-    meta: [
-      { title: `Usage & Analytics — ${siteConfig.name}` },
-      {
-        name: "description",
-        content:
-          "Transparent, client-side usage statistics, tool popularity graphs, and Cloudflare edge location metrics.",
-      },
-      { property: "og:title", content: `Usage & Analytics — ${siteConfig.name}` },
-      {
-        property: "og:description",
-        content:
-          "Track most and least used PDF tools, website usage counts, and edge geography with zero personal data collection.",
-      },
-    ],
-  }),
+  head: () => pageHead({ path: "/stats", title: `Usage & Analytics — ${siteConfig.name}`, description: "Transparent usage statistics: tool popularity and Cloudflare edge locations, with zero personal data collected." }),
   component: StatsPage,
 });
 

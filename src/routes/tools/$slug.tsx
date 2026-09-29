@@ -2,7 +2,9 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { lazy, Suspense } from "react";
 import { ToolRunner } from "@/components/site/ToolRunner";
 import { ToolIcon } from "@/components/site/ToolIcon";
+import { ToolGuide } from "@/components/site/ToolGuide";
 import { siteConfig } from "@/lib/site-config";
+import { toolHead } from "@/lib/seo";
 import { getTool, tools } from "@/lib/tools";
 
 /** Handwriting faces for typed signatures, only requested on the Sign page. */
@@ -50,15 +52,10 @@ export const Route = createFileRoute("/tools/$slug")({
         meta: [{ title: `Tool not found — ${siteConfig.name}` }, { name: "robots", content: "noindex" }],
       };
     }
-    return {
-      links: tool.workbench === "sign" ? [{ rel: "stylesheet", href: SIGNATURE_FONTS_CSS }] : [],
-      meta: [
-        { title: `${tool.seo.title} — ${siteConfig.name}` },
-        { name: "description", content: tool.seo.description },
-        { property: "og:title", content: `${tool.name} — ${siteConfig.name}` },
-        { property: "og:description", content: tool.seo.description },
-      ],
-    };
+    const head = toolHead(tool);
+    return tool.workbench === "sign"
+      ? { ...head, links: [...head.links, { rel: "stylesheet", href: SIGNATURE_FONTS_CSS }] }
+      : head;
   },
   notFoundComponent: ToolNotFound,
   component: ToolPage,
@@ -84,7 +81,11 @@ function ToolNotFound() {
 function ToolPage() {
   const { slug } = Route.useLoaderData();
   const tool = getTool(slug)!;
-  const others = tools.filter((t) => t.slug !== tool.slug).slice(0, 4);
+  // Same-category tools first: better for readers and for internal linking.
+  const others = [
+    ...tools.filter((t) => t.slug !== tool.slug && t.tag === tool.tag),
+    ...tools.filter((t) => t.slug !== tool.slug && t.tag !== tool.tag),
+  ].slice(0, 8);
 
   return (
     <div className="mx-auto max-w-[1180px] px-4 pt-8 sm:px-6 lg:px-8 lg:pt-12">
@@ -111,6 +112,8 @@ function ToolPage() {
       <div className="py-8">
         <ToolBody tool={tool} />
       </div>
+
+      <ToolGuide tool={tool} />
 
       <section className="border-border mt-8 border-t pt-6 pb-4">
         <h2 className="label-xs">Related tools</h2>

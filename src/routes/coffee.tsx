@@ -2,23 +2,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Coffee, Heart } from "lucide-react";
 import { DocPage, Section } from "@/components/site/DocPage";
 import { siteConfig } from "@/lib/site-config";
+import { pageHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/coffee")({
-  head: () => ({
-    meta: [
-      { title: `Support the project — ${siteConfig.name}` },
-      {
-        name: "description",
-        content:
-          "PDFamaze is free and runs entirely in your browser. If it saved you time, you can optionally support its development.",
-      },
-      { property: "og:title", content: `Support ${siteConfig.name}` },
-      {
-        property: "og:description",
-        content: "A free, local-first PDF utility. Support is optional and changes nothing.",
-      },
-    ],
-  }),
+  head: () => pageHead({ path: "/coffee", title: `Support the project — ${siteConfig.name}`, description: "PDFamaze is free and runs entirely in your browser. If it saved you time, you can optionally support its development." }),
   component: CoffeePage,
 });
 

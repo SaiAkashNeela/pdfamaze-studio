@@ -7,7 +7,9 @@ export const siteConfig = {
   url: "https://pdfamaze.com",
   tagline: "PDF tools that run in your browser.",
   description:
-    "Merge, split, rotate, compress, encrypt, unlock, convert, and number PDFs locally in your browser tab. 100% private — zero server uploads.",
+    "Free PDF tools that run in your browser: sign, fill forms, OCR, redact, merge, split, compress, protect and convert PDFs — files never leave your device.",
+  /** Last content update, used for sitemap lastmod. */
+  updated: "2026-09-29",
 
   author: "Sai Akash Neela",
   authorWebsite: "https://saiakashneela.com",

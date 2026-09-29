@@ -46,9 +46,29 @@ function isH3SwallowedErrorBody(body: string): boolean {
 
 import { getGlobalStatsFromKv, recordEventInKv } from "./lib/server/kv-stats";
 
+/** Sitemap and AI-crawler files, generated from the tool registry on request. */
+const SITE_FILES: Record<string, { type: string; build: "sitemapXml" | "llmsTxt" | "llmsFullTxt" }> = {
+  "/sitemap.xml": { type: "application/xml; charset=utf-8", build: "sitemapXml" },
+  "/llms.txt": { type: "text/plain; charset=utf-8", build: "llmsTxt" },
+  "/llm.txt": { type: "text/plain; charset=utf-8", build: "llmsTxt" },
+  "/llms-full.txt": { type: "text/plain; charset=utf-8", build: "llmsFullTxt" },
+};
+
+async function serveSiteFile(pathname: string): Promise<Response | null> {
+  const file = SITE_FILES[pathname];
+  if (!file) return null;
+  const site = await import("./lib/site-files");
+  return new Response(site[file.build](), {
+    headers: { "content-type": file.type, "cache-control": "public, max-age=3600" },
+  });
+}
+
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     const url = new URL(request.url);
+
+    const siteFile = await serveSiteFile(url.pathname);
+    if (siteFile) return siteFile;
 
     // Provide Cloudflare edge geographic telemetry
     if (url.pathname === "/api/geo") {

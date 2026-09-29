@@ -1,23 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { DocPage, Section } from "@/components/site/DocPage";
 import { siteConfig } from "@/lib/site-config";
+import { pageHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/privacy")({
-  head: () => ({
-    meta: [
-      { title: `Privacy — ${siteConfig.name}` },
-      {
-        name: "description",
-        content:
-          "What PDFamaze does and doesn't do with your files: local processing, no uploads, no accounts, and the one thing stored in your browser.",
-      },
-      { property: "og:title", content: `Privacy — ${siteConfig.name}` },
-      {
-        property: "og:description",
-        content: "How PDFamaze handles your files: locally, in your browser, with no uploads.",
-      },
-    ],
-  }),
+  head: () => pageHead({ path: "/privacy", title: `Privacy — ${siteConfig.name}`, description: "What PDFamaze does and doesn't do with your files: local processing, no uploads, no accounts, and what is stored in your browser." }),
   component: PrivacyPage,
 });
 

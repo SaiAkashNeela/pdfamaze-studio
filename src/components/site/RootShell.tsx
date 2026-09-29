@@ -2,6 +2,7 @@ import { HeadContent, Scripts } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { themeInitScript } from "@/lib/theme";
 import { siteConfig } from "@/lib/site-config";
+import { tools } from "@/lib/tools";
 
 const jsonLdSchema = {
   "@context": "https://schema.org",
@@ -30,22 +31,7 @@ const jsonLdSchema = {
         "price": "0",
         "priceCurrency": "USD",
       },
-      "featureList": [
-        "Merge multiple PDF files",
-        "Split PDF pages",
-        "Compress PDF file sizes",
-        "128-bit Password Protect & Encryption",
-        "Unlock & Decrypt PDF files",
-        "Rotate PDF pages",
-        "Visual Page Drag & Drop Organizing",
-        "Stamp Page Numbers",
-        "Watermark PDF pages",
-        "Images to PDF conversion",
-        "PDF to Images rendering",
-        "HTML to PDF document creation",
-        "Extract text from PDF",
-        "Convert PDF to Grayscale Monochrome",
-      ],
+      "featureList": tools.map((t) => `${t.name}: ${t.summary}`),
       "author": {
         "@id": "https://pdfamaze.com/#author",
       },

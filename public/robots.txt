@@ -15,6 +15,18 @@ Allow: /
 User-agent: PerplexityBot
 Allow: /
 
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
 User-agent: CCBot
 Allow: /
 
@@ -28,4 +40,5 @@ User-agent: Applebot
 Allow: /
 
 # Sitemaps and AI Documentation Standard
+# LLM-readable summaries: https://pdfamaze.com/llms.txt and https://pdfamaze.com/llms-full.txt
 Sitemap: https://pdfamaze.com/sitemap.xml

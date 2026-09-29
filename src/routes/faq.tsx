@@ -1,23 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { DocPage, Section } from "@/components/site/DocPage";
 import { siteConfig } from "@/lib/site-config";
+import { pageHead } from "@/lib/seo";
 import { tools } from "@/lib/tools";
 
 export const Route = createFileRoute("/faq")({
-  head: () => ({
-    meta: [
-      { title: `Frequently Asked Questions — ${siteConfig.name}` },
-      {
-        name: "description",
-        content: "Common questions about client-side PDF processing, security, limitations, and supported formats.",
-      },
-      { property: "og:title", content: `FAQ — ${siteConfig.name}` },
-      {
-        property: "og:description",
-        content: "Learn how PDFamaze works directly in your browser without uploading files.",
-      },
-    ],
-  }),
+  head: () => pageHead({ path: "/faq", title: `Frequently Asked Questions — ${siteConfig.name}`, description: "How PDFamaze processes PDFs in your browser: privacy, file size limits, supported formats and every available tool." }),
   component: FaqPage,
 });
 

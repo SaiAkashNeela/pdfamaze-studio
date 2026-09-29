@@ -20,7 +20,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "keywords",
         content:
-          "PDF tools, merge PDF, split PDF, compress PDF, rotate PDF, password protect PDF, unlock PDF, convert images to PDF, PDF to image, add page numbers, watermark PDF, extract text, grayscale PDF, local-first PDF, client-side PDF, private PDF editor",
+          "PDF tools, sign PDF, fill PDF form, OCR PDF, redact PDF, merge PDF, split PDF, compress PDF, edit PDF, protect PDF, unlock PDF, convert PDF, free PDF editor, private PDF tools, no upload PDF",
       },
       { name: "author", content: siteConfig.author },
       { name: "creator", content: siteConfig.author },
@@ -30,7 +30,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:title", content: `${siteConfig.name} — Local-First PDF Workbench` },
       { property: "og:description", content: siteConfig.description },
       { property: "og:type", content: "website" },
-      { property: "og:url", content: "https://pdfamaze.com" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: `${siteConfig.name} — Local-First PDF Workbench` },
       { name: "twitter:description", content: siteConfig.description },
@@ -47,7 +46,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
       { rel: "alternate icon", href: "/favicon.ico", type: "image/x-icon" },
       { rel: "manifest", href: "/site.webmanifest" },
-      { rel: "canonical", href: "https://pdfamaze.com" },
     ],
   }),
   shellComponent: RootShell,

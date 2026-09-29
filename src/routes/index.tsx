@@ -1,8 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { ToolCard } from "@/components/site/ToolCard";
+import { ToolRow } from "@/components/site/ToolRow";
 import { siteConfig } from "@/lib/site-config";
-import { tools } from "@/lib/tools";
+import { pageHead, toolListJsonLd } from "@/lib/seo";
+import { CATEGORIES, tools, toolsIn } from "@/lib/tools";
 import { trackPageView } from "@/lib/analytics";
 import { getGeoTelemetry } from "@/lib/server/geo";
 
@@ -14,16 +15,17 @@ export const Route = createFileRoute("/")({
       return null;
     }
   },
-  head: () => ({
-    meta: [
-      { title: `${siteConfig.name} — PDF tools that run in your browser` },
-      { name: "description", content: siteConfig.description },
-      { property: "og:title", content: `${siteConfig.name} — browser-based PDF tools` },
-      { property: "og:description", content: siteConfig.description },
-    ],
-  }),
+  head: () =>
+    pageHead({
+      path: "/",
+      title: `${siteConfig.name} — Free PDF tools that run in your browser`,
+      description: siteConfig.description,
+      jsonLd: [toolListJsonLd(tools)],
+    }),
   component: Home,
 });
+
+const categoryId = (heading: string) => heading.toLowerCase().replace(/[^a-z]+/g, "-").replace(/-$/, "");
 
 function Home() {
   const geo = Route.useLoaderData();
@@ -36,61 +38,66 @@ function Home() {
     }
   }, [geo]);
 
-  const featured = tools.filter((t) => t.featured);
-  const rest = tools.filter((t) => !t.featured);
-
   return (
     <>
-      {/* Hero + tools split: claim on the left, immediate tool boxes on the right. */}
       <section className="relative overflow-hidden">
         <div aria-hidden className="rule-grid pointer-events-none absolute inset-0" />
-        <div className="relative mx-auto grid max-w-[1180px] gap-8 px-4 pt-12 pb-10 sm:px-6 sm:pt-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,680px)] lg:gap-10 lg:px-8 lg:pt-24 lg:pb-16">
-          {/* Left: the claim */}
-          <div className="lg:pt-4">
-            <p className="label-xs">Local PDF workbench</p>
-            <h1 className="mt-4 max-w-[18ch] text-[clamp(2rem,5.2vw,3.25rem)] leading-[1.05] font-semibold tracking-[-0.03em]">
-              Do the thing to your PDF. Nothing leaves your laptop.
-            </h1>
-            <p className="text-muted-foreground mt-5 max-w-[54ch] text-[15px] leading-relaxed sm:text-[16px]">
-              {siteConfig.name} is a set of {tools.length} small, fast PDF tools that run entirely inside this
-              browser tab — sign, fill forms, OCR, redact, merge, split, compress, protect and convert. No upload step, no queue, no
-              account.
-            </p>
-            <div className="mt-7 flex flex-wrap items-center gap-3">
-              <Link
-                to="/tools"
-                className="bg-accent text-accent-foreground hover:bg-accent/90 inline-flex h-11 items-center rounded-[3px] px-5 text-[14px] font-medium transition-colors"
-              >
-                Browse all {tools.length} tools
-              </Link>
-              <Link
-                to="/tools/$slug"
-                params={{ slug: "merge" }}
-                className="border-border-strong hover:bg-secondary inline-flex h-11 items-center rounded-[3px] border px-5 text-[14px] transition-colors"
-              >
-                Merge a PDF now
-              </Link>
-            </div>
+        <div className="relative mx-auto flex max-w-[860px] flex-col items-center px-4 pt-14 pb-10 text-center sm:px-6 sm:pt-20 lg:pt-24">
+          <p className="label-xs">Local PDF workbench · {tools.length} tools</p>
+          <h1 className="mt-4 max-w-[20ch] text-[clamp(2.1rem,5.6vw,3.6rem)] leading-[1.04] font-semibold tracking-[-0.035em] text-balance">
+            Do the thing to your PDF. Nothing leaves your laptop.
+          </h1>
+          <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
+            <a
+              href="#all-tools"
+              className="bg-accent text-accent-foreground hover:bg-accent/90 inline-flex h-11 items-center rounded-[3px] px-5 text-[14px] font-medium transition-colors"
+            >
+              Browse all {tools.length} tools
+            </a>
+            <Link
+              to="/tools/$slug"
+              params={{ slug: "sign" }}
+              className="border-border-strong hover:bg-secondary inline-flex h-11 items-center rounded-[3px] border px-5 text-[14px] transition-colors"
+            >
+              Sign a PDF
+            </Link>
           </div>
-
-          {/* Right: compact tool grid */}
-          <div className="bg-surface-raised/60 border-border rounded-2xl border p-3 shadow-sm sm:p-4">
-            <div className="mb-3 flex items-center justify-between gap-2 px-1">
-              <h2 className="label-xs">Jump in</h2>
-              <Link
-                to="/tools"
-                className="text-muted-foreground hover:text-foreground text-[12.5px] font-medium"
+          <p className="text-muted-foreground mt-6 max-w-[58ch] text-[14.5px] leading-relaxed sm:text-[15px]">
+            Sign, fill forms, OCR, redact, merge, split, compress, protect and convert — {siteConfig.name} runs every tool inside
+            this browser tab. No upload step, no queue, no account, no watermark.
+          </p>
+          <nav aria-label="Tool categories" className="mt-7 flex flex-wrap justify-center gap-2">
+            {CATEGORIES.map((c) => (
+              <a
+                key={c.heading}
+                href={`#${categoryId(c.heading)}`}
+                className="border-border bg-surface-raised/70 text-muted-foreground hover:text-foreground hover:border-border-strong rounded-full border px-3 py-1 text-[12.5px] transition-colors"
               >
-                All {tools.length}
-              </Link>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {[...featured, ...rest].map((tool) => (
-                <ToolCard key={tool.slug} tool={tool} compact />
-              ))}
-            </div>
-          </div>
+                {c.heading} <span className="font-mono text-[11px]">{toolsIn(c.tags).length}</span>
+              </a>
+            ))}
+          </nav>
         </div>
+      </section>
+
+      <section id="all-tools" aria-label="All tools" className="mx-auto max-w-[1320px] scroll-mt-20 px-4 pb-4 sm:px-6 lg:px-8">
+        {CATEGORIES.map((c) => {
+          const list = toolsIn(c.tags);
+          if (!list.length) return null;
+          return (
+            <div key={c.heading} id={categoryId(c.heading)} className="scroll-mt-20 pt-10 first:pt-2">
+              <div className="border-border flex items-baseline justify-between gap-3 border-t pt-5">
+                <h2 className="text-[17px] font-semibold tracking-[-0.02em]">{c.heading}</h2>
+                <span className="text-muted-foreground font-mono text-[12px]">{list.length} tools</span>
+              </div>
+              <div className="mt-4 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {list.map((tool) => (
+                  <ToolRow key={tool.slug} tool={tool} />
+                ))}
+              </div>
+            </div>
+          );
+        })}
       </section>
 
       {/* How the privacy model actually works */}
@@ -104,7 +111,8 @@ function Home() {
               Everything here is static HTML and JavaScript. When you pick a file, the browser
               hands it to code running on your machine; the result is written straight back to your
               downloads folder. You can check this — open your network tab, or disconnect from the
-              internet after the page loads. The tools keep working.
+              internet after the page loads. The tools keep working (OCR needs to download its
+              engine once first).
             </p>
             <Link
               to="/privacy"

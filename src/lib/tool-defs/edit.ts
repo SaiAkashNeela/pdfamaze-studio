@@ -150,7 +150,7 @@ export const editTools: Tool[] = [
     tag: "EDIT",
     caveat: "Small images written directly into page content (inline images) can remain.",
     fields: [],
-    seo: { title: "Remove all images from a PDF", description: "Strip images from a PDF without uploading it." },
+    seo: { title: "Remove all images from a PDF", description: "Strip every embedded image from a PDF to get a lighter, text-only copy — right in your browser, without uploading it." },
     run: async (files, _v, p) => (await securityOps()).removeImages(files, p),
   },
   {

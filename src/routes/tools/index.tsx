@@ -1,33 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ToolCard } from "@/components/site/ToolCard";
 import { siteConfig } from "@/lib/site-config";
-import { tools, type ToolTag } from "@/lib/tools";
+import { pageHead, toolListJsonLd } from "@/lib/seo";
+import { CATEGORIES, tools, toolsIn } from "@/lib/tools";
 
 export const Route = createFileRoute("/tools/")({
-  head: () => ({
-    meta: [
-      { title: `All tools — ${siteConfig.name}` },
-      {
-        name: "description",
-        content: `Every PDF tool on ${siteConfig.name}: sign, fill forms, OCR, redact, merge, split, compress, protect, organize, convert and more — all in your browser.`,
-      },
-      { property: "og:title", content: `All tools — ${siteConfig.name}` },
-      {
-        property: "og:description",
-        content: "Browser-based PDF tools. No upload, no account, no server-side processing.",
-      },
-    ],
-  }),
+  head: () =>
+    pageHead({
+      path: "/tools",
+      title: `All ${tools.length} PDF tools — ${siteConfig.name}`,
+      description: `Every PDF tool on ${siteConfig.name}: sign, fill forms, OCR, redact, merge, split, compress, protect, organize, convert and more — all free and in your browser, with no upload.`,
+      jsonLd: [toolListJsonLd(tools)],
+    }),
   component: ToolsIndex,
 });
-
-const SECTIONS: { heading: string; tags: ToolTag[] }[] = [
-  { heading: "Sign, fill & edit", tags: ["EDIT"] },
-  { heading: "Organize & page management", tags: ["ORGANIZE"] },
-  { heading: "Convert, extract & inspect", tags: ["CONVERT"] },
-  { heading: "Optimize & repair", tags: ["OPTIMIZE"] },
-  { heading: "Security & privacy", tags: ["SECURITY", "SHARE"] },
-];
 
 function ToolsIndex() {
   return (
@@ -43,8 +29,8 @@ function ToolsIndex() {
         </p>
       </header>
 
-      {SECTIONS.map((section) => {
-        const list = tools.filter((t) => t.tag && section.tags.includes(t.tag));
+      {CATEGORIES.map((section) => {
+        const list = toolsIn(section.tags);
         if (!list.length) return null;
         return (
           <section key={section.heading} className="mt-12 first-of-type:mt-10">

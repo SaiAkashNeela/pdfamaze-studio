@@ -1,23 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { DocPage, Section } from "@/components/site/DocPage";
 import { siteConfig } from "@/lib/site-config";
+import { pageHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/terms")({
-  head: () => ({
-    meta: [
-      { title: `Terms of use — ${siteConfig.name}` },
-      {
-        name: "description",
-        content:
-          "Plain terms for using PDFamaze: acceptable use, your responsibility for your own files, availability and limitations.",
-      },
-      { property: "og:title", content: `Terms of use — ${siteConfig.name}` },
-      {
-        property: "og:description",
-        content: "Short, readable terms for a small browser-based PDF utility.",
-      },
-    ],
-  }),
+  head: () => pageHead({ path: "/terms", title: `Terms of use — ${siteConfig.name}`, description: "Plain terms for using PDFamaze: acceptable use, your responsibility for your own files, availability and limitations." }),
   component: TermsPage,
 });
 
