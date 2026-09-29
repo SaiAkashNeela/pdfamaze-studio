@@ -22,3 +22,20 @@ export function ToolRow({ tool }: { tool: Tool }) {
     </Link>
   );
 }
+
+/** Compact tile for short, prominent lists: icon and name, plus the summary on wider screens. */
+export function ToolTile({ tool }: { tool: Tool }) {
+  return (
+    <Link
+      to="/tools/$slug"
+      params={{ slug: tool.slug }}
+      className="group bg-card border-border hover:border-border-strong flex h-full items-center gap-2.5 rounded-xl border p-2.5 transition-colors hover:shadow-sm sm:p-3 md:items-start"
+    >
+      <ToolIcon tool={tool} compact className="h-8 w-8 rounded-lg sm:h-9 sm:w-9" />
+      <span className="min-w-0 flex-1">
+        <span className="line-clamp-2 block text-[13.5px] leading-tight font-semibold tracking-[-0.01em] sm:text-[14px]">{tool.name}</span>
+        <span className="text-muted-foreground mt-0.5 hidden text-[12px] leading-snug md:line-clamp-2">{tool.summary}</span>
+      </span>
+    </Link>
+  );
+}

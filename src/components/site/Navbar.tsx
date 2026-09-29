@@ -3,10 +3,12 @@ import { Coffee, Github } from "lucide-react";
 import { siteConfig } from "@/lib/site-config";
 import { LogoMark, Wordmark } from "./Logo";
 import { ThemeToggle } from "./ThemeToggle";
+import { SearchButton } from "./search/SearchButton";
 
 const links = [
-  { to: "/tools", label: "Tools" },
-  { to: "/privacy", label: "Privacy" },
+  { to: "/tools", label: "Tools", className: "" },
+  // Tight on phones once search is in the bar; Privacy stays reachable from the footer.
+  { to: "/privacy", label: "Privacy", className: "hidden sm:inline-block" },
 ];
 
 export function Navbar() {
@@ -19,7 +21,7 @@ export function Navbar() {
           aria-label={`${siteConfig.name} — home`}
         >
           <LogoMark className="h-[22px] w-[22px]" />
-          <Wordmark />
+          <Wordmark className="max-[359px]:hidden" />
         </Link>
 
         <nav aria-label="Main" className="ml-2 flex items-center gap-1 sm:ml-4">
@@ -27,7 +29,7 @@ export function Navbar() {
             <Link
               key={l.to}
               to={l.to}
-              className="text-muted-foreground hover:text-foreground rounded-[3px] px-2 py-1.5 text-[13.5px] transition-colors"
+              className={`text-muted-foreground hover:text-foreground rounded-[3px] px-2 py-1.5 text-[13.5px] transition-colors ${l.className}`}
               activeProps={{ className: "text-foreground" }}
             >
               {l.label}
@@ -36,6 +38,7 @@ export function Navbar() {
         </nav>
 
         <div className="ml-auto flex items-center gap-1.5">
+          <SearchButton />
           {siteConfig.githubUrl ? (
             <a
               href={siteConfig.githubUrl}
