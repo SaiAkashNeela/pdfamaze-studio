@@ -5,7 +5,7 @@ import { openPdfjsDocument, PdfError, readBytes } from "@/lib/pdf/core";
 type DocState = { doc: PDFDocumentProxy | null; error: string | null };
 
 /** Opens a PDF with pdf.js for previewing. The document is destroyed when the file changes. */
-export function usePdfDocument(file: File | null): DocState {
+export function usePdfDocument(file: File | null, password?: string): DocState {
   const [state, setState] = useState<DocState>({ doc: null, error: null });
 
   useEffect(() => {
@@ -16,7 +16,7 @@ export function usePdfDocument(file: File | null): DocState {
     let active = true;
     let opened: PDFDocumentProxy | null = null;
     readBytes(file)
-      .then((bytes) => openPdfjsDocument(bytes))
+      .then((bytes) => openPdfjsDocument(bytes, password))
       .then((doc) => {
         opened = doc;
         if (active) setState({ doc, error: null });
@@ -31,7 +31,7 @@ export function usePdfDocument(file: File | null): DocState {
       active = false;
       void opened?.loadingTask.destroy();
     };
-  }, [file]);
+  }, [file, password]);
 
   return state;
 }

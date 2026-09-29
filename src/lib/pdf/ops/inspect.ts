@@ -438,15 +438,21 @@ export async function repairPdf(files: File[], opts: { mode: string }, progress:
 
 type Op = { type: "same" | "added" | "removed"; text: string };
 
-/** Stirling's tokeniser: alphanumeric runs and single punctuation marks, normalised. */
+/**
+ * Stirling's tokeniser: alphanumeric runs and single punctuation marks, normalised. Each token
+ * keeps a leading space when the source had whitespace before it, so the report reproduces the
+ * document's spacing ("jane.doe@example.com", not "jane . doe @ example . com").
+ */
 function tokenize(text: string): string[] {
   const normal = text
     .normalize("NFKC")
-    .replace(/[­​-‏‪-‮]/g, "")
-    .replace(/[‘’]/g, "'")
-    .replace(/[“”]/g, '"')
-    .replace(/[–—]/g, "-");
-  return normal.match(/[\p{L}\p{N}]+|[^\s\p{L}\p{N}]/gu) ?? [];
+    .replace(/[\u00AD\u200B-\u200F\u202A-\u202E]/g, "")
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/[\u201C\u201D]/g, '"')
+    .replace(/[\u2013\u2014]/g, "-");
+  return Array.from(normal.matchAll(/[\p{L}\p{N}]+|[^\s\p{L}\p{N}]/gu), (m) =>
+    m.index > 0 && /\s/.test(normal[m.index - 1]!) ? ` ${m[0]}` : m[0],
+  );
 }
 
 /**
@@ -516,7 +522,8 @@ async function docTokens(file: File) {
   const tokens: string[] = [];
   for (let n = 1; n <= src.numPages; n++) {
     const items = await pageText(await src.getPage(n));
-    tokens.push(...tokenize(items.map((i) => i.str + (i.hasEOL ? "\n" : " ")).join("")));
+    // Leading space keeps the last word of one page apart from the first word of the next.
+    tokens.push(...tokenize(` ${items.map((i) => i.str + (i.hasEOL ? "\n" : " ")).join("")}`));
   }
   void src.loadingTask.destroy();
   return tokens;
@@ -529,12 +536,14 @@ function reportHtml(a: File, b: File, ops: Op[]) {
   const removed = ops.filter((o) => o.type === "removed").length;
   const body = ops
     .map((o) => {
-      const t = escapeHtml(o.text);
-      return o.type === "same" ? t : o.type === "added" ? `<ins>${t}</ins>` : `<del>${t}</del>`;
+      // Keep the separating space outside the highlight.
+      const lead = o.text.startsWith(" ") ? " " : "";
+      const t = escapeHtml(o.text.trimStart());
+      return lead + (o.type === "same" ? t : o.type === "added" ? `<ins>${t}</ins>` : `<del>${t}</del>`);
     })
-    .join(" ")
-    .replace(/<\/ins> <ins>/g, " ")
-    .replace(/<\/del> <del>/g, " ");
+    .join("")
+    .replace(/<\/ins>( ?)<ins>/g, "$1")
+    .replace(/<\/del>( ?)<del>/g, "$1");
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Comparison: ${escapeHtml(a.name)} vs ${escapeHtml(b.name)}</title>
 <style>body{font:15px/1.7 system-ui,sans-serif;max-width:860px;margin:32px auto;padding:0 16px;color:#1f2328;background:#fff}

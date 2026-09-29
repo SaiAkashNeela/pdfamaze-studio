@@ -166,7 +166,6 @@ export function ToolRunner({ tool }: { tool: Tool }) {
       </div>
     );
   }
-
   if (status === "working") {
     return (
       <div>
@@ -175,27 +174,54 @@ export function ToolRunner({ tool }: { tool: Tool }) {
       </div>
     );
   }
-
   if (status === "done") {
     return (
       <div>
         <ToolHero tool={tool} compact onStartOver={reset} />
         <div className="py-8">
-          <ResultStage tool={tool} results={state.results} sourceName={files[0]?.name} onStartOver={reset} onBack={() => dispatch({ type: "BACK_TO_EDIT" })} />
+          <ResultStage
+            tool={tool}
+            results={state.results}
+            sourceName={files[0]?.name}
+            previewPassword={tool.slug === "protect-pdf" ? String(state.values["password"] ?? "") : undefined}
+            onStartOver={reset}
+            onBack={() => dispatch({ type: "BACK_TO_EDIT" })}
+          />
         </div>
       </div>
     );
   }
+  return <Workspace tool={tool} state={state} dispatch={dispatch} visible={visible} ready={ready} run={run} reset={reset} />;
+}
 
+function Workspace({
+  tool,
+  state,
+  dispatch,
+  visible,
+  ready,
+  run,
+  reset,
+}: {
+  tool: Tool;
+  state: RunnerState;
+  dispatch: (a: RunnerAction) => void;
+  visible: Field[];
+  ready: boolean;
+  run: () => void;
+  reset: () => void;
+}) {
+  const { files } = state;
   const hint = filesHint(tool, files.length);
-  const action = <>{tool.action}</>;
+  // First tap on phones shows the options, so nothing runs with settings nobody has seen.
+  const mobileAction = visible.length && !state.optionsSeen ? () => dispatch({ type: "OPTIONS", open: true }) : run;
 
   return (
     <div className="pb-28 lg:pb-0">
       <ToolHero tool={tool} compact onStartOver={reset} />
       <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-10">
         <div className="min-w-0 space-y-4">
-          {status === "error" ? <ToolRunnerError error={state.error} /> : null}
+          {state.status === "error" ? <ToolRunnerError error={state.error} /> : null}
           <Dropzone
             accept={tool.accept}
             acceptLabel={tool.acceptLabel}
@@ -216,7 +242,7 @@ export function ToolRunner({ tool }: { tool: Tool }) {
               <OptionFields tool={tool} fields={visible} state={state} dispatch={dispatch} />
             </div>
             <PrimaryButton onClick={run} disabled={!ready} className="mt-6 w-full">
-              {action}
+              {tool.action}
             </PrimaryButton>
             <PrivacyNote className="mt-4" />
           </div>
@@ -229,9 +255,8 @@ export function ToolRunner({ tool }: { tool: Tool }) {
             <SlidersHorizontal className="h-4 w-4" /> Options
           </SecondaryButton>
         ) : null}
-        {/* First tap shows the options, so nothing runs with settings nobody has seen. */}
-        <PrimaryButton onClick={visible.length && !state.optionsSeen ? () => dispatch({ type: "OPTIONS", open: true }) : run} disabled={!ready}>
-          {action}
+        <PrimaryButton onClick={mobileAction} disabled={!ready}>
+          {tool.action}
         </PrimaryButton>
       </ActionBar>
 
@@ -241,7 +266,7 @@ export function ToolRunner({ tool }: { tool: Tool }) {
         onClose={() => dispatch({ type: "OPTIONS", open: false })}
         footer={
           <PrimaryButton onClick={run} disabled={!ready} className="w-full">
-            {action}
+            {tool.action}
           </PrimaryButton>
         }
       >

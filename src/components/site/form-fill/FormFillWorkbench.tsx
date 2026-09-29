@@ -1,4 +1,5 @@
 import { useEffect, useReducer } from "react";
+import { FileText } from "lucide-react";
 import { PrivacyNote } from "../PrivacyNote";
 import { ToolRunnerError } from "../tool-runner/ToolRunnerError";
 import { ActionBar, PrimaryButton } from "../tool-shell/ActionBar";
@@ -175,6 +176,11 @@ export function FormFillWorkbench({ tool }: { tool: Tool }) {
       <ToolHero tool={tool} compact onStartOver={reset} />
       <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-10">
         <div className="min-w-0 space-y-4">
+          <p className="text-muted-foreground flex items-center gap-2 text-[13px]">
+            <FileText className="text-accent h-4 w-4 shrink-0" />
+            <span className="text-foreground truncate font-medium">{state.file.name}</span>
+            {state.fields ? <span className="shrink-0">· {state.fields.length} field{state.fields.length === 1 ? "" : "s"}</span> : null}
+          </p>
           {state.status === "error" ? <ToolRunnerError error={state.error} /> : null}
           {state.status === "loading" ? <ProcessingStage label="Reading form fields" /> : null}
           {state.fields ? <FieldList state={state} dispatch={dispatch} /> : null}

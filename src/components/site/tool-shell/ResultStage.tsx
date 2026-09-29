@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft, Check, Download, FileText, Loader2, RotateCcw } from "lucide-react";
 import { ToolIcon } from "../ToolIcon";
+import { ResultPreview } from "./ResultPreview";
 import { baseName, downloadFile, formatBytes, zipOutputs, type OutputFile } from "@/lib/pdf/core";
 import { handOff } from "@/lib/handoff";
 import { getTool, type Tool } from "@/lib/tools";
@@ -69,6 +70,7 @@ export function ResultStage({
   onStartOver,
   onBack,
   sourceName,
+  previewPassword,
 }: {
   tool: Tool;
   results: OutputFile[];
@@ -76,6 +78,8 @@ export function ResultStage({
   onBack?: () => void;
   /** Name of the file the user started with, used for the ZIP name. */
   sourceName?: string | undefined;
+  /** Password for previewing an output the tool encrypted. */
+  previewPassword?: string | undefined;
 }) {
   const total = results.reduce((n, r) => n + r.blob.size, 0);
   const next = nextTools(tool, results);
@@ -83,59 +87,66 @@ export function ResultStage({
     handOff(results.map((r) => new File([r.blob], r.name, { type: r.blob.type })));
 
   return (
-    <div className="mx-auto flex max-w-[640px] flex-col items-center pt-4 text-center" aria-live="polite">
-      <div className="border-success/30 bg-success/15 text-success grid h-14 w-14 place-items-center rounded-full border">
-        <Check className="h-7 w-7 stroke-[2.5]" />
-      </div>
-      <h2 className="mt-4 text-[clamp(1.5rem,4vw,2rem)] font-semibold tracking-[-0.03em]">
-        {results.length === 1 ? "Your file is ready" : `${results.length} files are ready`}
-      </h2>
-      <p className="text-muted-foreground mt-1.5 text-[14px]">
-        {formatBytes(total)} · made on your device, nothing was uploaded
-      </p>
-      <div className="mt-6 flex w-full justify-center">
-        <DownloadButton tool={tool} results={results} sourceName={sourceName} />
-      </div>
-
-      {results.length > 1 ? (
-        <ul className="border-border divide-border bg-card mt-5 max-h-[280px] w-full divide-y overflow-y-auto rounded-xl border text-left">
-          {results.map((r) => (
-            <FileLine key={`${r.name}-${r.blob.size}`} file={r} />
-          ))}
-        </ul>
-      ) : null}
-
-      <div className="mt-5 flex flex-wrap justify-center gap-2">
-        {onBack ? (
-          <button type="button" onClick={onBack} className="text-muted-foreground hover:text-foreground hover:bg-secondary inline-flex h-10 items-center gap-1.5 rounded-lg px-3.5 text-[13.5px]">
-            <ArrowLeft className="h-4 w-4" /> Change options
-          </button>
-        ) : null}
-        <button type="button" onClick={onStartOver} className="text-muted-foreground hover:text-foreground hover:bg-secondary inline-flex h-10 items-center gap-1.5 rounded-lg px-3.5 text-[13.5px]">
-          <RotateCcw className="h-4 w-4" /> Start over with a new file
-        </button>
-      </div>
-
-      {next.length ? (
-        <div className="border-border mt-9 w-full border-t pt-6 text-left">
-          <h3 className="label-xs text-center">{results.length === 1 ? "Continue with this file" : "Continue with these files"}</h3>
-          <ul className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {next.map((t) => (
-              <li key={t.slug}>
-                <Link
-                  to="/tools/$slug"
-                  params={{ slug: t.slug }}
-                  onClick={continueWith}
-                  className="border-border bg-card hover:border-border-strong flex h-full items-center gap-2.5 rounded-xl border p-2.5 text-[13px] font-medium transition-colors"
-                >
-                  <ToolIcon tool={t} compact className="h-8 w-8 rounded-lg" />
-                  <span className="leading-tight">{t.name}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
+    <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start lg:gap-10" aria-live="polite">
+      {/* Phones: status, preview, next steps. Desktop: preview left, a sticky action column right. */}
+      <div className="contents lg:sticky lg:top-20 lg:col-start-2 lg:row-start-1 lg:flex lg:flex-col lg:gap-5">
+        <div className="border-border bg-card order-1 flex flex-col items-center rounded-2xl border p-5 text-center sm:p-6 lg:order-none">
+          <div className="border-success/30 bg-success/15 text-success grid h-12 w-12 place-items-center rounded-full border">
+            <Check className="h-6 w-6 stroke-[2.5]" />
+          </div>
+          <h2 className="mt-3 text-[clamp(1.35rem,3.5vw,1.7rem)] font-semibold tracking-[-0.03em]">
+            {results.length === 1 ? "Your file is ready" : `${results.length} files are ready`}
+          </h2>
+          <p className="text-muted-foreground mt-1 text-[13.5px]">{formatBytes(total)} · made on your device, nothing was uploaded</p>
+          <div className="mt-5 flex w-full flex-col items-center gap-2.5">
+            <DownloadButton tool={tool} results={results} sourceName={sourceName} />
+            {onBack ? (
+              <button
+                type="button"
+                onClick={onBack}
+                className="border-border-strong hover:bg-secondary inline-flex h-12 w-full max-w-[360px] items-center justify-center gap-2 rounded-xl border px-5 text-[14.5px] font-medium transition-colors"
+              >
+                <ArrowLeft className="h-4 w-4" /> Back to editing
+              </button>
+            ) : null}
+            <button type="button" onClick={onStartOver} className="text-muted-foreground hover:text-foreground inline-flex h-10 items-center gap-1.5 rounded-lg px-3 text-[13px]">
+              <RotateCcw className="h-3.5 w-3.5" /> Start over with a new file
+            </button>
+          </div>
+          {results.length > 1 ? (
+            <ul className="border-border divide-border mt-4 max-h-[240px] w-full divide-y overflow-y-auto rounded-xl border text-left">
+              {results.map((r) => (
+                <FileLine key={`${r.name}-${r.blob.size}`} file={r} />
+              ))}
+            </ul>
+          ) : null}
         </div>
-      ) : null}
+
+        {next.length ? (
+          <div className="order-3 lg:order-none">
+            <h3 className="label-xs text-center lg:text-left">{results.length === 1 ? "Continue with this file" : "Continue with these files"}</h3>
+            <ul className="mt-3 grid grid-cols-2 gap-2">
+              {next.map((t) => (
+                <li key={t.slug}>
+                  <Link
+                    to="/tools/$slug"
+                    params={{ slug: t.slug }}
+                    onClick={continueWith}
+                    className="border-border bg-card hover:border-border-strong flex h-full items-center gap-2.5 rounded-xl border p-2.5 text-[13px] font-medium transition-colors"
+                  >
+                    <ToolIcon tool={t} compact className="h-8 w-8 rounded-lg" />
+                    <span className="leading-tight">{t.name}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+      </div>
+
+      <div className="order-2 min-w-0 lg:col-start-1 lg:row-start-1">
+        <ResultPreview results={results} password={previewPassword} />
+      </div>
     </div>
   );
 }
