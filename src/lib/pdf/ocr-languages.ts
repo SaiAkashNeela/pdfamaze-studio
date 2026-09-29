@@ -1,0 +1,21 @@
+/** Latin-script languages only: the invisible layer uses a standard (WinAnsi) PDF font. */
+export const OCR_LANGUAGES = [
+  { value: "eng", label: "English" },
+  { value: "deu", label: "German" },
+  { value: "fra", label: "French" },
+  { value: "spa", label: "Spanish" },
+  { value: "ita", label: "Italian" },
+  { value: "por", label: "Portuguese" },
+  { value: "nld", label: "Dutch" },
+  { value: "swe", label: "Swedish" },
+  { value: "dan", label: "Danish" },
+  { value: "nor", label: "Norwegian" },
+  { value: "fin", label: "Finnish" },
+  { value: "pol", label: "Polish" },
+  { value: "ces", label: "Czech" },
+  { value: "tur", label: "Turkish" },
+  { value: "ron", label: "Romanian" },
+  { value: "hun", label: "Hungarian" },
+  { value: "ind", label: "Indonesian" },
+  { value: "vie", label: "Vietnamese" },
+];

@@ -45,7 +45,7 @@ export function DropzoneUploadBox({
         ref={inputRef}
         id={id}
         type="file"
-        accept={accept}
+        accept={accept === "*" ? undefined : accept}
         multiple={multiple}
         className="sr-only"
         onChange={onFileChange}

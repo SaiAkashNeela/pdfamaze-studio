@@ -1,5 +1,118 @@
 import type { Field } from "@/lib/tools";
 
+type FieldValue = string | number | boolean | undefined;
+type ControlProps<T extends Field["type"]> = {
+  id: string;
+  field: Extract<Field, { type: T }>;
+  value: FieldValue;
+  busy: boolean;
+  onChange: (value: string | number | boolean) => void;
+};
+
+const textClass =
+  "border-input bg-surface-raised placeholder:text-muted-foreground/70 h-9 w-full rounded-[3px] border px-2.5 font-mono text-[13px]";
+
+function SelectControl({ id, field, value, busy, onChange }: ControlProps<"select">) {
+  return (
+    <select
+      id={id}
+      value={String(value)}
+      disabled={busy}
+      onChange={(e) => onChange(e.target.value)}
+      className="border-input bg-surface-raised h-9 w-full rounded-[3px] border px-2 text-[13.5px]"
+    >
+      {field.options.map((o) => (
+        <option key={o.value} value={o.value}>
+          {o.label}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+function TextControl({ id, field, value, busy, onChange }: ControlProps<"text" | "password">) {
+  return (
+    <input
+      id={id}
+      type={field.type === "password" ? "password" : "text"}
+      value={String(value)}
+      disabled={busy}
+      placeholder={"placeholder" in field ? field.placeholder : undefined}
+      onChange={(e) => onChange(e.target.value)}
+      className={textClass}
+    />
+  );
+}
+
+function TextareaControl({ id, field, value, busy, onChange }: ControlProps<"textarea">) {
+  return (
+    <textarea
+      id={id}
+      value={String(value)}
+      disabled={busy}
+      rows={field.rows ?? 4}
+      placeholder={field.placeholder}
+      onChange={(e) => onChange(e.target.value)}
+      className="border-input bg-surface-raised placeholder:text-muted-foreground/70 w-full resize-y rounded-[3px] border px-2.5 py-2 font-mono text-[12.5px] leading-relaxed"
+    />
+  );
+}
+
+function ColorControl({ id, value, busy, onChange }: ControlProps<"color">) {
+  return (
+    <div className="flex items-center gap-2">
+      <input
+        id={id}
+        type="color"
+        value={String(value)}
+        disabled={busy}
+        onChange={(e) => onChange(e.target.value)}
+        className="border-input h-9 w-12 cursor-pointer rounded-[3px] border bg-transparent p-1"
+      />
+      <span className="text-muted-foreground font-mono text-[12px] uppercase">{String(value)}</span>
+    </div>
+  );
+}
+
+function RangeControl({ id, field, value, busy, onChange }: ControlProps<"range">) {
+  return (
+    <input
+      id={id}
+      type="range"
+      min={field.min}
+      max={field.max}
+      step={field.step}
+      value={Number(value)}
+      disabled={busy}
+      onChange={(e) => onChange(Number(e.target.value))}
+      className="accent-accent w-full"
+    />
+  );
+}
+
+function Hint({ text }: { text: string | undefined }) {
+  return text ? <p className="text-muted-foreground mt-1.5 text-[12px] leading-snug">{text}</p> : null;
+}
+
+function Control(props: { id: string; field: Field; value: FieldValue; busy: boolean; onChange: (v: string | number | boolean) => void }) {
+  const { field } = props;
+  switch (field.type) {
+    case "select":
+      return <SelectControl {...props} field={field} />;
+    case "text":
+    case "password":
+      return <TextControl {...props} field={field} />;
+    case "textarea":
+      return <TextareaControl {...props} field={field} />;
+    case "color":
+      return <ColorControl {...props} field={field} />;
+    case "range":
+      return <RangeControl {...props} field={field} />;
+    default:
+      return null;
+  }
+}
+
 export function ToolRunnerField({
   field,
   value,
@@ -7,7 +120,7 @@ export function ToolRunnerField({
   onChange,
 }: {
   field: Field;
-  value: string | number | boolean | undefined;
+  value: FieldValue;
   busy: boolean;
   onChange: (value: string | number | boolean) => void;
 }) {
@@ -27,9 +140,7 @@ export function ToolRunnerField({
             className="accent-accent h-4 w-4"
           />
         </label>
-        {field.hint ? (
-          <p className="text-muted-foreground mt-1.5 text-[12px] leading-snug">{field.hint}</p>
-        ) : null}
+        <Hint text={field.hint} />
       </div>
     );
   }
@@ -45,52 +156,8 @@ export function ToolRunnerField({
           </span>
         ) : null}
       </label>
-
-      {field.type === "select" ? (
-        <select
-          id={id}
-          value={String(value)}
-          disabled={busy}
-          onChange={(e) => onChange(e.target.value)}
-          className="border-input bg-surface-raised h-9 w-full rounded-[3px] border px-2 text-[13.5px]"
-        >
-          {field.options.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </select>
-      ) : null}
-
-      {field.type === "text" || field.type === "password" ? (
-        <input
-          id={id}
-          type={field.type === "password" ? "password" : "text"}
-          value={String(value)}
-          disabled={busy}
-          placeholder={"placeholder" in field ? field.placeholder : undefined}
-          onChange={(e) => onChange(e.target.value)}
-          className="border-input bg-surface-raised placeholder:text-muted-foreground/70 h-9 w-full rounded-[3px] border px-2.5 font-mono text-[13px]"
-        />
-      ) : null}
-
-      {field.type === "range" ? (
-        <input
-          id={id}
-          type="range"
-          min={field.min}
-          max={field.max}
-          step={field.step}
-          value={Number(value)}
-          disabled={busy}
-          onChange={(e) => onChange(Number(e.target.value))}
-          className="accent-accent w-full"
-        />
-      ) : null}
-
-      {field.hint ? (
-        <p className="text-muted-foreground mt-1.5 text-[12px] leading-snug">{field.hint}</p>
-      ) : null}
+      <Control id={id} field={field} value={value} busy={busy} onChange={onChange} />
+      <Hint text={field.hint} />
     </div>
   );
 }

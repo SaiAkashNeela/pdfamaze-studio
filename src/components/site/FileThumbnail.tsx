@@ -2,6 +2,92 @@ import { useEffect, useState } from "react";
 import { FileText, Loader2 } from "lucide-react";
 import { loadPdfjs, readBytes } from "@/lib/pdf/core";
 
+type Thumb = { url: string | null; loading: boolean; pageCount: number | null; error: boolean };
+
+const isImageFile = (file: File) =>
+  file.type.startsWith("image/") || /\.(jpg|jpeg|png|webp|gif|bmp|svg)$/i.test(file.name);
+const isPdfFile = (file: File) => file.type === "application/pdf" || /\.pdf$/i.test(file.name);
+
+function readImage(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(new Error("read"));
+    reader.readAsDataURL(file);
+  });
+}
+
+/** Renders the first page small. `isActive` lets a stale render stop early. */
+async function renderPdfThumb(file: File, isActive: () => boolean): Promise<{ url: string | null; pageCount: number } | null> {
+  const [pdfjs, bytes] = await Promise.all([loadPdfjs(), readBytes(file)]);
+  if (!isActive()) return null;
+  const doc = await pdfjs.getDocument({ data: bytes }).promise;
+  if (!isActive()) return null;
+  const page = await doc.getPage(1);
+  if (!isActive()) return null;
+  const viewport = page.getViewport({ scale: 0.6 });
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return { url: null, pageCount: doc.numPages };
+  canvas.width = viewport.width;
+  canvas.height = viewport.height;
+  await page.render({ canvasContext: ctx, viewport, canvas }).promise;
+  const url = isActive() ? canvas.toDataURL("image/jpeg", 0.85) : null;
+  canvas.width = 0;
+  const pageCount = doc.numPages;
+  void doc.loadingTask.destroy();
+  return { url, pageCount };
+}
+
+function useThumbnail(file: File): Thumb {
+  const [thumb, setThumb] = useState<Thumb>({ url: null, loading: true, pageCount: null, error: false });
+
+  useEffect(() => {
+    let active = true;
+    const isActive = () => active;
+    setThumb({ url: null, loading: true, pageCount: null, error: false });
+    const done = (patch: Partial<Thumb>) => {
+      if (active) setThumb((t) => ({ ...t, loading: false, ...patch }));
+    };
+    if (isImageFile(file)) {
+      readImage(file).then((url) => done({ url }), () => done({ error: true }));
+    } else if (isPdfFile(file)) {
+      renderPdfThumb(file, isActive).then(
+        (r) => r && done({ url: r.url, pageCount: r.pageCount }),
+        () => done({ error: true }),
+      );
+    } else {
+      done({});
+    }
+    return () => {
+      active = false;
+    };
+  }, [file]);
+
+  return thumb;
+}
+
+function Preview({ file, thumb, grayscale, rotation }: { file: File; thumb: Thumb; grayscale: boolean; rotation: number }) {
+  return (
+    <div className="relative flex h-full w-full items-center justify-center p-1">
+      <img
+        src={thumb.url ?? ""}
+        alt={file.name}
+        style={{
+          transform: rotation ? `rotate(${rotation}deg)` : undefined,
+          filter: grayscale ? "grayscale(100%)" : undefined,
+        }}
+        className="max-h-full max-w-full rounded object-contain shadow-xs transition-transform duration-200"
+      />
+      {thumb.pageCount && isPdfFile(file) ? (
+        <span className="bg-foreground/80 text-background absolute right-1.5 bottom-1.5 rounded-sm px-1.5 py-0.5 font-mono text-[10px] font-medium backdrop-blur-xs">
+          {thumb.pageCount} {thumb.pageCount === 1 ? "page" : "pages"}
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
 export function FileThumbnail({
   file,
   className,
@@ -13,127 +99,32 @@ export function FileThumbnail({
   grayscale?: boolean;
   rotation?: number;
 }) {
-  const [thumbUrl, setThumbUrl] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [pageCount, setPageCount] = useState<number | null>(null);
-  const [error, setError] = useState(false);
+  const thumb = useThumbnail(file);
 
-  const isImage =
-    file.type.startsWith("image/") || /\.(jpg|jpeg|png|webp|gif|bmp|svg)$/i.test(file.name);
-  const isPdf =
-    file.type === "application/pdf" || /\.pdf$/i.test(file.name);
-
-  useEffect(() => {
-    let active = true;
-
-    setLoading(true);
-    setError(false);
-
-    if (isImage) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (!active) return;
-        setThumbUrl(reader.result as string);
-        setLoading(false);
-      };
-      reader.onerror = () => {
-        if (!active) return;
-        setError(true);
-        setLoading(false);
-      };
-      reader.readAsDataURL(file);
-    } else if (isPdf) {
-      (async () => {
-        try {
-          const [pdfjs, bytes] = await Promise.all([loadPdfjs(), readBytes(file)]);
-          if (!active) return;
-
-          const doc = await pdfjs.getDocument({ data: bytes }).promise;
-          if (!active) return;
-
-          setPageCount(doc.numPages);
-          const page = await doc.getPage(1);
-          if (!active) return;
-
-          const viewport = page.getViewport({ scale: 0.6 });
-          const offscreenCanvas = document.createElement("canvas");
-          const ctx = offscreenCanvas.getContext("2d");
-
-          if (!ctx) {
-            if (active) setLoading(false);
-            return;
-          }
-
-          offscreenCanvas.width = viewport.width;
-          offscreenCanvas.height = viewport.height;
-
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          await (page as any).render({
-            canvasContext: ctx,
-            viewport,
-            canvas: offscreenCanvas,
-          }).promise;
-
-          if (!active) {
-            offscreenCanvas.width = 0;
-            return;
-          }
-
-          const dataUrl = offscreenCanvas.toDataURL("image/jpeg", 0.85);
-          offscreenCanvas.width = 0;
-
-          if (active) {
-            setThumbUrl(dataUrl);
-            setLoading(false);
-          }
-        } catch {
-          if (active) {
-            setError(true);
-            setLoading(false);
-          }
-        }
-      })();
-    } else {
-      setLoading(false);
-    }
-
-    return () => {
-      active = false;
-    };
-  }, [file, isImage, isPdf]);
+  let body;
+  if (thumb.loading) {
+    body = (
+      <div className="text-muted-foreground flex flex-col items-center gap-1.5">
+        <Loader2 className="text-accent h-5 w-5 animate-spin" />
+        <span className="font-mono text-[11px]">Loading preview</span>
+      </div>
+    );
+  } else if (thumb.url && !thumb.error) {
+    body = <Preview file={file} thumb={thumb} grayscale={grayscale} rotation={rotation} />;
+  } else {
+    body = (
+      <div className="text-muted-foreground flex flex-col items-center gap-1 p-2 text-center">
+        <FileText className="h-7 w-7 stroke-[1.5]" />
+        <span className="max-w-full truncate font-mono text-[11px]">{file.name.split(".").pop()}</span>
+      </div>
+    );
+  }
 
   return (
     <div
-      className={`relative grid aspect-[3/4] w-full place-items-center overflow-hidden rounded-md bg-muted/40 border border-border/70 ${className || ""}`}
+      className={`bg-muted/40 border-border/70 relative grid aspect-[3/4] w-full place-items-center overflow-hidden rounded-md border ${className || ""}`}
     >
-      {loading ? (
-        <div className="flex flex-col items-center gap-1.5 text-muted-foreground">
-          <Loader2 className="h-5 w-5 animate-spin text-accent" />
-          <span className="text-[11px] font-mono">Loading preview</span>
-        </div>
-      ) : thumbUrl && !error ? (
-        <div className="relative h-full w-full flex items-center justify-center p-1">
-          <img
-            src={thumbUrl}
-            alt={file.name}
-            style={{
-              transform: rotation ? `rotate(${rotation}deg)` : undefined,
-              filter: grayscale ? "grayscale(100%)" : undefined,
-            }}
-            className="max-h-full max-w-full object-contain rounded shadow-xs transition-transform duration-200"
-          />
-          {pageCount && isPdf ? (
-            <span className="absolute bottom-1.5 right-1.5 rounded-sm bg-foreground/80 px-1.5 py-0.5 text-[10px] font-mono font-medium text-background backdrop-blur-xs">
-              {pageCount} {pageCount === 1 ? "page" : "pages"}
-            </span>
-          ) : null}
-        </div>
-      ) : (
-        <div className="flex flex-col items-center gap-1 text-muted-foreground p-2 text-center">
-          <FileText className="h-7 w-7 stroke-[1.5]" />
-          <span className="text-[11px] font-mono truncate max-w-full">{file.name.split(".").pop()}</span>
-        </div>
-      )}
+      {body}
     </div>
   );
 }

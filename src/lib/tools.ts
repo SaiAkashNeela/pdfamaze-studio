@@ -1,4 +1,9 @@
 import type { OutputFile, ProgressFn } from "./pdf/core";
+import { convertTools } from "./tool-defs/convert";
+import { editTools } from "./tool-defs/edit";
+import { organizeTools } from "./tool-defs/organize";
+import { securityTools } from "./tool-defs/security";
+import { editorOnly, lazyOps, pagesOps } from "./tool-defs/shared";
 
 export type Field =
   | {
@@ -22,7 +27,9 @@ export type Field =
       unit?: string;
       hint?: string;
     }
-  | { name: string; label: string; type: "switch"; default: boolean; hint?: string };
+  | { name: string; label: string; type: "switch"; default: boolean; hint?: string }
+  | { name: string; label: string; type: "textarea"; default: string; placeholder?: string; hint?: string; rows?: number }
+  | { name: string; label: string; type: "color"; default: string; hint?: string };
 
 export type FieldValues = Record<string, string | number | boolean>;
 
@@ -49,18 +56,41 @@ export type Tool = {
   tag?: ToolTag;
   fields: Field[];
   fieldsFor?: (values: FieldValues) => string[];
+  /** Tools that need a hands-on editor instead of the generic options form. */
+  workbench?: "sign" | "form-fill";
   seo: { title: string; description: string };
   run: (files: File[], values: FieldValues, progress: ProgressFn) => Promise<OutputFile[]>;
 };
 
-const ops = () => {
-  if (typeof window === "undefined") {
-    return Promise.resolve({} as typeof import("./pdf/operations"));
-  }
-  return import("./pdf/operations");
-};
+const ops = lazyOps(() => import("./pdf/operations"));
 
-export const tools: Tool[] = [
+const SPLIT_RULES = new Set(["every", "count", "size"]);
+
+const coreTools: Tool[] = [
+  {
+    slug: "sign",
+    name: "Sign PDF",
+    action: "Sign document",
+    summary: "Draw, type or upload your signature and place it anywhere on the page.",
+    about:
+      "Create a signature by drawing it, typing your name in a handwriting font, or uploading a photo of it. Click the page to place it, drag and resize it, then save a signed copy. Signatures you choose to remember are kept only in this browser.",
+    accept: "application/pdf",
+    acceptLabel: "One PDF",
+    multiple: false,
+    minFiles: 1,
+    featured: true,
+    tag: "EDIT",
+    workbench: "sign",
+    caveat:
+      "This adds a visual (electronic) signature. It is not a certificate-based digital signature.",
+    fields: [],
+    seo: {
+      title: "Sign a PDF in your browser — draw, type or upload",
+      description:
+        "Add your signature to a PDF without uploading it. Draw, type or upload a signature, place it on any page and download the signed file.",
+    },
+    run: editorOnly,
+  },
   {
     slug: "merge",
     name: "Merge PDF",
@@ -86,9 +116,9 @@ export const tools: Tool[] = [
     slug: "split",
     name: "Split PDF",
     action: "Split PDF",
-    summary: "Extract a page range, or break a document into single pages.",
+    summary: "Extract a page range, or break a document up by pages, count or file size.",
     about:
-      "Pick the pages you want as a new document, or split every page into its own file. Page content is copied unchanged.",
+      "Pick the pages you want as a new document, split every page into its own file, cut it every few pages, into equal parts, or into files under a size limit. Page content is copied unchanged.",
     accept: "application/pdf",
     acceptLabel: "One PDF",
     multiple: false,
@@ -104,6 +134,9 @@ export const tools: Tool[] = [
         options: [
           { value: "ranges", label: "Extract a page range" },
           { value: "each", label: "One file per page" },
+          { value: "every", label: "Every N pages" },
+          { value: "count", label: "Into N equal documents" },
+          { value: "size", label: "By maximum file size" },
         ],
       },
       {
@@ -114,15 +147,25 @@ export const tools: Tool[] = [
         placeholder: "1-3, 5, 8-",
         hint: "Commas and ranges. Leave blank for every page.",
       },
+      { name: "every", label: "Pages per file", type: "range", min: 1, max: 100, step: 1, default: 2 },
+      { name: "count", label: "Number of documents", type: "range", min: 2, max: 50, step: 1, default: 2 },
+      { name: "size", label: "Maximum size per file", type: "range", min: 1, max: 100, step: 1, default: 5, unit: " MB" },
     ],
-    fieldsFor: (v) => (v["mode"] === "each" ? ["mode"] : ["mode", "ranges"]),
+    fieldsFor: (v) => {
+      const mode = String(v["mode"]);
+      if (mode === "each") return ["mode"];
+      return SPLIT_RULES.has(mode) ? ["mode", mode] : ["mode", "ranges"];
+    },
     seo: {
       title: "Split a PDF without uploading it",
       description:
         "Extract page ranges or split a PDF into single pages, entirely in your browser.",
     },
-    run: async (files, v, p) =>
-      (await ops()).splitPdf(files, { mode: String(v["mode"]), ranges: String(v["ranges"]) }, p),
+    run: async (files, v, p) => {
+      const mode = String(v["mode"]);
+      if (SPLIT_RULES.has(mode)) return (await pagesOps()).splitByRule(files, { mode, value: Number(v[mode]) }, p);
+      return (await ops()).splitPdf(files, { mode, ranges: String(v["ranges"]) }, p);
+    },
   },
   {
     slug: "compress",
@@ -201,9 +244,9 @@ export const tools: Tool[] = [
     slug: "organize",
     name: "Organize PDF",
     action: "Rebuild document",
-    summary: "Reorder, keep or drop pages and rebuild the document.",
+    summary: "Reorder, keep, duplicate or drop pages — by hand or with a preset.",
     about:
-      "List the pages you want, in the order you want them. Anything left out is dropped from the new file.",
+      "List the pages you want in the order you want them, or pick a preset: reverse, duplex scan order, booklet order, odd pages then even, remove first or last, or duplicate every page.",
     accept: "application/pdf",
     acceptLabel: "One PDF",
     multiple: false,
@@ -211,21 +254,44 @@ export const tools: Tool[] = [
     tag: "ORGANIZE",
     fields: [
       {
+        name: "mode",
+        label: "Arrangement",
+        type: "select",
+        default: "custom",
+        options: [
+          { value: "custom", label: "Custom page order" },
+          { value: "reverse", label: "Reverse order" },
+          { value: "duplex", label: "Duplex scan order (1, n, 2, n-1…)" },
+          { value: "booklet", label: "Booklet order" },
+          { value: "side-stitch", label: "Side-stitch booklet order" },
+          { value: "odd-even", label: "Odd pages, then even pages" },
+          { value: "remove-first", label: "Remove first page" },
+          { value: "remove-last", label: "Remove last page" },
+          { value: "remove-first-last", label: "Remove first and last pages" },
+          { value: "duplicate", label: "Duplicate every page" },
+        ],
+      },
+      {
         name: "order",
         label: "Page order",
         type: "text",
         default: "",
         placeholder: "1-4, 9, 6-8",
-        hint: "Blank keeps the current order.",
+        hint: "Pages left out are dropped. Blank keeps the current order.",
       },
-      { name: "reverse", label: "Reverse the result", type: "switch", default: false },
+      { name: "copies", label: "Copies of each page", type: "range", min: 2, max: 10, step: 1, default: 2 },
     ],
+    fieldsFor: (v) => (v["mode"] === "custom" ? ["mode", "order"] : v["mode"] === "duplicate" ? ["mode", "copies"] : ["mode"]),
     seo: {
       title: "Reorder and delete PDF pages",
-      description: "Rearrange or remove pages from a PDF on your device, then download the result.",
+      description: "Rearrange, reverse or remove pages from a PDF on your device, then download the result.",
     },
     run: async (files, v, p) =>
-      (await ops()).organizePdf(files, { order: String(v["order"]), reverse: Boolean(v["reverse"]) }, p),
+      (await pagesOps()).rearrangePages(
+        files,
+        { mode: String(v["mode"]), order: String(v["order"]), copies: Number(v["copies"]) },
+        p,
+      ),
   },
   {
     slug: "watermark",
@@ -560,6 +626,8 @@ export const tools: Tool[] = [
       ),
   },
 ];
+
+export const tools: Tool[] = [...coreTools, ...organizeTools, ...editTools, ...securityTools, ...convertTools];
 
 export const getTool = (slug: string) => tools.find((t) => t.slug === slug);
 

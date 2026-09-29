@@ -8,6 +8,7 @@ import {
   parsePageRanges,
   pdfBlob,
   readBytes,
+  saveClean,
   readText,
   renderPageToCanvas,
   textBlob,
@@ -99,26 +100,6 @@ export async function rotatePdf(
   return [{ name: `${baseName(file.name)}-rotated.pdf`, blob: pdfBlob(await doc.save()) }];
 }
 
-/* --------------------------------------------------------------- organize */
-
-export async function organizePdf(
-  files: File[],
-  opts: { order: string; reverse: boolean },
-  progress: ProgressFn,
-): Promise<OutputFile[]> {
-  const file = requireFile(files);
-  const [{ PDFDocument }, src] = await Promise.all([loadPdfLib(), openDocument(file)]);
-  const count = src.getPageCount();
-  let indices = parsePageRanges(opts.order, count);
-  if (opts.reverse) indices = [...indices].reverse();
-  if (!indices.length) fail("Keep at least one page.");
-  progress(`Rebuilding ${indices.length} page${indices.length > 1 ? "s" : ""}`, 0.5);
-  const doc = await PDFDocument.create();
-  const pages = await doc.copyPages(src, indices);
-  pages.forEach((p) => doc.addPage(p));
-  return [{ name: `${baseName(file.name)}-organized.pdf`, blob: pdfBlob(await doc.save()) }];
-}
-
 /* -------------------------------------------------------------- watermark */
 
 export async function watermarkPdf(
@@ -171,8 +152,7 @@ export async function compressPdf(
     doc.setKeywords([]);
     doc.setProducer("");
     doc.setCreator("");
-    const bytes = await doc.save({ useObjectStreams: true, addDefaultPage: false });
-    return [{ name: `${name}-compressed.pdf`, blob: pdfBlob(bytes) }];
+    return [{ name: `${name}-compressed.pdf`, blob: await saveClean(doc) }];
   }
 
   const [pdfjs, { PDFDocument }, bytes] = await Promise.all([

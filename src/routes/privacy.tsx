@@ -38,17 +38,22 @@ function PrivacyPage() {
         <p>
           You can verify this. Open your browser's network panel while running a tool, or load the
           site, go offline, and keep working. The tools continue to function because all the code
-          is already on your machine.
+          is already on your machine (OCR needs its engine downloaded once first — see below).
         </p>
       </Section>
 
       <Section heading="What is stored on your device">
         <p>
-          Two things: your theme preference (light, dark or system) and anonymous local usage statistics
+          Your theme preference (light, dark or system), anonymous local usage statistics
           (which tools you ran and visit counts), saved in <code>localStorage</code> so the site remembers
           your theme and displays your personal usage breakdown on the <Link to="/stats">Stats page</Link>.
           It contains no personal data, no document filenames, and never leaves your browser. Clearing
           site data removes it completely.
+        </p>
+        <p>
+          If you tick <em>Remember on this device</em> in <Link to="/tools/$slug" params={{ slug: "sign" }}>Sign PDF</Link>,
+          that signature image is also kept in this browser's <code>localStorage</code> so you can reuse it. It is never
+          uploaded, and you can delete it from the Sign page at any time.
         </p>
         <p>
           There are no tracking cookies, no advertising identifiers and no session cookies, because
@@ -72,6 +77,24 @@ function PrivacyPage() {
           metadata is handled directly at Cloudflare's edge for DDoS protection and content delivery, without
           persisting personal data or document contents.
         </p>
+      </Section>
+
+      <Section heading="Files some tools download">
+        <p>
+          Two tools fetch supporting files the first time you use them. Neither request contains anything from your
+          document:
+        </p>
+        <ul className="list-disc space-y-1 pl-5">
+          <li>
+            <strong>OCR PDF</strong> downloads the Tesseract OCR engine and the language model you pick (about 10 MB)
+            from the jsDelivr CDN. Recognition then runs in a Web Worker inside your tab, and the browser caches the
+            files for next time.
+          </li>
+          <li>
+            <strong>Sign PDF</strong> loads three handwriting fonts from Google Fonts for typed signatures, the same way
+            the rest of the site loads its typefaces.
+          </li>
+        </ul>
       </Section>
 
       <Section heading="Third-party services">

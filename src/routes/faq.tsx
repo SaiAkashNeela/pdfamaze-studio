@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { DocPage, Section } from "@/components/site/DocPage";
 import { siteConfig } from "@/lib/site-config";
+import { tools } from "@/lib/tools";
 
 export const Route = createFileRoute("/faq")({
   head: () => ({
@@ -53,23 +54,14 @@ function FaqPage() {
 
       <Section heading="What tools are currently available?">
         <p>
-          {siteConfig.name} currently includes 14 local-first PDF tools:
+          {siteConfig.name} currently includes {tools.length} local-first PDF tools:
         </p>
         <ul className="list-disc pl-5 space-y-1">
-          <li><strong>Merge PDF:</strong> Combine multiple PDFs into a single document.</li>
-          <li><strong>Split PDF:</strong> Extract custom page ranges or separate every page.</li>
-          <li><strong>Compress PDF:</strong> Lossless structural compression or raster page shrinking.</li>
-          <li><strong>Protect PDF (Encrypt):</strong> Secure documents with password encryption (128-bit).</li>
-          <li><strong>Unlock PDF (Decrypt):</strong> Open password-protected PDFs and export clean copies.</li>
-          <li><strong>Rotate PDF:</strong> Turn pages 90°, 180°, or 270°.</li>
-          <li><strong>Organize PDF:</strong> Reorder, keep, delete, or reverse pages.</li>
-          <li><strong>Add Page Numbers:</strong> Stamp customized numbering (headers/footers) across all pages.</li>
-          <li><strong>Watermark PDF:</strong> Stamp diagonal or horizontal text marks.</li>
-          <li><strong>Images to PDF:</strong> Convert PNG and JPEG images into standard PDF pages.</li>
-          <li><strong>PDF to Images:</strong> Render high-resolution PNG or JPEG pages.</li>
-          <li><strong>HTML to PDF:</strong> Convert HTML code or documents into clean PDF format.</li>
-          <li><strong>Extract Text:</strong> Export selectable text into clean .txt format.</li>
-          <li><strong>PDF to Grayscale:</strong> Convert full-color documents to monochrome black-and-white.</li>
+          {tools.map((t) => (
+            <li key={t.slug}>
+              <strong>{t.name}:</strong> {t.summary}
+            </li>
+          ))}
         </ul>
       </Section>
 

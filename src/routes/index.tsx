@@ -53,7 +53,7 @@ function Home() {
             </h1>
             <p className="text-muted-foreground mt-5 max-w-[54ch] text-[15px] leading-relaxed sm:text-[16px]">
               {siteConfig.name} is a set of {tools.length} small, fast PDF tools that run entirely inside this
-              browser tab — merge, split, rotate, compress, protect, unlock, and convert. No upload step, no queue, no
+              browser tab — sign, fill forms, OCR, redact, merge, split, compress, protect and convert. No upload step, no queue, no
               account.
             </p>
             <div className="mt-7 flex flex-wrap items-center gap-3">

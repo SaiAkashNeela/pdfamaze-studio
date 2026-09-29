@@ -1,4 +1,4 @@
-import { useCallback, useId, useMemo, useRef, useState } from "react";
+import { useCallback, useId, useMemo, useRef, useState, type ComponentProps, type DragEvent, type ReactNode } from "react";
 import { LayoutGrid, List } from "lucide-react";
 import { DropzoneUploadBox } from "./dropzone/DropzoneUploadBox";
 import { DropzoneCardItem } from "./dropzone/DropzoneCardItem";
@@ -16,6 +16,7 @@ type Props = {
 };
 
 function matches(file: File, accept: string) {
+  if (accept === "*") return true;
   const types = accept.split(",").map((t) => t.trim());
   return types.some((t) =>
     t.endsWith("/*") ? file.type.startsWith(t.slice(0, -1)) : file.type === t || file.name.endsWith(t),
@@ -127,102 +128,107 @@ export function Dropzone({
 
       {!empty ? (
         <div className="space-y-3">
-          <div className="flex items-center justify-between border-b border-border pb-2">
-            <div className="flex items-center gap-2">
-              <span className="text-[13.5px] font-semibold text-foreground">
-                Uploaded Files ({files.length})
-              </span>
-              {multiple && files.length > 1 ? (
-                <span className="text-muted-foreground text-[12px]">
-                  · Drag cards or use arrows to rearrange
-                </span>
-              ) : null}
-            </div>
-
-            {multiple && files.length > 1 ? (
-              <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  aria-label="Grid view"
-                  onClick={() => setViewMode("grid")}
-                  className={`inline-flex h-7 w-7 items-center justify-center rounded-md text-[12px] transition-colors ${
-                    viewMode === "grid"
-                      ? "bg-secondary text-foreground font-medium"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  <LayoutGrid className="h-3.5 w-3.5" />
-                </button>
-                <button
-                  type="button"
-                  aria-label="List view"
-                  onClick={() => setViewMode("list")}
-                  className={`inline-flex h-7 w-7 items-center justify-center rounded-md text-[12px] transition-colors ${
-                    viewMode === "list"
-                      ? "bg-secondary text-foreground font-medium"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  <List className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            ) : null}
-          </div>
-
-          {viewMode === "grid" ? (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-              {fileEntries.map(({ keyId, file, position }) => (
-                <DropzoneCardItem
-                  key={keyId}
-                  file={file}
-                  position={position}
-                  totalFiles={files.length}
-                  disabled={disabled}
-                  multiple={multiple}
-                  grayscale={grayscale}
-                  rotation={rotation}
-                  isOver={dragOverIdx === position}
-                  isDraggingThis={draggedIdx === position}
-                  onDragStart={() => setDraggedIdx(position)}
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                    setDragOverIdx(position);
-                  }}
-                  onDragLeave={() => setDragOverIdx(null)}
-                  onDrop={() => handleDropItem(position)}
-                  onMove={handleMove}
-                  onRemove={() => onFiles(files.filter((_, n) => n !== position))}
-                />
-              ))}
-            </div>
-          ) : (
-            <ul className="border-border divide-border divide-y rounded-xl border bg-card">
-              {fileEntries.map(({ keyId, file, position }) => (
-                <DropzoneListItem
-                  key={keyId}
-                  file={file}
-                  position={position}
-                  totalFiles={files.length}
-                  disabled={disabled}
-                  multiple={multiple}
-                  grayscale={grayscale}
-                  rotation={rotation}
-                  isOver={dragOverIdx === position}
-                  onDragStart={() => setDraggedIdx(position)}
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                    setDragOverIdx(position);
-                  }}
-                  onDragLeave={() => setDragOverIdx(null)}
-                  onDrop={() => handleDropItem(position)}
-                  onMove={handleMove}
-                  onRemove={() => onFiles(files.filter((_, n) => n !== position))}
-                />
-              ))}
-            </ul>
-          )}
+          <FileListHeader count={files.length} multiple={multiple} viewMode={viewMode} onViewMode={setViewMode} />
+          <FileItems
+            entries={fileEntries}
+            viewMode={viewMode}
+            itemProps={(position) => ({
+              totalFiles: files.length,
+              disabled,
+              multiple,
+              grayscale,
+              rotation,
+              isOver: dragOverIdx === position,
+              isDraggingThis: draggedIdx === position,
+              onDragStart: () => setDraggedIdx(position),
+              onDragOver: (e: DragEvent) => {
+                e.preventDefault();
+                setDragOverIdx(position);
+              },
+              onDragLeave: () => setDragOverIdx(null),
+              onDrop: () => handleDropItem(position),
+              onMove: handleMove,
+              onRemove: () => onFiles(files.filter((_, n) => n !== position)),
+            })}
+          />
         </div>
       ) : null}
     </div>
+  );
+}
+
+function ViewButton({ active, label, onClick, children }: { active: boolean; label: string; onClick: () => void; children: ReactNode }) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      onClick={onClick}
+      className={`inline-flex h-7 w-7 items-center justify-center rounded-md text-[12px] transition-colors ${
+        active ? "bg-secondary text-foreground font-medium" : "text-muted-foreground hover:text-foreground"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function FileListHeader({
+  count,
+  multiple,
+  viewMode,
+  onViewMode,
+}: {
+  count: number;
+  multiple: boolean;
+  viewMode: "grid" | "list";
+  onViewMode: (mode: "grid" | "list") => void;
+}) {
+  const sortable = multiple && count > 1;
+  return (
+    <div className="border-border flex items-center justify-between border-b pb-2">
+      <div className="flex items-center gap-2">
+        <span className="text-foreground text-[13.5px] font-semibold">Uploaded Files ({count})</span>
+        {sortable ? <span className="text-muted-foreground text-[12px]">· Drag cards or use arrows to rearrange</span> : null}
+      </div>
+      {sortable ? (
+        <div className="flex items-center gap-1">
+          <ViewButton active={viewMode === "grid"} label="Grid view" onClick={() => onViewMode("grid")}>
+            <LayoutGrid className="h-3.5 w-3.5" />
+          </ViewButton>
+          <ViewButton active={viewMode === "list"} label="List view" onClick={() => onViewMode("list")}>
+            <List className="h-3.5 w-3.5" />
+          </ViewButton>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+type ItemProps = Omit<ComponentProps<typeof DropzoneCardItem>, "file" | "position">;
+
+function FileItems({
+  entries,
+  viewMode,
+  itemProps,
+}: {
+  entries: { keyId: string; file: File; position: number }[];
+  viewMode: "grid" | "list";
+  itemProps: (position: number) => ItemProps;
+}) {
+  if (viewMode === "grid") {
+    return (
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+        {entries.map(({ keyId, file, position }) => (
+          <DropzoneCardItem key={keyId} file={file} position={position} {...itemProps(position)} />
+        ))}
+      </div>
+    );
+  }
+  return (
+    <ul className="border-border divide-border bg-card divide-y rounded-xl border">
+      {entries.map(({ keyId, file, position }) => (
+        <DropzoneListItem key={keyId} file={file} position={position} {...itemProps(position)} />
+      ))}
+    </ul>
   );
 }

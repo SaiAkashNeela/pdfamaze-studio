@@ -1,8 +1,41 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { lazy, Suspense } from "react";
 import { ToolRunner } from "@/components/site/ToolRunner";
 import { ToolIcon } from "@/components/site/ToolIcon";
 import { siteConfig } from "@/lib/site-config";
 import { getTool, tools } from "@/lib/tools";
+
+/** Handwriting faces for typed signatures, only requested on the Sign page. */
+const SIGNATURE_FONTS_CSS =
+  "https://fonts.googleapis.com/css2?family=Caveat:wght@500&family=Dancing+Script:wght@500&family=Great+Vibes&display=swap";
+
+const SignWorkbench = lazy(() =>
+  import("@/components/site/sign/SignWorkbench").then((m) => ({ default: m.SignWorkbench })),
+);
+
+const FormFillWorkbench = lazy(() =>
+  import("@/components/site/form-fill/FormFillWorkbench").then((m) => ({ default: m.FormFillWorkbench })),
+);
+
+const editorFallback = <p className="text-muted-foreground text-[13px]">Loading editor…</p>;
+
+function ToolBody({ tool }: { tool: NonNullable<ReturnType<typeof getTool>> }) {
+  if (tool.workbench === "sign") {
+    return (
+      <Suspense fallback={editorFallback}>
+        <SignWorkbench tool={tool} />
+      </Suspense>
+    );
+  }
+  if (tool.workbench === "form-fill") {
+    return (
+      <Suspense fallback={editorFallback}>
+        <FormFillWorkbench tool={tool} />
+      </Suspense>
+    );
+  }
+  return <ToolRunner tool={tool} />;
+}
 
 export const Route = createFileRoute("/tools/$slug")({
   loader: ({ params }) => {
@@ -18,6 +51,7 @@ export const Route = createFileRoute("/tools/$slug")({
       };
     }
     return {
+      links: tool.workbench === "sign" ? [{ rel: "stylesheet", href: SIGNATURE_FONTS_CSS }] : [],
       meta: [
         { title: `${tool.seo.title} — ${siteConfig.name}` },
         { name: "description", content: tool.seo.description },
@@ -75,7 +109,7 @@ function ToolPage() {
       </header>
 
       <div className="py-8">
-        <ToolRunner tool={tool} />
+        <ToolBody tool={tool} />
       </div>
 
       <section className="border-border mt-8 border-t pt-6 pb-4">
