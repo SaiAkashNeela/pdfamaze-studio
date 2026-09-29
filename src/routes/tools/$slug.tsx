@@ -88,7 +88,7 @@ function ToolPage() {
   ].slice(0, 8);
 
   return (
-    <div className="mx-auto max-w-[1180px] px-4 pt-8 sm:px-6 lg:px-8 lg:pt-12">
+    <div className="mx-auto max-w-[1180px] px-4 pt-6 sm:px-6 lg:px-8 lg:pt-10">
       <nav aria-label="Breadcrumb" className="label-xs">
         <Link to="/tools" className="hover:text-foreground">
           Tools
@@ -99,18 +99,9 @@ function ToolPage() {
         <span className="text-foreground">{tool.name}</span>
       </nav>
 
-      <header className="border-border mt-5 flex items-start gap-4 border-b pb-7">
-        <ToolIcon tool={tool} />
-        <div className="max-w-[62ch]">
-          <h1 className="text-[clamp(1.5rem,3.4vw,2rem)] leading-[1.12] font-semibold tracking-[-0.03em]">
-            {tool.name}
-          </h1>
-          <p className="text-muted-foreground mt-2 text-[14.5px] leading-relaxed">{tool.about}</p>
-        </div>
-      </header>
-
-      <div className="py-8">
-        <ToolBody tool={tool} />
+      <div className="py-6 sm:py-8">
+        {/* Keyed by tool so moving between tools never carries over files or options. */}
+        <ToolBody key={tool.slug} tool={tool} />
       </div>
 
       <ToolGuide tool={tool} />

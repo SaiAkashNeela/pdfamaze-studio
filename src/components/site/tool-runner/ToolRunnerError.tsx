@@ -2,7 +2,7 @@ import { TriangleAlert } from "lucide-react";
 
 export function ToolRunnerError({ error }: { error: string }) {
   return (
-    <div className="border-destructive/40 bg-destructive/[0.06] flex gap-3 rounded-[4px] border p-4">
+    <div role="alert" className="border-destructive/40 bg-destructive/[0.06] flex gap-3 rounded-[4px] border p-4">
       <TriangleAlert
         className="text-destructive mt-[2px] h-4 w-4 shrink-0"
         strokeWidth={1.75}

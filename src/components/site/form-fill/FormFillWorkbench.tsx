@@ -1,12 +1,13 @@
 import { useEffect, useReducer } from "react";
-import { Dropzone } from "../Dropzone";
-import { DownloadModal } from "../DownloadModal";
 import { PrivacyNote } from "../PrivacyNote";
-import { ToolRunnerProgress } from "../tool-runner/ToolRunnerProgress";
 import { ToolRunnerError } from "../tool-runner/ToolRunnerError";
-import { ToolRunnerResults } from "../tool-runner/ToolRunnerResults";
+import { ActionBar, PrimaryButton } from "../tool-shell/ActionBar";
+import { ProcessingStage, ResultStage } from "../tool-shell/ResultStage";
+import { ToolHero } from "../tool-shell/ToolHero";
+import { UploadStage } from "../tool-shell/UploadStage";
 import { FormFieldInput } from "./FormFieldInput";
-import { PdfError, type OutputFile } from "@/lib/pdf/core";
+import { acceptsFile, PdfError, type OutputFile } from "@/lib/pdf/core";
+import { takeHandoff } from "@/lib/handoff";
 import type { FormFieldInfo, FormValues } from "@/lib/pdf/ops/forms";
 import { trackToolRun } from "@/lib/analytics";
 import type { Tool } from "@/lib/tools";
@@ -20,7 +21,6 @@ type State = {
   step: { label: string; ratio?: number | undefined };
   results: OutputFile[];
   error: string;
-  modalOpen: boolean;
 };
 
 type Action =
@@ -32,10 +32,10 @@ type Action =
   | { type: "STEP"; label: string; ratio?: number | undefined }
   | { type: "DONE"; results: OutputFile[] }
   | { type: "FAIL"; error: string }
-  | { type: "MODAL"; open: boolean }
+  | { type: "BACK" }
   | { type: "RESET" };
 
-const initial: State = { file: null, fields: null, values: {}, flatten: false, status: "idle", step: { label: "" }, results: [], error: "", modalOpen: false };
+const initial: State = { file: null, fields: null, values: {}, flatten: false, status: "idle", step: { label: "" }, results: [], error: "" };
 
 function initialValues(fields: FormFieldInfo[]): FormValues {
   const values: FormValues = {};
@@ -58,11 +58,11 @@ function reducer(state: State, action: Action): State {
     case "STEP":
       return { ...state, step: { label: action.label, ratio: action.ratio } };
     case "DONE":
-      return { ...state, status: "done", results: action.results, modalOpen: true };
+      return { ...state, status: "done", results: action.results };
     case "FAIL":
       return { ...state, status: "error", error: action.error };
-    case "MODAL":
-      return { ...state, modalOpen: action.open };
+    case "BACK":
+      return { ...state, status: "idle", results: [] };
     case "RESET":
       return initial;
     default:
@@ -107,10 +107,26 @@ function FieldList({ state, dispatch }: { state: State; dispatch: (a: Action) =>
   );
 }
 
+function FlattenToggle({ state, dispatch }: { state: State; dispatch: (a: Action) => void }) {
+  return (
+    <div>
+      <label className="flex cursor-pointer items-center justify-between gap-4 text-[13.5px]">
+        Flatten after filling
+        <input type="checkbox" checked={state.flatten} onChange={(e) => dispatch({ type: "FLATTEN", on: e.target.checked })} className="accent-accent h-4 w-4" />
+      </label>
+      <p className="text-muted-foreground mt-1 text-[12px] leading-snug">Locks the answers into the page so they can't be edited.</p>
+    </div>
+  );
+}
+
+function initialFormState(tool: Tool): State {
+  const file = typeof window === "undefined" ? null : (takeHandoff((f) => acceptsFile(tool.accept, f))[0] ?? null);
+  return file ? { ...initial, file, status: "loading" } : initial;
+}
+
 export function FormFillWorkbench({ tool }: { tool: Tool }) {
-  const [state, dispatch] = useReducer(reducer, initial);
+  const [state, dispatch] = useReducer(reducer, tool, initialFormState);
   useFieldLoader(state.file, dispatch);
-  const busy = state.status === "working";
 
   const apply = async () => {
     if (!state.file) return;
@@ -124,47 +140,62 @@ export function FormFillWorkbench({ tool }: { tool: Tool }) {
       dispatch({ type: "FAIL", error: message(e, "The form couldn't be filled. The file may be damaged or unsupported.") });
     }
   };
-
   const reset = () => dispatch({ type: "RESET" });
 
-  return (
-    <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-12">
-      <div className="min-w-0 space-y-5">
-        <Dropzone
-          accept={tool.accept}
-          acceptLabel={tool.acceptLabel}
-          multiple={false}
-          files={state.file ? [state.file] : []}
-          onFiles={(f) => dispatch({ type: "FILE", file: f[0] ?? null })}
-          disabled={busy}
-        />
-        {state.status === "loading" ? <ToolRunnerProgress label="Reading form fields" /> : null}
-        {state.fields ? <FieldList state={state} dispatch={dispatch} /> : null}
-        <div aria-live="polite">
-          {busy ? <ToolRunnerProgress label={state.step.label} ratio={state.step.ratio} /> : null}
-          {state.status === "error" ? <ToolRunnerError error={state.error} /> : null}
-          {state.status === "done" ? <ToolRunnerResults results={state.results} onReset={reset} onOpenModal={() => dispatch({ type: "MODAL", open: true })} /> : null}
-        </div>
-        <DownloadModal isOpen={state.modalOpen} onClose={() => dispatch({ type: "MODAL", open: false })} results={state.results} toolName={tool.name} onReset={reset} />
+  if (!state.file) {
+    return (
+      <div>
+        <ToolHero tool={tool} />
+        <UploadStage tool={tool} onFiles={(f) => dispatch({ type: "FILE", file: f[0] ?? null })} />
       </div>
+    );
+  }
+  if (state.status === "working") {
+    return (
+      <div>
+        <ToolHero tool={tool} compact />
+        <ProcessingStage label={state.step.label} ratio={state.step.ratio} />
+      </div>
+    );
+  }
+  if (state.status === "done") {
+    return (
+      <div>
+        <ToolHero tool={tool} compact onStartOver={reset} />
+        <div className="py-8">
+          <ResultStage tool={tool} results={state.results} onStartOver={reset} onBack={() => dispatch({ type: "BACK" })} />
+        </div>
+      </div>
+    );
+  }
 
-      <aside className="lg:border-border space-y-5 lg:border-l lg:pl-8">
-        <h2 className="label-xs">Options</h2>
-        <label className="flex cursor-pointer items-center justify-between gap-4 text-[13.5px]">
-          Flatten after filling
-          <input type="checkbox" checked={state.flatten} disabled={busy} onChange={(e) => dispatch({ type: "FLATTEN", on: e.target.checked })} className="accent-accent h-4 w-4" />
-        </label>
-        <p className="text-muted-foreground -mt-3 text-[12px] leading-snug">Locks the answers into the page so they can't be edited.</p>
-        <button
-          type="button"
-          onClick={apply}
-          disabled={!state.fields?.length || busy}
-          className="bg-accent text-accent-foreground hover:bg-accent/90 h-11 w-full rounded-[3px] text-[14px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40 lg:h-10"
-        >
-          {busy ? "Working…" : tool.action}
-        </button>
-        <PrivacyNote />
-      </aside>
+  const canFill = Boolean(state.fields?.some((f) => f.kind !== "signature" && f.kind !== "button"));
+  return (
+    <div className="pb-28 lg:pb-0">
+      <ToolHero tool={tool} compact onStartOver={reset} />
+      <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-10">
+        <div className="min-w-0 space-y-4">
+          {state.status === "error" ? <ToolRunnerError error={state.error} /> : null}
+          {state.status === "loading" ? <ProcessingStage label="Reading form fields" /> : null}
+          {state.fields ? <FieldList state={state} dispatch={dispatch} /> : null}
+          <div className="lg:hidden">{canFill ? <FlattenToggle state={state} dispatch={dispatch} /> : null}</div>
+        </div>
+        <aside className="hidden lg:block">
+          <div className="border-border bg-card sticky top-20 space-y-5 rounded-2xl border p-5">
+            <h2 className="text-[15px] font-semibold">Options</h2>
+            <FlattenToggle state={state} dispatch={dispatch} />
+            <PrimaryButton onClick={apply} disabled={!canFill} className="w-full">
+              {tool.action}
+            </PrimaryButton>
+            <PrivacyNote />
+          </div>
+        </aside>
+      </div>
+      <ActionBar>
+        <PrimaryButton onClick={apply} disabled={!canFill}>
+          {tool.action}
+        </PrimaryButton>
+      </ActionBar>
     </div>
   );
 }

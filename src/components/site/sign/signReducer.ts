@@ -15,7 +15,8 @@ export type SignState = {
   step: { label: string; ratio?: number | undefined };
   results: OutputFile[];
   error: string;
-  modalOpen: boolean;
+  /** Signature panel as a bottom sheet on small screens. */
+  sheetOpen: boolean;
 };
 
 export type SignAction =
@@ -31,7 +32,8 @@ export type SignAction =
   | { type: "STEP"; label: string; ratio?: number | undefined }
   | { type: "SUCCESS"; results: OutputFile[] }
   | { type: "FAIL"; error: string }
-  | { type: "MODAL"; open: boolean }
+  | { type: "SHEET"; open: boolean }
+  | { type: "BACK" }
   | { type: "RESET" };
 
 export const initialSignState: SignState = {
@@ -44,7 +46,7 @@ export const initialSignState: SignState = {
   step: { label: "" },
   results: [],
   error: "",
-  modalOpen: false,
+  sheetOpen: false,
 };
 
 /**
@@ -83,7 +85,8 @@ function editReducer(state: SignState, action: SignAction): SignState {
     case "SET_PAGE":
       return { ...state, page: action.page, selectedId: null };
     case "ACTIVATE":
-      return { ...state, active: action.signature };
+      // Picking a signature closes the sheet so the page is visible for placing it.
+      return { ...state, active: action.signature, sheetOpen: false };
     case "PLACE": {
       if (!state.active) return state;
       const placement: SignaturePlacement = {
@@ -123,11 +126,13 @@ export function signReducer(state: SignState, action: SignAction): SignState {
     case "STEP":
       return { ...state, step: { label: action.label, ratio: action.ratio } };
     case "SUCCESS":
-      return { ...state, status: "done", results: action.results, modalOpen: true };
+      return { ...state, status: "done", results: action.results };
     case "FAIL":
       return { ...state, status: "error", error: action.error };
-    case "MODAL":
-      return { ...state, modalOpen: action.open };
+    case "SHEET":
+      return { ...state, sheetOpen: action.open };
+    case "BACK":
+      return { ...state, status: "idle", results: [] };
     case "RESET":
       return { ...initialSignState, active: state.active };
     default: {

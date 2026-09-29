@@ -1,139 +1,148 @@
 import { useMemo, useReducer } from "react";
+import { SlidersHorizontal } from "lucide-react";
 import { Dropzone } from "./Dropzone";
-import { DownloadModal } from "./DownloadModal";
 import { PrivacyNote } from "./PrivacyNote";
-import { ToolRunnerProgress } from "./tool-runner/ToolRunnerProgress";
 import { ToolRunnerError } from "./tool-runner/ToolRunnerError";
-import { ToolRunnerResults } from "./tool-runner/ToolRunnerResults";
 import { ToolRunnerField } from "./tool-runner/ToolRunnerField";
-import { PdfError, type OutputFile } from "@/lib/pdf/core";
-import { defaultValues, type FieldValues, type Tool } from "@/lib/tools";
+import { ActionBar, PrimaryButton, SecondaryButton } from "./tool-shell/ActionBar";
+import { ProcessingStage, ResultStage } from "./tool-shell/ResultStage";
+import { Sheet } from "./tool-shell/Sheet";
+import { ToolHero } from "./tool-shell/ToolHero";
+import { UploadStage } from "./tool-shell/UploadStage";
+import { acceptsFile, PdfError, type OutputFile } from "@/lib/pdf/core";
+import { takeHandoff } from "@/lib/handoff";
+import { defaultValues, type Field, type FieldValues, type Tool } from "@/lib/tools";
 import { trackToolRun } from "@/lib/analytics";
 
 type Status = "idle" | "working" | "done" | "error";
 
 interface RunnerState {
   files: File[];
+  /** True once someone chose to continue without a file (tools where that's allowed). */
+  skipped: boolean;
   values: FieldValues;
   status: Status;
   step: { label: string; ratio?: number | undefined };
   results: OutputFile[];
   error: string;
-  isModalOpen: boolean;
+  optionsOpen: boolean;
+  /** Whether the options sheet has been shown at least once (phones and tablets). */
+  optionsSeen: boolean;
 }
 
 type RunnerAction =
   | { type: "SET_FILES"; files: File[] }
+  | { type: "SKIP_UPLOAD" }
   | { type: "SET_VALUE"; name: string; value: string | number | boolean }
   | { type: "START_RUN" }
   | { type: "UPDATE_STEP"; label: string; ratio?: number | undefined }
   | { type: "RUN_SUCCESS"; results: OutputFile[] }
   | { type: "RUN_ERROR"; error: string }
-  | { type: "OPEN_MODAL" }
-  | { type: "CLOSE_MODAL" }
+  | { type: "OPTIONS"; open: boolean }
+  | { type: "BACK_TO_EDIT" }
   | { type: "RESET"; tool: Tool };
+
+function initialState(tool: Tool): RunnerState {
+  return {
+    files: typeof window === "undefined" ? [] : takeHandoff((f) => acceptsFile(tool.accept, f)).slice(0, tool.multiple ? undefined : 1),
+    skipped: false,
+    values: defaultValues(tool),
+    status: "idle",
+    step: { label: "" },
+    results: [],
+    error: "",
+    optionsOpen: false,
+    optionsSeen: false,
+  };
+}
 
 function runnerReducer(state: RunnerState, action: RunnerAction): RunnerState {
   switch (action.type) {
     case "SET_FILES":
-      return {
-        ...state,
-        files: action.files,
-        status: state.status !== "idle" ? "idle" : state.status,
-        results: state.status !== "idle" ? [] : state.results,
-        error: state.status !== "idle" ? "" : state.error,
-        isModalOpen: false,
-      };
+      return { ...state, files: action.files, status: "idle", results: [], error: "" };
+    case "SKIP_UPLOAD":
+      return { ...state, skipped: true };
     case "SET_VALUE":
-      return {
-        ...state,
-        values: { ...state.values, [action.name]: action.value },
-      };
+      return { ...state, values: { ...state.values, [action.name]: action.value } };
     case "START_RUN":
-      return {
-        ...state,
-        status: "working",
-        error: "",
-        results: [],
-        step: { label: "Preparing" },
-        isModalOpen: false,
-      };
+      return { ...state, status: "working", error: "", results: [], step: { label: "Preparing" }, optionsOpen: false };
     case "UPDATE_STEP":
-      return {
-        ...state,
-        step: { label: action.label, ratio: action.ratio },
-      };
+      return { ...state, step: { label: action.label, ratio: action.ratio } };
     case "RUN_SUCCESS":
-      return {
-        ...state,
-        status: "done",
-        results: action.results,
-        isModalOpen: true,
-      };
+      return { ...state, status: "done", results: action.results };
     case "RUN_ERROR":
-      return {
-        ...state,
-        status: "error",
-        error: action.error,
-        isModalOpen: false,
-      };
-    case "OPEN_MODAL":
-      return {
-        ...state,
-        isModalOpen: true,
-      };
-    case "CLOSE_MODAL":
-      return {
-        ...state,
-        isModalOpen: false,
-      };
+      return { ...state, status: "error", error: action.error };
+    case "OPTIONS":
+      return { ...state, optionsOpen: action.open, optionsSeen: state.optionsSeen || action.open };
+    case "BACK_TO_EDIT":
+      return { ...state, status: "idle", results: [] };
     case "RESET":
-      return {
-        files: [],
-        values: defaultValues(action.tool),
-        status: "idle",
-        step: { label: "" },
-        results: [],
-        error: "",
-        isModalOpen: false,
-      };
+      return { ...initialState(action.tool), files: [] };
     default:
       return state;
   }
 }
 
-export function ToolRunner({ tool }: { tool: Tool }) {
-  const [state, dispatch] = useReducer(runnerReducer, null, () => ({
-    files: [],
-    values: defaultValues(tool),
-    status: "idle" as Status,
-    step: { label: "" },
-    results: [],
-    error: "",
-    isModalOpen: false,
-  }));
+function OptionFields({
+  tool,
+  fields,
+  state,
+  dispatch,
+}: {
+  tool: Tool;
+  fields: Field[];
+  state: RunnerState;
+  dispatch: (a: RunnerAction) => void;
+}) {
+  return (
+    <div className="space-y-5">
+      {fields.length === 0 ? (
+        <p className="text-muted-foreground text-[13.5px] leading-relaxed">
+          Nothing to set up for this tool — just press “{tool.action}”.
+        </p>
+      ) : null}
+      {fields.map((field) => (
+        <ToolRunnerField
+          key={field.name}
+          field={field}
+          value={state.values[field.name]}
+          busy={state.status === "working"}
+          onChange={(value) => dispatch({ type: "SET_VALUE", name: field.name, value })}
+        />
+      ))}
+      {tool.caveat ? (
+        <p className="border-border text-muted-foreground border-l-2 pl-3 text-[12.5px] leading-relaxed">{tool.caveat}</p>
+      ) : null}
+    </div>
+  );
+}
 
-  const { files, values, status, step, results, error, isModalOpen } = state;
+function filesHint(tool: Tool, count: number): string | null {
+  if (tool.minFiles > 1 && count < tool.minFiles) {
+    const more = tool.minFiles - count;
+    return `Add ${more} more file${more > 1 ? "s" : ""} to continue — this tool needs at least ${tool.minFiles}.`;
+  }
+  if (tool.multiple && count > 1) return "Order matters: drag the cards or use the arrows to rearrange.";
+  return null;
+}
+
+export function ToolRunner({ tool }: { tool: Tool }) {
+  const [state, dispatch] = useReducer(runnerReducer, tool, initialState);
+  const { files, status } = state;
 
   const visible = useMemo(() => {
-    const allowed = tool.fieldsFor?.(values);
+    const allowed = tool.fieldsFor?.(state.values);
     const allowedSet = allowed ? new Set(allowed) : null;
     return tool.fields.filter((f) => !allowedSet || allowedSet.has(f.name));
-  }, [tool, values]);
+  }, [tool, state.values]);
 
-  const enough = files.length >= tool.minFiles;
-  const busy = status === "working";
-
-  const handleReset = () => {
-    dispatch({ type: "RESET", tool });
-  };
+  const reset = () => dispatch({ type: "RESET", tool });
+  const ready = files.length >= tool.minFiles && (files.length > 0 || state.skipped);
 
   async function run() {
     dispatch({ type: "START_RUN" });
     try {
-      const out = await tool.run(files, values, (label, ratio) => {
-        dispatch({ type: "UPDATE_STEP", label, ratio });
-      });
+      const out = await tool.run(files, state.values, (label, ratio) => dispatch({ type: "UPDATE_STEP", label, ratio }));
       dispatch({ type: "RUN_SUCCESS", results: out });
       trackToolRun(tool.slug);
     } catch (e) {
@@ -145,100 +154,99 @@ export function ToolRunner({ tool }: { tool: Tool }) {
     }
   }
 
-  const isGrayscale = tool.slug === "grayscale";
-  const rotationAngle = tool.slug === "rotate" ? Number(values["angle"]) || 90 : 0;
-
-  return (
-    <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-12">
+  if (files.length === 0 && !state.skipped) {
+    return (
       <div>
-        <Dropzone
-          accept={tool.accept}
-          acceptLabel={tool.acceptLabel}
-          multiple={tool.multiple}
-          files={files}
+        <ToolHero tool={tool} />
+        <UploadStage
+          tool={tool}
           onFiles={(f) => dispatch({ type: "SET_FILES", files: f })}
-          disabled={busy}
-          grayscale={isGrayscale}
-          rotation={rotationAngle}
-        />
-
-        {tool.minFiles > 1 && files.length === 1 ? (
-          <p className="text-muted-foreground mt-2 text-[12.5px]">
-            One more file and you're ready — this tool needs at least {tool.minFiles}.
-          </p>
-        ) : null}
-
-        {/* results / progress / errors */}
-        <div className="mt-6" aria-live="polite">
-          {busy ? <ToolRunnerProgress label={step.label} ratio={step.ratio} /> : null}
-
-          {status === "error" ? <ToolRunnerError error={error} /> : null}
-
-          {status === "done" ? (
-            <ToolRunnerResults
-              results={results}
-              onReset={handleReset}
-              onOpenModal={() => dispatch({ type: "OPEN_MODAL" })}
-            />
-          ) : null}
-        </div>
-
-        <DownloadModal
-          isOpen={isModalOpen}
-          onClose={() => dispatch({ type: "CLOSE_MODAL" })}
-          results={results}
-          toolName={tool.name}
-          onReset={handleReset}
+          {...(tool.minFiles === 0 ? { onSkip: () => dispatch({ type: "SKIP_UPLOAD" }) } : {})}
         />
       </div>
+    );
+  }
 
-      {/* controls rail */}
-      <aside className="lg:border-border lg:border-l lg:pl-8">
-        <h2 className="label-xs">Options</h2>
-        <div className="mt-4 space-y-5">
-          {visible.length === 0 ? (
-            <p className="text-muted-foreground text-[13px] leading-relaxed">
-              Nothing to configure — order the files the way you want them and run the tool.
-            </p>
-          ) : null}
+  if (status === "working") {
+    return (
+      <div>
+        <ToolHero tool={tool} compact />
+        <ProcessingStage label={state.step.label} ratio={state.step.ratio} />
+      </div>
+    );
+  }
 
-          {visible.map((field) => (
-            <ToolRunnerField
-              key={field.name}
-              field={field}
-              value={values[field.name]}
-              busy={busy}
-              onChange={(value) => dispatch({ type: "SET_VALUE", name: field.name, value })}
-            />
-          ))}
-
-          {tool.caveat ? (
-            <p className="border-border text-muted-foreground border-l-2 pl-3 text-[12.5px] leading-relaxed">
-              {tool.caveat}
-            </p>
-          ) : null}
-
-          <div className="border-border sticky bottom-0 -mx-4 border-t px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-[6px] lg:static lg:mx-0 lg:border-0 lg:px-0 lg:pb-0 lg:backdrop-blur-none">
-            <button
-              type="button"
-              onClick={run}
-              disabled={!enough || busy}
-              className="bg-accent text-accent-foreground hover:bg-accent/90 h-11 w-full rounded-[3px] text-[14px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40 lg:h-10"
-            >
-              {busy ? "Working…" : tool.action}
-            </button>
-            {!enough ? (
-              <p className="text-muted-foreground mt-2 text-center text-[12px] lg:text-left">
-                {tool.minFiles > 1
-                  ? `Add ${tool.minFiles} or more files to continue.`
-                  : "Add a file to continue."}
-              </p>
-            ) : null}
-          </div>
-
-          <PrivacyNote />
+  if (status === "done") {
+    return (
+      <div>
+        <ToolHero tool={tool} compact onStartOver={reset} />
+        <div className="py-8">
+          <ResultStage tool={tool} results={state.results} sourceName={files[0]?.name} onStartOver={reset} onBack={() => dispatch({ type: "BACK_TO_EDIT" })} />
         </div>
-      </aside>
+      </div>
+    );
+  }
+
+  const hint = filesHint(tool, files.length);
+  const action = <>{tool.action}</>;
+
+  return (
+    <div className="pb-28 lg:pb-0">
+      <ToolHero tool={tool} compact onStartOver={reset} />
+      <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-10">
+        <div className="min-w-0 space-y-4">
+          {status === "error" ? <ToolRunnerError error={state.error} /> : null}
+          <Dropzone
+            accept={tool.accept}
+            acceptLabel={tool.acceptLabel}
+            multiple={tool.multiple}
+            files={files}
+            onFiles={(f) => dispatch({ type: "SET_FILES", files: f })}
+            compact
+            grayscale={tool.slug === "grayscale"}
+            rotation={tool.slug === "rotate" ? Number(state.values["angle"]) || 90 : 0}
+          />
+          {hint ? <p className="text-muted-foreground text-[13px]">{hint}</p> : null}
+        </div>
+
+        <aside className="hidden lg:block">
+          <div className="border-border bg-card sticky top-20 rounded-2xl border p-5">
+            <h2 className="text-[15px] font-semibold">Options</h2>
+            <div className="mt-4">
+              <OptionFields tool={tool} fields={visible} state={state} dispatch={dispatch} />
+            </div>
+            <PrimaryButton onClick={run} disabled={!ready} className="mt-6 w-full">
+              {action}
+            </PrimaryButton>
+            <PrivacyNote className="mt-4" />
+          </div>
+        </aside>
+      </div>
+
+      <ActionBar>
+        {visible.length ? (
+          <SecondaryButton onClick={() => dispatch({ type: "OPTIONS", open: true })}>
+            <SlidersHorizontal className="h-4 w-4" /> Options
+          </SecondaryButton>
+        ) : null}
+        {/* First tap shows the options, so nothing runs with settings nobody has seen. */}
+        <PrimaryButton onClick={visible.length && !state.optionsSeen ? () => dispatch({ type: "OPTIONS", open: true }) : run} disabled={!ready}>
+          {action}
+        </PrimaryButton>
+      </ActionBar>
+
+      <Sheet
+        open={state.optionsOpen}
+        title={`${tool.name} options`}
+        onClose={() => dispatch({ type: "OPTIONS", open: false })}
+        footer={
+          <PrimaryButton onClick={run} disabled={!ready} className="w-full">
+            {action}
+          </PrimaryButton>
+        }
+      >
+        <OptionFields tool={tool} fields={visible} state={state} dispatch={dispatch} />
+      </Sheet>
     </div>
   );
 }

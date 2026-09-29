@@ -1,6 +1,7 @@
 import { useCallback, useId, useMemo, useRef, useState, type ComponentProps, type DragEvent, type ReactNode } from "react";
 import { LayoutGrid, List } from "lucide-react";
 import { DropzoneUploadBox } from "./dropzone/DropzoneUploadBox";
+import { acceptsFile } from "@/lib/pdf/core";
 import { DropzoneCardItem } from "./dropzone/DropzoneCardItem";
 import { DropzoneListItem } from "./dropzone/DropzoneListItem";
 
@@ -13,15 +14,9 @@ type Props = {
   disabled?: boolean;
   grayscale?: boolean;
   rotation?: number;
+  /** Slim "add more" strip, for the workspace after the first upload. */
+  compact?: boolean;
 };
-
-function matches(file: File, accept: string) {
-  if (accept === "*") return true;
-  const types = accept.split(",").map((t) => t.trim());
-  return types.some((t) =>
-    t.endsWith("/*") ? file.type.startsWith(t.slice(0, -1)) : file.type === t || file.name.endsWith(t),
-  );
-}
 
 export function Dropzone({
   accept,
@@ -32,6 +27,7 @@ export function Dropzone({
   disabled = false,
   grayscale = false,
   rotation = 0,
+  compact = false,
 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
@@ -55,7 +51,7 @@ export function Dropzone({
     (list: FileList | null) => {
       if (!list) return;
       const all = Array.from(list);
-      const good = all.filter((f) => matches(f, accept));
+      const good = all.filter((f) => acceptsFile(accept, f));
       const bad = all.length - good.length;
       setRejected(
         bad > 0
@@ -101,6 +97,7 @@ export function Dropzone({
         disabled={disabled}
         dragging={dragging}
         empty={empty}
+        compact={compact}
         onDragOver={(e) => {
           e.preventDefault();
           if (!disabled) setDragging(true);

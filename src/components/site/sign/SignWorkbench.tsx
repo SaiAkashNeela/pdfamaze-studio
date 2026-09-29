@@ -1,17 +1,19 @@
 import { useReducer, useState } from "react";
-import { ChevronLeft, ChevronRight, Copy, FileText, MousePointerClick } from "lucide-react";
-import { Dropzone } from "../Dropzone";
-import { DownloadModal } from "../DownloadModal";
+import { ChevronLeft, ChevronRight, Copy, MousePointerClick, PenLine } from "lucide-react";
 import { PrivacyNote } from "../PrivacyNote";
-import { ToolRunnerProgress } from "../tool-runner/ToolRunnerProgress";
 import { ToolRunnerError } from "../tool-runner/ToolRunnerError";
-import { ToolRunnerResults } from "../tool-runner/ToolRunnerResults";
+import { ActionBar, PrimaryButton, SecondaryButton } from "../tool-shell/ActionBar";
+import { ProcessingStage, ResultStage } from "../tool-shell/ResultStage";
+import { Sheet } from "../tool-shell/Sheet";
+import { ToolHero } from "../tool-shell/ToolHero";
+import { UploadStage } from "../tool-shell/UploadStage";
 import { SignatureCreator } from "./SignatureCreator";
 import { SavedSignatureList } from "./SavedSignatureList";
 import { SignPageViewer } from "./SignPageViewer";
 import { usePdfDocument } from "./usePdfPreview";
 import { initialSignState, signReducer, type SignAction, type SignState } from "./signReducer";
-import { formatBytes, PdfError } from "@/lib/pdf/core";
+import { acceptsFile, PdfError } from "@/lib/pdf/core";
+import { takeHandoff } from "@/lib/handoff";
 import { imageAspect } from "@/lib/signature-image";
 import { loadSignatures, newSignatureId, storeSignatures, type SavedSignature } from "@/lib/signatures";
 import { trackToolRun } from "@/lib/analytics";
@@ -37,24 +39,6 @@ function useSavedSignatures() {
   const remove = (id: string) => commit(items.filter((s) => s.id !== id));
 
   return { items, add, remove, storageError };
-}
-
-function FileBar({ file, pages, busy, onClear }: { file: File; pages: number; busy: boolean; onClear: () => void }) {
-  return (
-    <div className="border-border bg-card flex items-center justify-between gap-3 rounded-[6px] border px-4 py-3">
-      <div className="flex min-w-0 items-center gap-2.5">
-        <FileText className="text-accent h-4 w-4 shrink-0" aria-hidden />
-        <span className="truncate text-[13.5px] font-medium">{file.name}</span>
-        <span className="text-muted-foreground shrink-0 font-mono text-[11.5px]">
-          {formatBytes(file.size)}
-          {pages ? ` · ${pages} page${pages === 1 ? "" : "s"}` : ""}
-        </span>
-      </div>
-      <button type="button" onClick={onClear} disabled={busy} className="text-muted-foreground hover:text-foreground shrink-0 text-[12.5px] underline-offset-2 hover:underline disabled:opacity-40">
-        Choose another file
-      </button>
-    </div>
-  );
 }
 
 function PageNav({ page, count, dispatch }: { page: number; count: number; dispatch: (a: SignAction) => void }) {
@@ -85,105 +69,20 @@ function PageNav({ page, count, dispatch }: { page: number; count: number; dispa
   );
 }
 
-function StatusArea({ state, dispatch, onReset }: { state: SignState; dispatch: (a: SignAction) => void; onReset: () => void }) {
-  return (
-    <div className="mt-6" aria-live="polite">
-      {state.status === "working" ? <ToolRunnerProgress label={state.step.label} ratio={state.step.ratio} /> : null}
-      {state.status === "error" ? <ToolRunnerError error={state.error} /> : null}
-      {state.status === "done" ? (
-        <ToolRunnerResults results={state.results} onReset={onReset} onOpenModal={() => dispatch({ type: "MODAL", open: true })} />
-      ) : null}
-    </div>
-  );
-}
-
 function PlacementHint({ state }: { state: SignState }) {
-  if (!state.active) return <p className="text-muted-foreground text-[12.5px]">Create or pick a signature in the panel, then click the page where it should go.</p>;
+  if (!state.active)
+    return (
+      <p className="bg-secondary text-foreground rounded-lg px-3 py-2 text-[13px]">
+        <strong className="font-semibold">Step 1:</strong> create your signature
+        <span className="lg:hidden"> — tap “Signature” below</span>
+        <span className="hidden lg:inline"> in the panel on the right</span>.
+      </p>
+    );
   return (
-    <p className="text-muted-foreground inline-flex items-center gap-1.5 text-[12.5px]">
-      <MousePointerClick className="text-accent h-3.5 w-3.5" /> Click the page to place your signature. Drag to move it; pull the corner to resize.
+    <p className="bg-secondary text-foreground rounded-lg px-3 py-2 text-[13px]">
+      <MousePointerClick className="text-accent mr-1.5 inline h-4 w-4 align-[-3px]" />
+      <strong className="font-semibold">Step 2:</strong> tap the page where it goes. Drag to move; pull the corner to resize.
     </p>
-  );
-}
-
-export function SignWorkbench({ tool }: { tool: Tool }) {
-  const [state, dispatch] = useReducer(signReducer, initialSignState);
-  const saved = useSavedSignatures();
-  const { doc, error: previewError } = usePdfDocument(state.file);
-  const pageCount = doc?.numPages ?? 0;
-  const busy = state.status === "working";
-
-  const activate = async (dataUrl: string) => {
-    dispatch({ type: "ACTIVATE", signature: { dataUrl, aspect: await imageAspect(dataUrl) } });
-  };
-
-  const handleCreate = (dataUrl: string, remember: boolean) => {
-    if (remember) saved.add(dataUrl);
-    void activate(dataUrl);
-  };
-
-  const apply = async () => {
-    if (!state.file) return;
-    dispatch({ type: "START" });
-    try {
-      const { signPdf } = await import("@/lib/pdf/ops/sign");
-      const results = await signPdf(state.file, state.placements, (label, ratio) => dispatch({ type: "STEP", label, ratio }));
-      dispatch({ type: "SUCCESS", results });
-      trackToolRun(tool.slug);
-    } catch (e) {
-      dispatch({ type: "FAIL", error: e instanceof PdfError ? e.message : "The signature couldn't be applied to this file. It may be damaged or unsupported." });
-    }
-  };
-
-  const reset = () => dispatch({ type: "RESET" });
-
-  return (
-    <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-12">
-      <div className="min-w-0 space-y-4">
-        {state.file ? (
-          <FileBar file={state.file} pages={pageCount} busy={busy} onClear={() => dispatch({ type: "SET_FILE", file: null })} />
-        ) : (
-          <Dropzone
-            accept={tool.accept}
-            acceptLabel={tool.acceptLabel}
-            multiple={false}
-            files={[]}
-            onFiles={(f) => dispatch({ type: "SET_FILE", file: f[0] ?? null })}
-          />
-        )}
-        {previewError ? <ToolRunnerError error={previewError} /> : null}
-        {doc ? <PageEditor doc={doc} state={state} busy={busy} dispatch={dispatch} /> : null}
-        <StatusArea state={state} dispatch={dispatch} onReset={reset} />
-        <DownloadModal
-          isOpen={state.modalOpen}
-          onClose={() => dispatch({ type: "MODAL", open: false })}
-          results={state.results}
-          toolName={tool.name}
-          onReset={reset}
-        />
-      </div>
-
-      <aside className="lg:border-border space-y-6 lg:border-l lg:pl-8">
-        <section>
-          <h2 className="label-xs">Your signature</h2>
-          <div className="mt-3">
-            <SignatureCreator onCreate={handleCreate} />
-          </div>
-          {saved.storageError ? (
-            <p className="text-muted-foreground mt-2 text-[12px]">This browser blocked local storage, so the signature can be used now but won't be remembered.</p>
-          ) : null}
-        </section>
-        <SavedSignatureList
-          items={saved.items}
-          activeUrl={state.active?.dataUrl ?? null}
-          onPick={(item) => void activate(item.dataUrl)}
-          onDelete={saved.remove}
-        />
-        <PlacementTools state={state} pageCount={pageCount} dispatch={dispatch} />
-        <ApplyBar tool={tool} state={state} busy={busy} onApply={apply} />
-        <PrivacyNote />
-      </aside>
-    </div>
   );
 }
 
@@ -230,25 +129,124 @@ function PlacementTools({ state, pageCount, dispatch }: { state: SignState; page
   );
 }
 
-function applyHint(state: SignState) {
-  if (!state.file) return "Add a PDF to continue.";
-  if (!state.placements.length) return "Place at least one signature.";
-  return "Signatures are merged into the page content.";
+function SignaturePanel({ state, saved, pageCount, dispatch, onCreate, onPick }: {
+  state: SignState;
+  saved: ReturnType<typeof useSavedSignatures>;
+  pageCount: number;
+  dispatch: (a: SignAction) => void;
+  onCreate: (dataUrl: string, remember: boolean) => void;
+  onPick: (dataUrl: string) => void;
+}) {
+  return (
+    <div className="space-y-6">
+      <section>
+        <SignatureCreator onCreate={onCreate} />
+        {saved.storageError ? (
+          <p className="text-muted-foreground mt-2 text-[12px]">This browser blocked local storage, so the signature can be used now but won't be remembered.</p>
+        ) : null}
+      </section>
+      <SavedSignatureList items={saved.items} activeUrl={state.active?.dataUrl ?? null} onPick={(item) => onPick(item.dataUrl)} onDelete={saved.remove} />
+      <PlacementTools state={state} pageCount={pageCount} dispatch={dispatch} />
+    </div>
+  );
 }
 
-function ApplyBar({ tool, state, busy, onApply }: { tool: Tool; state: SignState; busy: boolean; onApply: () => void }) {
+function actionLabel(tool: Tool, count: number) {
+  return `${tool.action}${count ? ` (${count})` : ""}`;
+}
+
+export function SignWorkbench({ tool }: { tool: Tool }) {
+  const [state, dispatch] = useReducer(signReducer, tool, (t) => ({
+    ...initialSignState,
+    file: typeof window === "undefined" ? null : (takeHandoff((f) => acceptsFile(t.accept, f))[0] ?? null),
+  }));
+  const saved = useSavedSignatures();
+  const { doc, error: previewError } = usePdfDocument(state.file);
+  const pageCount = doc?.numPages ?? 0;
+
+  const activate = async (dataUrl: string) => {
+    dispatch({ type: "ACTIVATE", signature: { dataUrl, aspect: await imageAspect(dataUrl) } });
+  };
+  const handleCreate = (dataUrl: string, remember: boolean) => {
+    if (remember) saved.add(dataUrl);
+    void activate(dataUrl);
+  };
+  const apply = async () => {
+    if (!state.file) return;
+    dispatch({ type: "START" });
+    try {
+      const { signPdf } = await import("@/lib/pdf/ops/sign");
+      const results = await signPdf(state.file, state.placements, (label, ratio) => dispatch({ type: "STEP", label, ratio }));
+      dispatch({ type: "SUCCESS", results });
+      trackToolRun(tool.slug);
+    } catch (e) {
+      dispatch({ type: "FAIL", error: e instanceof PdfError ? e.message : "The signature couldn't be applied to this file. It may be damaged or unsupported." });
+    }
+  };
+  const reset = () => dispatch({ type: "RESET" });
+
+  if (!state.file) {
+    return (
+      <div>
+        <ToolHero tool={tool} />
+        <UploadStage tool={tool} onFiles={(f) => dispatch({ type: "SET_FILE", file: f[0] ?? null })} />
+      </div>
+    );
+  }
+  if (state.status === "working") {
+    return (
+      <div>
+        <ToolHero tool={tool} compact />
+        <ProcessingStage label={state.step.label} ratio={state.step.ratio} />
+      </div>
+    );
+  }
+  if (state.status === "done") {
+    return (
+      <div>
+        <ToolHero tool={tool} compact onStartOver={reset} />
+        <div className="py-8">
+          <ResultStage tool={tool} results={state.results} onStartOver={reset} onBack={() => dispatch({ type: "BACK" })} />
+        </div>
+      </div>
+    );
+  }
+
+  const panel = <SignaturePanel state={state} saved={saved} pageCount={pageCount} dispatch={dispatch} onCreate={handleCreate} onPick={(d) => void activate(d)} />;
   const count = state.placements.length;
+
   return (
-    <div className="border-border sticky bottom-0 -mx-4 border-t px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-[6px] lg:static lg:mx-0 lg:border-0 lg:px-0 lg:pb-0 lg:backdrop-blur-none">
-      <button
-        type="button"
-        onClick={onApply}
-        disabled={!state.file || !count || busy}
-        className="bg-accent text-accent-foreground hover:bg-accent/90 h-11 w-full rounded-[3px] text-[14px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40 lg:h-10"
-      >
-        {busy ? "Working…" : `${tool.action}${count ? ` (${count})` : ""}`}
-      </button>
-      <p className="text-muted-foreground mt-2 text-center text-[12px] lg:text-left">{applyHint(state)}</p>
+    <div className="pb-28 lg:pb-0">
+      <ToolHero tool={tool} compact onStartOver={reset} />
+      <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-10">
+        <div className="min-w-0 space-y-3">
+          {previewError ? <ToolRunnerError error={previewError} /> : null}
+          {state.status === "error" ? <ToolRunnerError error={state.error} /> : null}
+          {doc ? <PageEditor doc={doc} state={state} busy={false} dispatch={dispatch} /> : null}
+        </div>
+        <aside className="hidden lg:block">
+          <div className="border-border bg-card sticky top-20 space-y-5 rounded-2xl border p-5">
+            <h2 className="text-[15px] font-semibold">Your signature</h2>
+            {panel}
+            <PrimaryButton onClick={apply} disabled={!count} className="w-full">
+              {actionLabel(tool, count)}
+            </PrimaryButton>
+            <PrivacyNote />
+          </div>
+        </aside>
+      </div>
+
+      <ActionBar>
+        <SecondaryButton onClick={() => dispatch({ type: "SHEET", open: true })}>
+          <PenLine className="h-4 w-4" /> Signature
+        </SecondaryButton>
+        <PrimaryButton onClick={apply} disabled={!count}>
+          {actionLabel(tool, count)}
+        </PrimaryButton>
+      </ActionBar>
+      <Sheet open={state.sheetOpen} title="Your signature" onClose={() => dispatch({ type: "SHEET", open: false })}>
+        {panel}
+      </Sheet>
     </div>
   );
 }

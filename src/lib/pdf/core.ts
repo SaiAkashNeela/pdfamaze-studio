@@ -244,3 +244,30 @@ export function inSequence<T, R>(items: readonly T[], fn: (item: T, index: numbe
 export function pageNumbers(count: number): number[] {
   return Array.from({ length: count }, (_, i) => i + 1);
 }
+
+/** Bundles several results into one ZIP, so browsers don't block a burst of downloads. */
+export async function zipOutputs(files: OutputFile[], name: string): Promise<OutputFile> {
+  const { zip } = await import("fflate");
+  const used = new Map<string, number>();
+  const entries: Record<string, Uint8Array> = {};
+  const loaded = await Promise.all(files.map(async (f) => [f.name, new Uint8Array(await f.blob.arrayBuffer())] as const));
+  for (const [n, bytes] of loaded) {
+    const seen = used.get(n) ?? 0;
+    used.set(n, seen + 1);
+    entries[seen ? n.replace(/(\.[^.]*)?$/, `-${seen}$1`) : n] = bytes;
+  }
+  // PDFs and images are already compressed; storing is faster and barely larger.
+  const data = await new Promise<Uint8Array>((resolve, reject) =>
+    zip(entries, { level: 0 }, (err, out) => (err ? reject(err) : resolve(out))),
+  );
+  return { name, blob: new Blob([data as BlobPart], { type: "application/zip" }) };
+}
+
+/** Accept-string matcher shared by the upload UI and tool hand-off. */
+export function acceptsFile(accept: string, file: File): boolean {
+  if (accept === "*") return true;
+  return accept
+    .split(",")
+    .map((t) => t.trim())
+    .some((t) => (t.endsWith("/*") ? file.type.startsWith(t.slice(0, -1)) : file.type === t || file.name.toLowerCase().endsWith(t)));
+}

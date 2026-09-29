@@ -7,7 +7,9 @@ export function ToolGuide({ tool }: { tool: Tool }) {
   return (
     <section className="border-border mt-8 grid gap-10 border-t pt-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] lg:gap-16">
       <div>
-        <h2 className="text-[18px] font-semibold tracking-[-0.02em]">How to use {tool.name}</h2>
+        <h2 className="text-[18px] font-semibold tracking-[-0.02em]">About {tool.name}</h2>
+        <p className="text-muted-foreground mt-3 text-[14px] leading-relaxed">{tool.about}</p>
+        <h2 className="mt-8 text-[18px] font-semibold tracking-[-0.02em]">How to use {tool.name}</h2>
         <ol className="mt-4 space-y-3">
           {steps.map((step, i) => (
             <li key={step} className="flex gap-3 text-[14px] leading-relaxed">

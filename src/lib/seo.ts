@@ -71,14 +71,14 @@ export function toolFaq(tool: Tool): FaqItem[] {
 }
 
 export function howToSteps(tool: Tool): string[] {
-  const add = tool.minFiles > 1 ? `Add ${tool.acceptLabel.toLowerCase()}.` : `Add ${tool.acceptLabel.toLowerCase()} by dropping it in or choosing it.`;
+  const add = `Press “Select” or drop your ${tool.multiple ? "files" : "file"} onto the page (${tool.acceptLabel}).`;
   const configure =
     tool.workbench === "sign"
       ? "Draw, type or upload your signature, then click the page where it should go and drag or resize it."
       : tool.workbench === "form-fill"
         ? "Fill in the fields that appear, and choose whether to flatten the answers."
         : tool.fields.length
-          ? "Adjust the options in the side panel."
+          ? "Choose your options (on phones, tap “Options”)."
           : "There's nothing to configure.";
   return [`1. ${add}`, `2. ${configure}`, `3. Press “${tool.action}”.`, "4. Download the result — it's created on your device."];
 }

@@ -219,7 +219,7 @@ export function SignatureCreator({ onCreate }: { onCreate: (dataUrl: string, sav
         type="button"
         disabled={!draft}
         onClick={() => draft && onCreate(draft, save)}
-        className="border-border-strong hover:bg-secondary h-9 w-full rounded-[3px] border text-[13.5px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+        className="bg-accent text-accent-foreground hover:bg-accent/90 h-11 w-full rounded-xl text-[14px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40"
       >
         Use this signature
       </button>
