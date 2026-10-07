@@ -71,6 +71,13 @@
       "typedRoutes": true,
       "reactCompiler": true
     },
-    "description": "Private PDF tools that work entirely on your phone. No account, no uploads."
+    "description": "Private PDF tools that work entirely on your phone. No account, no uploads.",
+    "owner": "isan333",
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "44dd6e0e-b31e-436f-8026-8539dd5725eb"
+      }
+    }
   }
 }
