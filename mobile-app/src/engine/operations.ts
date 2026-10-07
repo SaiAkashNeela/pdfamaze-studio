@@ -184,21 +184,55 @@ export async function encryptPdf(
     fail("Passwords do not match. Please re-type your password.");
   }
 
-  progress("Encrypting PDF with standard password protection", 0.4);
-  const [pdfBytes, { encryptPDF }] = await Promise.all([readBytes(file), import("@pdfsmaller/pdf-encrypt-lite")]);
-  const ownerPwd = (opts.ownerPassword || "").trim() || pwd;
+  progress("Locking the PDF", 0.4);
+  // Mobile uses @cantoo/pdf-lib's built-in encryption: AES-256, the strongest standard PDF cipher.
+  const doc = await openEditableDocument(file);
+  doc.encrypt({
+    userPassword: pwd,
+    ownerPassword: (opts.ownerPassword || "").trim() || pwd,
+    permissions: {
+      printing: "highResolution",
+      modifying: true,
+      copying: true,
+      annotating: true,
+      fillingForms: true,
+      contentAccessibility: true,
+      documentAssembly: true,
+    },
+  });
+  const bytes = await doc.save();
+  progress("Document protected successfully", 1);
+  return [{ name: `${baseName(file.name)}-protected.pdf`, blob: pdfBlob(bytes) }];
+}
 
+/* -------------------------------------------------------- remove password */
+
+/**
+ * Removes a PDF's password. Unlike the web version (which re-renders pages as images), this
+ * decrypts the file itself, so text, links and forms stay exactly as they were.
+ */
+export async function unlockPdf(files: LocalFile[], opts: { password: string }, progress: ProgressFn): Promise<OutputFile[]> {
+  const file = requireFile(files);
+  const [bytes, lib] = await Promise.all([readBytes(file), loadPdfLib()]);
+  const probe = await lib.PDFDocument.load(bytes, { ignoreEncryption: true, updateMetadata: false }).catch(() =>
+    fail(`"${file.name}" couldn't be opened. It may be damaged.`),
+  );
+  if (!probe.isEncrypted) fail("This PDF isn't locked, so there's nothing to unlock.");
+  progress("Unlocking", 0.4);
+  let doc;
   try {
-    const encryptedBytes = await encryptPDF(pdfBytes, pwd, ownerPwd);
-    if (!encryptedBytes || encryptedBytes.length === 0) {
-      fail("Encryption produced an empty document. Please try again.");
-    }
-    progress("Document protected successfully", 1);
-    return [{ name: `${baseName(file.name)}-protected.pdf`, blob: pdfBlob(encryptedBytes) }];
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err);
-    fail(`Failed to encrypt PDF: ${message}`);
+    doc = await lib.PDFDocument.load(bytes, { password: opts.password, updateMetadata: false });
+  } catch {
+    fail(
+      opts.password
+        ? "That password isn't right. Check capital letters and try again."
+        : "This PDF needs its password to be unlocked. Type it in and try again.",
+    );
   }
+  progress("Saving the unlocked copy", 0.8);
+  // saveClean drops the old encryption dictionary and cross-reference objects, which are left
+  // behind as unreachable objects and would otherwise make readers think the file is still locked.
+  return [{ name: `${baseName(file.name)}-unlocked.pdf`, blob: await saveClean(doc) }];
 }
 
 /* -------------------------------------------------------- add page numbers */

@@ -3,7 +3,7 @@
  * Ported from Stirling-PDF's Stamp, Attachment, Metadata, EditTableOfContents and
  * SplitPdfByChapters controllers.
  */
-import type { PDFDocument, PDFFont, PDFPage, PDFRef } from "pdf-lib";
+import type { PDFDocument, PDFFont, PDFPage, PDFRef } from "@cantoo/pdf-lib";
 import {
   baseName,
   fail,

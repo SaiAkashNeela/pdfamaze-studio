@@ -2,20 +2,8 @@
  * Security and clean-up tools, ported from Stirling-PDF's Sanitize, PasswordController
  * (permissions), Redact, ShowJavascript and RemoveImages controllers.
  */
-import type { PDFArray, PDFDict, PDFDocument, PDFObject } from "pdf-lib";
-import {
-  baseName,
-  fail,
-  loadPdfLib,
-  openEditableDocument,
-  pdfBlob,
-  readBytes,
-  saveClean,
-  textBlob,
-  type LocalFile,
-  type OutputFile,
-  type ProgressFn,
-} from "../core";
+import type { PDFArray, PDFDict, PDFDocument, PDFObject } from "@cantoo/pdf-lib";
+import { baseName, fail, loadPdfLib, openEditableDocument, pdfBlob, saveClean, textBlob, type LocalFile, type OutputFile, type ProgressFn } from "../core";
 
 type PdfLib = Awaited<ReturnType<typeof loadPdfLib>>;
 
@@ -136,22 +124,24 @@ export async function changePermissions(files: LocalFile[], opts: PermissionBloc
   const file = requireFile(files);
   const { ownerPassword, ...blocks } = opts;
   if (!Object.values(blocks).some(Boolean)) fail("Switch on at least one restriction to apply.");
-  await openEditableDocument(file); // rejects already-encrypted files with a clear message
-  const [bytes, { encryptPDF }] = await Promise.all([readBytes(file), import("@pdfsmaller/pdf-encrypt-lite")]);
+  const doc = await openEditableDocument(file); // rejects already-encrypted files with a clear message
   // Without an owner password anyone could lift the restrictions, so make an unguessable one.
   const random = Array.from(crypto.getRandomValues(new Uint8Array(24)), (b) => b.toString(16).padStart(2, "0")).join("");
   progress("Applying permissions", 0.5);
-  const out = await encryptPDF(bytes, "", {
+  doc.encrypt({
+    userPassword: "",
     ownerPassword: ownerPassword.trim() || random,
-    allowPrinting: !opts.preventPrinting,
-    allowHighQualityPrint: !opts.preventPrinting && !opts.preventPrintingFaithful,
-    allowCopying: !opts.preventExtractContent,
-    allowExtraction: !opts.preventExtractForAccessibility,
-    allowModifying: !opts.preventModify,
-    allowAnnotating: !opts.preventModifyAnnotations,
-    allowFillingForms: !opts.preventFillInForm,
-    allowAssembly: !opts.preventAssembly,
-  }).catch((e: unknown) => fail(`Permissions couldn't be applied: ${e instanceof Error ? e.message : String(e)}`));
+    permissions: {
+      printing: opts.preventPrinting ? false : opts.preventPrintingFaithful ? "lowResolution" : "highResolution",
+      copying: !opts.preventExtractContent,
+      contentAccessibility: !opts.preventExtractForAccessibility,
+      modifying: !opts.preventModify,
+      annotating: !opts.preventModifyAnnotations,
+      fillingForms: !opts.preventFillInForm,
+      documentAssembly: !opts.preventAssembly,
+    },
+  });
+  const out = await doc.save().catch((e: unknown) => fail(`Permissions couldn't be applied: ${e instanceof Error ? e.message : String(e)}`));
   return [{ name: `${baseName(file.name)}-restricted.pdf`, blob: pdfBlob(out) }];
 }
 

@@ -4,7 +4,7 @@
  * Crop and PdfOverlay controllers. Pages are re-used losslessly (as embedded form XObjects or
  * copied pages); nothing here rasterises.
  */
-import type { PDFDocument, PDFPage } from "pdf-lib";
+import type { PDFDocument, PDFPage } from "@cantoo/pdf-lib";
 import {
   baseName,
   fail,

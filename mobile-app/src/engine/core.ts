@@ -35,6 +35,11 @@ export class LocalFile {
   async text(): Promise<string> {
     return new FsFile(this.uri).text();
   }
+
+  /** Read natively as base64, for handing the file to the page renderer without a JS round-trip. */
+  async base64(): Promise<string> {
+    return new FsFile(this.uri).base64();
+  }
 }
 
 /** In-memory result of an operation, written to disk only when the person saves or shares it. */
@@ -99,7 +104,7 @@ export function parsePageRanges(input: string, pageCount: number): number[] {
 }
 
 export async function loadPdfLib() {
-  return import("pdf-lib");
+  return import("@cantoo/pdf-lib");
 }
 
 export async function openDocument(file: LocalFile, options?: { ignoreEncryption?: boolean; updateMetadata?: boolean }) {
@@ -162,7 +167,7 @@ export function isImageFile(file: LocalFile): boolean {
  * pdf-lib writes all objects it has loaded, so without this, content a tool "removed"
  * (images, attachments, old metadata, signatures) would still be sitting in the saved file.
  */
-export async function collectGarbage(doc: import("pdf-lib").PDFDocument): Promise<number> {
+export async function collectGarbage(doc: import("@cantoo/pdf-lib").PDFDocument): Promise<number> {
   const lib = await loadPdfLib();
   await doc.flush();
   const ctx = doc.context;
@@ -195,7 +200,7 @@ export async function collectGarbage(doc: import("pdf-lib").PDFDocument): Promis
 }
 
 /** Save after dropping unreachable objects. Form appearances must already be up to date. */
-export async function saveClean(doc: import("pdf-lib").PDFDocument): Promise<OutBlob> {
+export async function saveClean(doc: import("@cantoo/pdf-lib").PDFDocument): Promise<OutBlob> {
   await collectGarbage(doc);
   return pdfBlob(await doc.save({ updateFieldAppearances: false }));
 }

@@ -34,6 +34,15 @@ Every dependency is bundled in Expo Go, so no native build is needed during deve
 | `src/jobs/` | Background jobs: conversions keep running while you use the rest of the app |
 | `src/stats/` | Personal usage stats in a local SQLite file (counts only, never file names or contents) |
 
+## Dependency review
+
+`@cantoo/pdf-lib` (a maintained fork of pdf-lib that adds decryption) scores 45/100 on Socket's
+supply-chain axis, just under React Doctor's default of 50; every other axis is 98–100. It was
+reviewed by hand: no install scripts (only a `husky` prepare hook for its own repo), no network,
+filesystem or `eval` use (the `fetch` mentions are doc comments), and clean dependencies. It is
+pinned to an exact version, and `react-doctor.config.json` sets the threshold to 45 so this one
+package passes while anything worse still fails. Re-review before upgrading it.
+
 ## Design principles
 
 The app is meant to be usable by anyone, from a grandparent to a child.
@@ -72,13 +81,25 @@ Local only (no push service, no server). Permission is asked the first time a jo
 
 Screenshots for the store listings still need to be taken on real devices.
 
+## Page renderer (PDF to Pictures)
+
+Drawing pages needs a canvas, which React Native doesn't have. `src/render/` mounts a 1×1 hidden
+WebView that loads one bundled HTML file (`assets/renderer/pdf-renderer.html`, pdf.js, ~0.55 MB
+compressed) and draws pages one at a time, returning them as images. It exists only while a job
+needs it. A Content-Security-Policy blocks all network access, and it may not navigate anywhere.
+Rebuild it with `bun run build:renderer` after upgrading `pdfjs-dist`.
+
+## Unlock PDF
+
+`@cantoo/pdf-lib` decrypts RC4, AES-128 and AES-256 PDFs in plain JavaScript, so unlocking keeps
+text, links and forms intact (the web version re-renders pages as images).
+
 ## Not yet on mobile
 
-These web tools need a page renderer or text extraction (pdf.js + canvas), which React Native
-doesn't have. They need a native module first:
-compress (re-render mode), PDF to images, unlock (decrypt), grayscale, colour tools, scanner effect,
-remove blank pages, auto-crop, full flatten, extract text, OCR, compare, redact, PDF info,
-extract images/attachments, repair, split by bookmarks, auto rename, HTML to PDF.
+These web tools still need work. Most can now reuse the page renderer:
+compress (re-render mode), grayscale, colour tools, scanner effect, remove blank pages, auto-crop,
+full flatten, extract text, OCR, compare, redact, PDF info, extract images/attachments, repair,
+split by bookmarks, auto rename, HTML to PDF.
 
 ## Before releasing
 

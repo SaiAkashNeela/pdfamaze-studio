@@ -4,6 +4,7 @@
  * picker, with Share alongside.
  */
 import { router } from "expo-router";
+import { Image } from "expo-image";
 import { CircleCheck, Download, FileText, House, RefreshCw, Share2 } from "lucide-react-native";
 import { useState } from "react";
 import { Platform, View } from "react-native";
@@ -94,7 +95,16 @@ export function Result({ results, inputSize, showSavings, onAgain }: Props) {
       <View style={{ gap: space.md }}>
         {results.map((r) => (
           <Card key={r.uri} style={{ flexDirection: "row", alignItems: "center", gap: space.md }}>
-            <FileText size={32} color={colors.accent} strokeWidth={1.8} />
+            {r.type.startsWith("image/") ? (
+              <Image
+                source={{ uri: r.uri }}
+                style={{ width: 44, height: 58, borderRadius: 6, borderWidth: 1, borderColor: colors.border }}
+                contentFit="cover"
+                accessible={false}
+              />
+            ) : (
+              <FileText size={32} color={colors.accent} strokeWidth={1.8} />
+            )}
             <View style={{ flex: 1 }}>
               <Text variant="bodyStrong" numberOfLines={2}>
                 {r.name}

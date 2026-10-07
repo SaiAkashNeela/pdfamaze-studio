@@ -11,6 +11,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { clearResults } from "@/files/output";
 import { JobsProvider } from "@/jobs/JobsProvider";
 import { listenForTaps, scheduleWeeklyReminder, setUpNotifications } from "@/jobs/notify";
+import { RendererHost } from "@/render/RendererHost";
 import { recordAppOpen } from "@/stats/db";
 import { ThemeProvider, useTheme } from "@/theme/ThemeProvider";
 
@@ -60,6 +61,7 @@ export default function RootLayout() {
         <ThemeProvider>
           <JobsProvider>
             <AppStack />
+            <RendererHost />
           </JobsProvider>
         </ThemeProvider>
       </SafeAreaProvider>

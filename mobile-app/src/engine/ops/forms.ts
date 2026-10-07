@@ -3,7 +3,7 @@
  * UnlockPDFFormsController, RemoveCertSignController and annotation removal, using pdf-lib's
  * low-level object model instead of PDFBox.
  */
-import type { PDFDict, PDFDocument, PDFField, PDFForm, PDFPage, PDFRef } from "pdf-lib";
+import type { PDFDict, PDFDocument, PDFField, PDFForm, PDFPage, PDFRef } from "@cantoo/pdf-lib";
 import { baseName, fail, loadPdfLib, openEditableDocument, saveClean, type LocalFile, type OutputFile, type ProgressFn } from "../core";
 import { isolatePageContent } from "../layout";
 

@@ -6,6 +6,7 @@
 import * as content from "@/engine/ops/content";
 import * as forms from "@/engine/ops/forms";
 import * as pages from "@/engine/ops/pages";
+import * as render from "@/engine/ops/render";
 import * as security from "@/engine/ops/security";
 import * as ops from "@/engine/operations";
 import type { Field, Tool, ToolTag } from "./types";
@@ -753,6 +754,41 @@ const createTools: Tool[] = [
     run: async (files, v, p) => ops.imagesToPdf(files, { fit: str(v["fit"]), margin: num(v["margin"]) }, p),
   },
   {
+    slug: "pdf-to-images",
+    name: "PDF to Pictures",
+    action: "Make pictures",
+    summary: "Turn each page of a PDF into a picture you can share or post.",
+    ...PDF,
+    tag: "CONVERT",
+    keywords: "images jpg png photo export pages screenshot",
+    fields: [
+      {
+        name: "format",
+        label: "Picture type",
+        type: "select",
+        default: "jpeg",
+        options: [
+          { value: "jpeg", label: "JPG: smaller, good for sharing" },
+          { value: "png", label: "PNG: sharpest text" },
+        ],
+      },
+      {
+        name: "scale",
+        label: "Sharpness",
+        type: "select",
+        default: "2",
+        options: [
+          { value: "1.5", label: "Standard: quick and small" },
+          { value: "2", label: "High: good for reading and printing" },
+          { value: "3", label: "Very high: large files" },
+        ],
+      },
+      { ...pagesField(), hint: "Leave empty for every page." },
+    ],
+    basic: ["format", "scale"],
+    run: async (files, v, p) => render.pdfToImages(files, { format: str(v["format"]), scale: num(v["scale"]), pages: str(v["pages"]) }, p),
+  },
+  {
     slug: "compress",
     name: "Tidy & Shrink PDF",
     action: "Shrink PDF",
@@ -792,6 +828,26 @@ const securityTools: Tool[] = [
     basic: ["password", "confirmPassword"],
     run: async (files, v, p) =>
       ops.encryptPdf(files, { password: str(v["password"]), confirmPassword: str(v["confirmPassword"]), ownerPassword: str(v["ownerPassword"]) }, p),
+  },
+  {
+    slug: "remove-password",
+    name: "Unlock PDF",
+    action: "Unlock PDF",
+    summary: "Take the password off a PDF you're allowed to open.",
+    ...PDF,
+    tag: "SECURITY",
+    keywords: "decrypt unlock remove password open",
+    caveat: "You need the PDF's password. Text, links and forms stay exactly as they were.",
+    fields: [
+      {
+        name: "password",
+        label: "The PDF's password",
+        type: "password",
+        default: "",
+        hint: "Leave empty if the PDF opens without a password but blocks printing or copying.",
+      },
+    ],
+    run: async (files, v, p) => ops.unlockPdf(files, { password: str(v["password"]) }, p),
   },
   {
     slug: "permissions",

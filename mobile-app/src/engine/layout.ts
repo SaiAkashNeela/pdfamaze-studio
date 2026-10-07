@@ -6,7 +6,7 @@
  *    measured across the visible crop box;
  *  - PDF user space: bottom-left origin, unrotated, which is what pdf-lib draws in.
  */
-import type { PDFDocument, PDFEmbeddedPage, PDFPage } from "pdf-lib";
+import type { PDFDocument, PDFEmbeddedPage, PDFPage } from "@cantoo/pdf-lib";
 import { loadPdfLib } from "./core";
 
 type PdfLib = Awaited<ReturnType<typeof loadPdfLib>>;

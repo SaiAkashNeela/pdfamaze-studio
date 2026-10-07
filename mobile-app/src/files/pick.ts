@@ -86,7 +86,7 @@ export async function countPages(file: LocalFile): Promise<number | null> {
   if (!/pdf/i.test(file.type) && !/\.pdf$/i.test(file.name)) return null;
   if (file.size > 40 * 1024 * 1024) return null;
   try {
-    const { PDFDocument } = await import("pdf-lib");
+    const { PDFDocument } = await import("@cantoo/pdf-lib");
     const doc = await PDFDocument.load(await file.bytes(), { ignoreEncryption: true, updateMetadata: false });
     return doc.getPageCount();
   } catch {
