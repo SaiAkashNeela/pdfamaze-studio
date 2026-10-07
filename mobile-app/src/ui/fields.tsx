@@ -134,6 +134,48 @@ export function PositionGrid({ label, value, onChange }: { label: string; value:
   );
 }
 
+/** Two or three short choices side by side, for compact screens like Scan. */
+export function Segmented({
+  label,
+  options,
+  value,
+  onChange,
+}: {
+  label: string;
+  options: { value: string; label: string }[];
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const { colors } = useTheme();
+  return (
+    <View accessibilityRole="radiogroup" accessibilityLabel={label}>
+      <Label text={label} />
+      <View style={[styles.segments, { backgroundColor: colors.muted, borderColor: colors.border }]}>
+        {options.map((o) => {
+          const selected = o.value === value;
+          return (
+            <Pressable
+              key={o.value}
+              accessibilityRole="radio"
+              accessibilityState={{ checked: selected }}
+              accessibilityLabel={o.label}
+              onPress={() => {
+                tick();
+                onChange(o.value);
+              }}
+              style={[styles.segment, selected && { backgroundColor: colors.card, borderColor: colors.borderStrong }]}
+            >
+              <Text variant={selected ? "bodyStrong" : "body"} tone={selected ? "default" : "muted"} center numberOfLines={2}>
+                {o.label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
 /* ------------------------------------------------------------------ numbers */
 
 function formatNumber(n: number, step: number) {
@@ -453,6 +495,17 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     paddingHorizontal: space.lg,
     paddingVertical: space.md,
+  },
+  segments: { flexDirection: "row", borderWidth: 1, borderRadius: radius.md, padding: 3, gap: 3 },
+  segment: {
+    flex: 1,
+    minHeight: 44,
+    borderRadius: radius.sm + 2,
+    borderWidth: 1,
+    borderColor: "transparent",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: space.sm,
   },
   radio: { width: 22, height: 22, borderRadius: 11, borderWidth: 2, alignItems: "center", justifyContent: "center" },
   page: {

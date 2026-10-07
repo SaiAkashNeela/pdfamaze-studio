@@ -1,9 +1,6 @@
-import { ToolFlow } from "@/flow/ToolFlow";
-import { getTool } from "@/tools/registry";
+import { ScanFlow } from "@/flow/scan/ScanFlow";
 
-const photosToPdf = getTool("images-to-pdf")!;
-
-/** Scan tab: Photos to PDF, opening the camera straight away. */
+/** Scan tab: photograph paper pages and make a PDF. */
 export default function ScanScreen() {
-  return <ToolFlow tool={photosToPdf} inTab autoSource="camera" />;
+  return <ScanFlow />;
 }
