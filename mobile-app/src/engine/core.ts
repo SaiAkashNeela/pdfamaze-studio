@@ -223,9 +223,7 @@ export async function zipOutputs(files: OutputFile[], name: string): Promise<Out
     entries[seen ? f.name.replace(/(\.[^.]*)?$/, `-${seen}$1`) : f.name] = f.blob.bytes;
   }
   // PDFs and images are already compressed; storing is faster and barely larger.
-  const data = await new Promise<Uint8Array>((resolve, reject) =>
-    zip(entries, { level: 0 }, (err, out) => (err ? reject(err) : resolve(out))),
-  );
+  const data = await new Promise<Uint8Array>((resolve, reject) => zip(entries, { level: 0 }, (err, out) => (err ? reject(err) : resolve(out))));
   return { name, blob: new OutBlob(data, "application/zip") };
 }
 

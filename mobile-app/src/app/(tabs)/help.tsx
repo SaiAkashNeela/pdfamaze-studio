@@ -1,14 +1,22 @@
 import Constants from "expo-constants";
+import { router } from "expo-router";
+import { CodeXml, Mail, Sparkles } from "lucide-react-native";
+import { Linking } from "react-native";
 import { View } from "react-native";
 import { t } from "@/i18n";
+import { loadPrefs, savePrefs } from "@/theme/prefs";
 import { useTheme } from "@/theme/ThemeProvider";
 import { space } from "@/theme/tokens";
+import { Button } from "@/ui/Button";
 import { Card } from "@/ui/Card";
 import { OptionList } from "@/ui/fields";
 import { LogoMark } from "@/ui/Logo";
 import { Notice } from "@/ui/Notice";
 import { Screen } from "@/ui/Screen";
 import { Text } from "@/ui/Text";
+
+const CONTACT_EMAIL = "sai@levocell.ai";
+const REPO_URL = "https://github.com/SaiAkashNeela/pdfamaze-studio";
 
 function Numbered({ n, text }: { n: number; text: string }) {
   const { colors } = useTheme();
@@ -79,6 +87,32 @@ export default function About() {
         <Text variant="body" tone="muted">
           {t("about.textSizeBody")}
         </Text>
+      </View>
+
+      <View style={{ gap: space.md, marginTop: space.xxl }}>
+        <Text variant="title" accessibilityRole="header">
+          {t("about.contactTitle")}
+        </Text>
+        <Text variant="body" tone="muted">
+          {t("about.contactBody")}
+        </Text>
+        <Button
+          kind="secondary"
+          icon={Mail}
+          label={CONTACT_EMAIL}
+          accessibilityLabel={t("about.email", { email: CONTACT_EMAIL })}
+          onPress={() => void Linking.openURL(`mailto:${CONTACT_EMAIL}?subject=PDFamaze`)}
+        />
+        <Button kind="secondary" icon={CodeXml} label={t("about.github")} accessibilityHint={REPO_URL} onPress={() => void Linking.openURL(REPO_URL)} />
+        <Button
+          kind="ghost"
+          icon={Sparkles}
+          label={t("about.welcomeAgain")}
+          onPress={() => {
+            savePrefs({ ...loadPrefs(), onboarded: false });
+            router.replace("/onboarding");
+          }}
+        />
       </View>
 
       <View style={{ gap: space.xs, marginTop: space.xxl, alignItems: "center" }}>

@@ -119,13 +119,7 @@ export async function embedVisiblePages(target: PDFDocument, pages: PDFPage[]) {
  * Draws an embedded page so it fills `box` (PDF points) the way a reader would see the source
  * page, i.e. with its /Rotate applied. `box` must already have the rotated aspect ratio.
  */
-export function drawUpright(
-  lib: PdfLib,
-  target: PDFPage,
-  embedded: PDFEmbeddedPage,
-  rotation: 0 | 90 | 180 | 270,
-  box: Box,
-): void {
+export function drawUpright(lib: PdfLib, target: PDFPage, embedded: PDFEmbeddedPage, rotation: 0 | 90 | 180 | 270, box: Box): void {
   const sideways = rotation === 90 || rotation === 270;
   const w = sideways ? box.height : box.width;
   const h = sideways ? box.width : box.height;
@@ -140,10 +134,7 @@ export function drawUpright(
 }
 
 /** Largest box with the source's aspect ratio that fits inside `cell`, centred. */
-export function fitInside(
-  source: { width: number; height: number },
-  cell: Box,
-): Box {
+export function fitInside(source: { width: number; height: number }, cell: Box): Box {
   const scale = Math.min(cell.width / source.width, cell.height / source.height);
   const width = source.width * scale;
   const height = source.height * scale;

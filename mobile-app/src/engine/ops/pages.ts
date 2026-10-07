@@ -99,11 +99,7 @@ export function rearrangeOrder(mode: string, n: number, order: string, copies: n
   }
 }
 
-export async function rearrangePages(
-  files: LocalFile[],
-  opts: { mode: string; order: string; copies: number },
-  progress: ProgressFn,
-): Promise<OutputFile[]> {
+export async function rearrangePages(files: LocalFile[], opts: { mode: string; order: string; copies: number }, progress: ProgressFn): Promise<OutputFile[]> {
   const file = requireFile(files);
   const [lib, src] = await Promise.all([loadPdfLib(), openEditableDocument(file)]);
   const indices = rearrangeOrder(opts.mode, src.getPageCount(), opts.order, opts.copies);
@@ -193,11 +189,7 @@ export function bookletSides(total: number): [number, number][] {
   return sides;
 }
 
-export async function bookletPdf(
-  files: LocalFile[],
-  opts: { spine: string; gutter: number; border: boolean },
-  progress: ProgressFn,
-): Promise<OutputFile[]> {
+export async function bookletPdf(files: LocalFile[], opts: { spine: string; gutter: number; border: boolean }, progress: ProgressFn): Promise<OutputFile[]> {
   const file = requireFile(files);
   const [lib, src] = await Promise.all([loadPdfLib(), openEditableDocument(file)]);
   const out = await lib.PDFDocument.create();
@@ -248,11 +240,7 @@ export async function toSinglePage(files: LocalFile[], progress: ProgressFn): Pr
 
 /* ------------------------------------------------------------ scale pages */
 
-export async function scalePages(
-  files: LocalFile[],
-  opts: { size: string; orientation: string; factor: number },
-  progress: ProgressFn,
-): Promise<OutputFile[]> {
+export async function scalePages(files: LocalFile[], opts: { size: string; orientation: string; factor: number }, progress: ProgressFn): Promise<OutputFile[]> {
   const file = requireFile(files);
   const [lib, src] = await Promise.all([loadPdfLib(), openEditableDocument(file)]);
   const out = await lib.PDFDocument.create();
@@ -278,11 +266,7 @@ export async function scalePages(
  * Cuts each page into a grid (Stirling's SplitPdfBySections). Pieces are ordered the way the
  * page reads, left to right then top to bottom.
  */
-export async function splitSections(
-  files: LocalFile[],
-  opts: { columns: number; rows: number; merge: boolean },
-  progress: ProgressFn,
-): Promise<OutputFile[]> {
+export async function splitSections(files: LocalFile[], opts: { columns: number; rows: number; merge: boolean }, progress: ProgressFn): Promise<OutputFile[]> {
   const file = requireFile(files);
   const cols = Math.max(1, Math.round(opts.columns));
   const rows = Math.max(1, Math.round(opts.rows));
@@ -339,11 +323,7 @@ async function splitBySize(lib: PdfLib, src: PDFDocument, maxBytes: number, prog
 }
 
 /** Stirling's split-by-size-or-count: every N pages, into N documents, or by file size. */
-export async function splitByRule(
-  files: LocalFile[],
-  opts: { mode: string; value: number },
-  progress: ProgressFn,
-): Promise<OutputFile[]> {
+export async function splitByRule(files: LocalFile[], opts: { mode: string; value: number }, progress: ProgressFn): Promise<OutputFile[]> {
   const file = requireFile(files);
   const [lib, src] = await Promise.all([loadPdfLib(), openEditableDocument(file)]);
   const all = src.getPageIndices();
@@ -391,7 +371,10 @@ export async function cropPdf(
   const doc = await openEditableDocument(file);
   const pages = doc.getPages();
   const targets = parsePageRanges(opts.pages, pages.length);
-  const t = opts.top / 100, r = opts.right / 100, b = opts.bottom / 100, l = opts.left / 100;
+  const t = opts.top / 100,
+    r = opts.right / 100,
+    b = opts.bottom / 100,
+    l = opts.left / 100;
   if (t + b >= 0.95 || l + r >= 0.95) fail("Those margins leave almost nothing of the page. Use smaller values.");
   await inSequence(targets, async (index, n) => {
     progress(`Cropping page ${index + 1}`, (n + 1) / targets.length);
@@ -409,11 +392,7 @@ export async function cropPdf(
  * Sequential mode walks through every page of every overlay file in order, wrapping around;
  * interleaved mode takes the first page of each overlay file in turn.
  */
-export async function overlayPdfs(
-  files: LocalFile[],
-  opts: { mode: string; position: string },
-  progress: ProgressFn,
-): Promise<OutputFile[]> {
+export async function overlayPdfs(files: LocalFile[], opts: { mode: string; position: string }, progress: ProgressFn): Promise<OutputFile[]> {
   if (files.length < 2 || !files.every(isPdfFile)) fail("Add the base PDF first, then one or more PDFs to lay over it.");
   const [lib, [base, ...overlays]] = await Promise.all([loadPdfLib(), Promise.all(files.map((f) => openEditableDocument(f)))]);
   const sources = await Promise.all(overlays.map((o) => embedAll(base!, o!)));
@@ -429,7 +408,7 @@ export async function overlayPdfs(
     const w = sideways ? item.size.height : item.size.width;
     const h = sideways ? item.size.width : item.size.height;
     const box = { x: crop.x + (crop.width - w) / 2, y: crop.y + (crop.height - h) / 2, width: w, height: h };
-    const relative = ((item.rotation - pageRotation(page)) % 360 + 360) % 360 as 0 | 90 | 180 | 270;
+    const relative = ((((item.rotation - pageRotation(page)) % 360) + 360) % 360) as 0 | 90 | 180 | 270;
     drawUpright(lib, page, item.embedded, relative, box);
     if (opts.position === "background") sendDrawingToBack(lib, page);
   });

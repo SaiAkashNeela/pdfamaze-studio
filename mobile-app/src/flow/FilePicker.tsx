@@ -95,7 +95,13 @@ export function FilePicker({ tool, files, onChange, autoSource }: Props) {
           {tool.multiple ? (
             <View style={{ gap: space.sm }}>
               {sources.map((s) => (
-                <Button key={s} kind="secondary" icon={s === "files" ? Plus : sourceIcon[s]} label={s === "files" && sources.length === 1 ? t("tool.addMore") : pickLabel(s)} onPress={() => void add(s)} />
+                <Button
+                  key={s}
+                  kind="secondary"
+                  icon={s === "files" ? Plus : sourceIcon[s]}
+                  label={s === "files" && sources.length === 1 ? t("tool.addMore") : pickLabel(s)}
+                  onPress={() => void add(s)}
+                />
               ))}
             </View>
           ) : (
@@ -105,7 +111,14 @@ export function FilePicker({ tool, files, onChange, autoSource }: Props) {
       ) : (
         <View style={{ gap: space.md }}>
           {sources.map((s, i) => (
-            <BigPickButton key={s} source={s} label={pickLabel(s)} hint={i === 0 ? tool.acceptLabel : undefined} prominent={i === 0} onPress={() => void add(s)} />
+            <BigPickButton
+              key={s}
+              source={s}
+              label={pickLabel(s)}
+              hint={i === 0 ? tool.acceptLabel : undefined}
+              prominent={i === 0}
+              onPress={() => void add(s)}
+            />
           ))}
         </View>
       )}
@@ -126,7 +139,9 @@ function BigPickButton({ source, label, hint, prominent, onPress }: { source: So
       onPress={onPress}
       style={({ pressed }) => [
         styles.big,
-        prominent ? { minHeight: 108, borderStyle: "dashed", borderColor: colors.accent, backgroundColor: colors.accentSoft } : { borderColor: colors.borderStrong, backgroundColor: colors.card },
+        prominent
+          ? { minHeight: 108, borderStyle: "dashed", borderColor: colors.accent, backgroundColor: colors.accentSoft }
+          : { borderColor: colors.borderStrong, backgroundColor: colors.card },
         pressed && { opacity: 0.8, transform: [{ scale: 0.99 }] },
       ]}
     >
@@ -163,7 +178,11 @@ function FileCard({ file, index, onRemove, onUp, onDown }: { file: LocalFile; in
         disabled={!action}
         onPress={action}
         hitSlop={4}
-        style={({ pressed }) => [styles.iconButton, { borderColor: colors.border, backgroundColor: pressed ? colors.muted : colors.card }, !action && { opacity: 0.3 }]}
+        style={({ pressed }) => [
+          styles.iconButton,
+          { borderColor: colors.border, backgroundColor: pressed ? colors.muted : colors.card },
+          !action && { opacity: 0.3 },
+        ]}
       >
         <I size={22} color={icon === X ? colors.destructive : colors.foreground} strokeWidth={2.2} />
       </Pressable>
@@ -195,10 +214,24 @@ function FileCard({ file, index, onRemove, onUp, onDown }: { file: LocalFile; in
       {onUp || onDown ? (
         <View style={{ flexDirection: "row", gap: space.sm, marginTop: space.md }}>
           <View style={{ flex: 1 }}>
-            <Button kind="secondary" icon={ArrowUp} label={t("tool.up")} accessibilityLabel={t("tool.moveUp", { name: file.name })} onPress={() => onUp?.()} disabled={!onUp} />
+            <Button
+              kind="secondary"
+              icon={ArrowUp}
+              label={t("tool.up")}
+              accessibilityLabel={t("tool.moveUp", { name: file.name })}
+              onPress={() => onUp?.()}
+              disabled={!onUp}
+            />
           </View>
           <View style={{ flex: 1 }}>
-            <Button kind="secondary" icon={ArrowDown} label={t("tool.down")} accessibilityLabel={t("tool.moveDown", { name: file.name })} onPress={() => onDown?.()} disabled={!onDown} />
+            <Button
+              kind="secondary"
+              icon={ArrowDown}
+              label={t("tool.down")}
+              accessibilityLabel={t("tool.moveDown", { name: file.name })}
+              onPress={() => onDown?.()}
+              disabled={!onDown}
+            />
           </View>
         </View>
       ) : null}

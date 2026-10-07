@@ -22,16 +22,11 @@ function requireFile(files: LocalFile[]): LocalFile {
 
 export async function mergePdfs(files: LocalFile[], progress: ProgressFn): Promise<OutputFile[]> {
   if (files.length < 2) fail("Add at least two PDFs to merge.");
-  const [{ PDFDocument }, docs] = await Promise.all([
-    loadPdfLib(),
-    Promise.all(files.map((f) => openEditableDocument(f))),
-  ]);
+  const [{ PDFDocument }, docs] = await Promise.all([loadPdfLib(), Promise.all(files.map((f) => openEditableDocument(f)))]);
 
   progress("Assembling pages", 0.5);
   const out = await PDFDocument.create();
-  const allCopiedPages = await Promise.all(
-    docs.map((doc) => out.copyPages(doc, doc.getPageIndices())),
-  );
+  const allCopiedPages = await Promise.all(docs.map((doc) => out.copyPages(doc, doc.getPageIndices())));
   allCopiedPages.forEach((pages) => pages.forEach((p) => out.addPage(p)));
 
   progress("Writing merged document", 1);
@@ -40,11 +35,7 @@ export async function mergePdfs(files: LocalFile[], progress: ProgressFn): Promi
 
 /* ------------------------------------------------------------------ split */
 
-export async function splitPdf(
-  files: LocalFile[],
-  opts: { mode: string; ranges: string },
-  progress: ProgressFn,
-): Promise<OutputFile[]> {
+export async function splitPdf(files: LocalFile[], opts: { mode: string; ranges: string }, progress: ProgressFn): Promise<OutputFile[]> {
   const file = requireFile(files);
   const [{ PDFDocument }, src] = await Promise.all([loadPdfLib(), openEditableDocument(file)]);
   const count = src.getPageCount();
@@ -78,11 +69,7 @@ export async function splitPdf(
 
 /* ----------------------------------------------------------------- rotate */
 
-export async function rotatePdf(
-  files: LocalFile[],
-  opts: { angle: string; pages: string },
-  progress: ProgressFn,
-): Promise<OutputFile[]> {
+export async function rotatePdf(files: LocalFile[], opts: { angle: string; pages: string }, progress: ProgressFn): Promise<OutputFile[]> {
   const file = requireFile(files);
   const [{ degrees }, doc] = await Promise.all([loadPdfLib(), openEditableDocument(file)]);
   const targets = new Set(parsePageRanges(opts.pages, doc.getPageCount()));
@@ -131,11 +118,7 @@ export async function watermarkPdf(
 
 /* --------------------------------------------------------------- compress */
 
-export async function compressPdf(
-  files: LocalFile[],
-  _opts: Record<string, never>,
-  progress: ProgressFn,
-): Promise<OutputFile[]> {
+export async function compressPdf(files: LocalFile[], _opts: Record<string, never>, progress: ProgressFn): Promise<OutputFile[]> {
   const file = requireFile(files);
   const name = baseName(file.name);
 
@@ -153,15 +136,8 @@ export async function compressPdf(
 
 /* ---------------------------------------------------------- images -> pdf */
 
-export async function imagesToPdf(
-  files: LocalFile[],
-  opts: { fit: string; margin: number },
-  progress: ProgressFn,
-): Promise<OutputFile[]> {
-  const [{ PDFDocument }, fileBuffers] = await Promise.all([
-    loadPdfLib(),
-    Promise.all(files.map(async (file) => ({ file, bytes: await readBytes(file) }))),
-  ]);
+export async function imagesToPdf(files: LocalFile[], opts: { fit: string; margin: number }, progress: ProgressFn): Promise<OutputFile[]> {
+  const [{ PDFDocument }, fileBuffers] = await Promise.all([loadPdfLib(), Promise.all(files.map(async (file) => ({ file, bytes: await readBytes(file) })))]);
 
   const doc = await PDFDocument.create();
   const A4: [number, number] = [595.28, 841.89];
@@ -209,10 +185,7 @@ export async function encryptPdf(
   }
 
   progress("Encrypting PDF with standard password protection", 0.4);
-  const [pdfBytes, { encryptPDF }] = await Promise.all([
-    readBytes(file),
-    import("@pdfsmaller/pdf-encrypt-lite"),
-  ]);
+  const [pdfBytes, { encryptPDF }] = await Promise.all([readBytes(file), import("@pdfsmaller/pdf-encrypt-lite")]);
   const ownerPwd = (opts.ownerPassword || "").trim() || pwd;
 
   try {
@@ -236,10 +209,7 @@ export async function addPageNumbers(
   progress: ProgressFn,
 ): Promise<OutputFile[]> {
   const file = requireFile(files);
-  const [{ PDFDocument, StandardFonts, rgb }, doc] = await Promise.all([
-    loadPdfLib(),
-    openEditableDocument(file),
-  ]);
+  const [{ PDFDocument, StandardFonts, rgb }, doc] = await Promise.all([loadPdfLib(), openEditableDocument(file)]);
   const font = await doc.embedFont(StandardFonts.Helvetica);
   const pages = doc.getPages();
   const total = pages.length;
@@ -251,9 +221,7 @@ export async function addPageNumbers(
     progress(`Numbering page ${index + 1} of ${total}`, (index + 1) / total);
     const { width, height } = page.getSize();
     const currentNum = startNum + index;
-    let label = opts.format
-      .replace("{n}", String(currentNum))
-      .replace("{total}", String(total));
+    let label = opts.format.replace("{n}", String(currentNum)).replace("{total}", String(total));
 
     if (!label) label = `${currentNum}`;
 
@@ -299,4 +267,3 @@ export async function addPageNumbers(
 
   return [{ name: `${baseName(file.name)}-numbered.pdf`, blob: pdfBlob(await doc.save()) }];
 }
-

@@ -70,11 +70,18 @@ export function Result({ results, inputSize, showSavings, onAgain }: Props) {
           ) : (
             <Button large icon={Share2} label={t("result.shareAll")} onPress={() => void shareZip()} />
           )}
-          {android && !many ? <Button kind="secondary" icon={Share2} label={t("result.share")} onPress={() => void guard(() => shareResult(results[0]!))} /> : null}
+          {android && !many ? (
+            <Button kind="secondary" icon={Share2} label={t("result.share")} onPress={() => void guard(() => shareResult(results[0]!))} />
+          ) : null}
         </>
       }
     >
-      <View style={{ alignItems: "center", gap: space.md, marginTop: space.xxl, marginBottom: space.xl }} accessible accessibilityRole="header" accessibilityLiveRegion="polite">
+      <View
+        style={{ alignItems: "center", gap: space.md, marginTop: space.xxl, marginBottom: space.xl }}
+        accessible
+        accessibilityRole="header"
+        accessibilityLiveRegion="polite"
+      >
         <CircleCheck size={64} color={colors.success} strokeWidth={1.8} />
         <Text variant="display" center>
           {t("result.title")}
@@ -97,7 +104,14 @@ export function Result({ results, inputSize, showSavings, onAgain }: Props) {
               </Text>
             </View>
             {many ? (
-              <Button kind="secondary" icon={Share2} label={t("result.share")} accessibilityLabel={`${t("result.share")} ${r.name}`} onPress={() => void guard(() => shareResult(r))} style={{ paddingHorizontal: space.md }} />
+              <Button
+                kind="secondary"
+                icon={Share2}
+                label={t("result.share")}
+                accessibilityLabel={`${t("result.share")} ${r.name}`}
+                onPress={() => void guard(() => shareResult(r))}
+                style={{ paddingHorizontal: space.md }}
+              />
             ) : null}
           </Card>
         ))}

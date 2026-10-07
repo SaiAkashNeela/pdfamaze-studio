@@ -10,7 +10,12 @@ export function Step({ n, title, done, children }: { n: number; title: string; d
   const { colors } = useTheme();
   return (
     <View style={{ gap: space.md + 2, marginTop: space.xl }}>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: space.md }} accessible accessibilityRole="header" accessibilityLabel={`Step ${n}: ${title}`}>
+      <View
+        style={{ flexDirection: "row", alignItems: "center", gap: space.md }}
+        accessible
+        accessibilityRole="header"
+        accessibilityLabel={`Step ${n}: ${title}`}
+      >
         <View
           style={{
             width: 28,

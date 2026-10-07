@@ -4,7 +4,15 @@ import { useTheme } from "@/theme/ThemeProvider";
 import { radius, space } from "@/theme/tokens";
 
 /** White sheet on the paper background, with a quiet border instead of a shadow. */
-export function Card({ children, style, tone = "card" }: { children: ReactNode; style?: StyleProp<ViewStyle>; tone?: "card" | "surface" | "accent" | "danger" | "success" }) {
+export function Card({
+  children,
+  style,
+  tone = "card",
+}: {
+  children: ReactNode;
+  style?: StyleProp<ViewStyle>;
+  tone?: "card" | "surface" | "accent" | "danger" | "success";
+}) {
   const { colors } = useTheme();
   const bg = { card: colors.card, surface: colors.surface, accent: colors.accentSoft, danger: colors.destructiveSoft, success: colors.successSoft }[tone];
   const border = tone === "card" ? colors.border : tone === "surface" ? colors.border : "transparent";

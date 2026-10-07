@@ -1,11 +1,7 @@
 import { useEffect, useState } from "react";
 import type { LocalFile } from "@/engine/core";
 
-export type FileData<T> =
-  | { status: "idle" }
-  | { status: "loading" }
-  | { status: "ready"; value: T }
-  | { status: "error"; error: unknown };
+export type FileData<T> = { status: "idle" } | { status: "loading" } | { status: "ready"; value: T } | { status: "error"; error: unknown };
 
 /**
  * Loads something about a picked file (page count, form fields…). "Loading" is derived from

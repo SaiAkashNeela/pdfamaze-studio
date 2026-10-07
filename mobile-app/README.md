@@ -23,7 +23,7 @@ Every dependency is bundled in Expo Go, so no native build is needed during deve
 
 | Path | What it is |
 |---|---|
-| `src/app/` | Screens (Expo Router): home, `tool/[slug]`, `about` |
+| `src/app/` | Screens (Expo Router): tabs (Tools, Scan, Stats, Help), `tool/[slug]`, `job/[id]`, `onboarding` |
 | `src/engine/` | PDF operations, copied from the web app's `src/lib/pdf/`. `core.ts` swaps the browser's `File`/`Blob` for `LocalFile`/`OutBlob`, so the operation code stays identical to the web. |
 | `src/tools/registry.ts` | The 33 tools, ported from the web registry with phone-friendly wording |
 | `src/flow/` | The tool screens: generic flow, Sign, Fill Form, progress, result |
@@ -31,6 +31,8 @@ Every dependency is bundled in Expo Go, so no native build is needed during deve
 | `src/theme/` | Colour tokens (converted from the web's OKLCH values), type scale, light/dark |
 | `src/i18n/` | Strings. Add a language by copying `en.ts` and registering it in `index.ts` |
 | `src/files/` | Picking files/photos/camera, and saving/sharing results |
+| `src/jobs/` | Background jobs: conversions keep running while you use the rest of the app |
+| `src/stats/` | Personal usage stats in a local SQLite file (counts only, never file names or contents) |
 
 ## Design principles
 
@@ -43,6 +45,14 @@ The app is meant to be usable by anyone, from a grandparent to a child.
 - **Only the essentials first.** Rarely used options sit behind "More options".
 - **Plain language.** "Lock with Password", not "Encrypt". "Delete Pages", not "Remove Pages".
 - **Calm errors.** Errors say what happened and what to do, and confirm nothing was changed.
+
+## Background work
+
+Conversions run as jobs owned by the app, not by the screen. Start one, tap "Do something else
+meanwhile", and it keeps going; the Tools tab shows progress and a badge, then "Ready" when done.
+The PDF engine runs on the JavaScript thread, so if you switch to another app the phone pauses it
+after a few seconds and it resumes when you come back. True OS-level background processing would
+need a native module (not available in Expo Go).
 
 ## Not yet on mobile
 

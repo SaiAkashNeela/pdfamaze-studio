@@ -16,12 +16,10 @@ import { Notice } from "@/ui/Notice";
 import { Screen } from "@/ui/Screen";
 import { Text } from "@/ui/Text";
 import { FilePicker } from "./FilePicker";
-import { Result } from "./Result";
 import { Step } from "./Step";
 import { ToolHeader } from "./ToolHeader";
 import { useFileData, type FileData } from "./useFileData";
-import { useJob } from "./useJob";
-import { Working } from "./Working";
+import { useStartJob } from "./useStartJob";
 
 type Value = string | boolean | string[];
 
@@ -58,16 +56,40 @@ function FormField({ field, value, onChange }: { field: FormFieldInfo; value: Va
   };
   switch (field.kind) {
     case "text":
-      return <TextField label={label} hint={hint} value={String(value ?? "")} onChange={(v) => set(field.maxLength ? v.slice(0, field.maxLength) : v)} multiline={field.multiline} />;
+      return (
+        <TextField
+          label={label}
+          hint={hint}
+          value={String(value ?? "")}
+          onChange={(v) => set(field.maxLength ? v.slice(0, field.maxLength) : v)}
+          multiline={field.multiline}
+        />
+      );
     case "checkbox":
       return <ToggleRow label={label} hint={hint} value={Boolean(value)} onChange={set} />;
     case "radio":
-      return <OptionList label={label} hint={hint ?? t("form.choose")} options={field.options.map((o) => ({ value: o, label: o }))} value={String(value ?? "")} onChange={set} />;
+      return (
+        <OptionList
+          label={label}
+          hint={hint ?? t("form.choose")}
+          options={field.options.map((o) => ({ value: o, label: o }))}
+          value={String(value ?? "")}
+          onChange={set}
+        />
+      );
     case "dropdown":
     case "list": {
       const current = (value as string[] | undefined) ?? [];
       if (field.multi) return <MultiChoice label={label} options={field.options} value={current} onChange={set} />;
-      return <OptionList label={label} hint={hint ?? t("form.choose")} options={field.options.map((o) => ({ value: o, label: o }))} value={current[0] ?? ""} onChange={(v) => set([v])} />;
+      return (
+        <OptionList
+          label={label}
+          hint={hint ?? t("form.choose")}
+          options={field.options.map((o) => ({ value: o, label: o }))}
+          value={current[0] ?? ""}
+          onChange={(v) => set([v])}
+        />
+      );
     }
     case "signature":
       return <Notice kind="info" title={label} body={t("form.signatureField")} />;
@@ -125,7 +147,7 @@ export function FormFlow({ tool }: { tool: Tool }) {
   const [files, setFiles] = useState<LocalFile[]>([]);
   const [edits, setEdits] = useState<{ fileId: string; values: FormValues } | null>(null);
   const [flatten, setFlatten] = useState(false);
-  const job = useJob();
+  const startJob = useStartJob(tool);
   const file = files[0];
   const data = useFileData(file, readFormFields);
 
@@ -137,49 +159,32 @@ export function FormFlow({ tool }: { tool: Tool }) {
     if (file) setEdits({ fileId: file.id, values: { ...myEdits, [name]: v } });
   };
   const start = () => {
-    if (file) void job.run(file.size, (progress) => fillForm(file, values, { flatten }, progress));
+    if (file) startJob([file], (progress) => fillForm(file, values, { flatten }, progress));
   };
 
-  if (job.state.phase === "done") {
-    return (
-      <Result
-        results={job.state.results}
-        inputSize={job.state.inputSize}
-        onAgain={() => {
-          setFiles([]);
-          job.reset();
-        }}
-      />
-    );
-  }
-
   return (
-    <>
-      <Screen
-        back
-        footer={
-          <>
-            {job.state.phase === "error" ? <Notice kind="error" title={t("error.title")} body={job.state.message} /> : null}
-            {file ? null : (
-              <Text variant="small" tone="muted" center>
-                {t("tool.needFile")}
-              </Text>
-            )}
-            <Button large label={t("form.action")} onPress={start} disabled={!ready} />
-          </>
-        }
-      >
-        <ToolHeader tool={tool} />
-        <Step n={1} title={t("tool.stepFiles")} done={!!file}>
-          <FilePicker tool={tool} files={files} onChange={setFiles} />
+    <Screen
+      back
+      footer={
+        <>
+          {file ? null : (
+            <Text variant="small" tone="muted" center>
+              {t("tool.needFile")}
+            </Text>
+          )}
+          <Button large label={t("form.action")} onPress={start} disabled={!ready} />
+        </>
+      }
+    >
+      <ToolHeader tool={tool} />
+      <Step n={1} title={t("tool.stepFiles")} done={!!file}>
+        <FilePicker tool={tool} files={files} onChange={setFiles} />
+      </Step>
+      {file ? (
+        <Step n={2} title={t("form.fieldsTitle")}>
+          <FieldsSection data={data} values={values} onChange={change} flatten={flatten} onFlatten={setFlatten} />
         </Step>
-        {file ? (
-          <Step n={2} title={t("form.fieldsTitle")}>
-            <FieldsSection data={data} values={values} onChange={change} flatten={flatten} onFlatten={setFlatten} />
-          </Step>
-        ) : null}
-      </Screen>
-      {job.state.phase === "running" ? <Working status={job.state.status} ratio={job.state.ratio} /> : null}
-    </>
+      ) : null}
+    </Screen>
   );
 }

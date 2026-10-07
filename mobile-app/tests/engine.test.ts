@@ -40,7 +40,10 @@ function save(name: string, bytes: Uint8Array, type: string) {
 const PNG = Uint8Array.from(atob("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg=="), (c) => c.charCodeAt(0));
 
 beforeAll(async () => {
-  for (const [name, pages] of [["a.pdf", 6], ["b.pdf", 3]] as const) {
+  for (const [name, pages] of [
+    ["a.pdf", 6],
+    ["b.pdf", 3],
+  ] as const) {
     const doc = await PDFDocument.create();
     const font = await doc.embedFont(StandardFonts.Helvetica);
     for (let i = 0; i < pages; i++) doc.addPage([595, 842]).drawText(`${name} page ${i + 1}`, { x: 50, y: 780, size: 24, font });
@@ -126,7 +129,9 @@ test("sign places vector signature on the last page", async () => {
 
 test("sign rejects a page that doesn't exist", async () => {
   const ink = { paths: ["M 0 0 L 10 10"], box: { x: 0, y: 0, width: 10, height: 10 }, strokeWidth: 3 };
-  await expect(signPdf(files["a.pdf"]!, ink, { pages: "99", position: 5, width: 0.3, color: "#000000" }, () => undefined)).rejects.toThrow(/isn't in this document/);
+  await expect(signPdf(files["a.pdf"]!, ink, { pages: "99", position: 5, width: 0.3, color: "#000000" }, () => undefined)).rejects.toThrow(
+    /isn't in this document/,
+  );
 });
 
 test("fill form reads and writes fields", async () => {

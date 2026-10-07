@@ -8,9 +8,11 @@ export type ThemeChoice = "system" | "light" | "dark";
 
 export type Prefs = {
   theme: ThemeChoice;
+  /** Has seen the first-run welcome screens. */
+  onboarded: boolean;
 };
 
-const DEFAULTS: Prefs = { theme: "system" };
+const DEFAULTS: Prefs = { theme: "system", onboarded: false };
 
 function prefsFile() {
   return new File(Paths.document, "prefs.json");

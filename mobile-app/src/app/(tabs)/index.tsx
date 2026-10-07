@@ -2,16 +2,19 @@
  * Home: one question ("What would you like to do?"), the eight most common jobs as big tiles,
  * then every tool in plain-language groups. Search is right there for anyone who knows the word.
  */
+import { router } from "expo-router";
 import { Search, X } from "lucide-react-native";
 import { useState } from "react";
 import { Pressable, StyleSheet, TextInput, View } from "react-native";
 import { t } from "@/i18n";
+import { JobsBanner } from "@/jobs/JobsBanner";
 import { CATEGORIES, FAVOURITES, getTool, searchTools, toolsIn } from "@/tools/registry";
 import type { Tool } from "@/tools/types";
 import { useTheme } from "@/theme/ThemeProvider";
 import { fonts, MAX_FONT_SCALE, radius, space, TAP } from "@/theme/tokens";
 import { Wordmark } from "@/ui/Logo";
 import { Notice } from "@/ui/Notice";
+import { PrivacyBadge } from "@/ui/PrivacyBadge";
 import { Screen } from "@/ui/Screen";
 import { Text } from "@/ui/Text";
 import { ToolRow, ToolTile } from "@/ui/ToolCards";
@@ -31,10 +34,7 @@ export default function Home() {
   const searching = query.trim().length > 0;
 
   return (
-    <Screen
-      inTab
-      headerLeft={<Wordmark />}
-    >
+    <Screen inTab headerLeft={<Wordmark />} headerRight={<PrivacyBadge onPress={() => router.navigate("/help")} />}>
       <View style={{ gap: space.xs + 2, marginTop: space.md }}>
         <Text variant="label" tone="accent">
           {t("home.eyebrow")}
@@ -60,12 +60,16 @@ export default function Home() {
           maxFontSizeMultiplier={MAX_FONT_SCALE}
           style={[styles.searchInput, { color: colors.foreground }]}
         />
+        {searching ? null : <JobsBanner />}
+
         {searching ? (
           <Pressable accessibilityRole="button" accessibilityLabel={t("common.close")} onPress={() => setQuery("")} hitSlop={10} style={styles.clear}>
             <X size={22} color={colors.foreground} />
           </Pressable>
         ) : null}
       </View>
+
+      {searching ? null : <JobsBanner />}
 
       {searching ? (
         <View style={{ gap: space.md, marginTop: space.lg }}>

@@ -4,16 +4,7 @@
  * low-level object model instead of PDFBox.
  */
 import type { PDFDict, PDFDocument, PDFField, PDFForm, PDFPage, PDFRef } from "pdf-lib";
-import {
-  baseName,
-  fail,
-  loadPdfLib,
-  openEditableDocument,
-  saveClean,
-  type LocalFile,
-  type OutputFile,
-  type ProgressFn,
-} from "../core";
+import { baseName, fail, loadPdfLib, openEditableDocument, saveClean, type LocalFile, type OutputFile, type ProgressFn } from "../core";
 import { isolatePageContent } from "../layout";
 
 type PdfLib = Awaited<ReturnType<typeof loadPdfLib>>;
@@ -65,12 +56,7 @@ function flattenFields(lib: PdfLib, doc: PDFDocument, form: PDFForm, fields: PDF
       }
       const rect = widget.getRectangle();
       const name = page.node.newXObject("FlatWidget", appearance);
-      page.pushOperators(
-        lib.pushGraphicsState(),
-        lib.translate(rect.x, rect.y),
-        lib.drawObject(name),
-        lib.popGraphicsState(),
-      );
+      page.pushOperators(lib.pushGraphicsState(), lib.translate(rect.x, rect.y), lib.drawObject(name), lib.popGraphicsState());
     }
     removeFieldSafely(lib, doc, form, field);
     flattened++;
@@ -114,11 +100,7 @@ function removeFieldSafely(lib: PdfLib, doc: PDFDocument, form: PDFForm, field: 
 
 /* ---------------------------------------------------------------- flatten */
 
-export async function flattenPdf(
-  files: LocalFile[],
-  opts: { mode: string },
-  progress: ProgressFn,
-): Promise<OutputFile[]> {
+export async function flattenPdf(files: LocalFile[], opts: { mode: string }, progress: ProgressFn): Promise<OutputFile[]> {
   const file = requireFile(files);
   const name = `${baseName(file.name)}-flattened.pdf`;
   // Full (image) flattening needs a native page renderer; mobile flattens form fields only.
@@ -200,11 +182,7 @@ export async function removeDigitalSignatures(files: LocalFile[], progress: Prog
 
 /* ------------------------------------------------------ remove annotations */
 
-export async function removeAnnotations(
-  files: LocalFile[],
-  opts: { keepLinks: boolean; keepForms: boolean },
-  progress: ProgressFn,
-): Promise<OutputFile[]> {
+export async function removeAnnotations(files: LocalFile[], opts: { keepLinks: boolean; keepForms: boolean }, progress: ProgressFn): Promise<OutputFile[]> {
   const file = requireFile(files);
   const [lib, doc] = await Promise.all([loadPdfLib(), openEditableDocument(file)]);
   let removed = 0;
@@ -256,8 +234,8 @@ export async function readFormFields(file: LocalFile): Promise<FormFieldInfo[]> 
 
 function applyValue(lib: PdfLib, field: PDFField, value: string | boolean | string[]) {
   if (field instanceof lib.PDFTextField) field.setText(String(value) || undefined);
-  else if (field instanceof lib.PDFCheckBox) (value ? field.check() : field.uncheck());
-  else if (field instanceof lib.PDFRadioGroup) (value ? field.select(String(value)) : field.clear());
+  else if (field instanceof lib.PDFCheckBox) value ? field.check() : field.uncheck();
+  else if (field instanceof lib.PDFRadioGroup) value ? field.select(String(value)) : field.clear();
   else if (field instanceof lib.PDFDropdown || field instanceof lib.PDFOptionList) {
     const list = (Array.isArray(value) ? value : [String(value)]).filter(Boolean);
     if (list.length) field.select(list);
@@ -266,12 +244,7 @@ function applyValue(lib: PdfLib, field: PDFField, value: string | boolean | stri
 }
 
 /** Writes values into the form (Stirling's Form Fill), optionally flattening it afterwards. */
-export async function fillForm(
-  file: LocalFile,
-  values: FormValues,
-  opts: { flatten: boolean },
-  progress: ProgressFn,
-): Promise<OutputFile[]> {
+export async function fillForm(file: LocalFile, values: FormValues, opts: { flatten: boolean }, progress: ProgressFn): Promise<OutputFile[]> {
   const [lib, doc] = await Promise.all([loadPdfLib(), openEditableDocument(file)]);
   const form = safeForm(doc);
   if (!form) fail("This PDF has no fillable form fields.");
@@ -294,7 +267,8 @@ export async function fillForm(
     form.acroForm.dict.set(lib.PDFName.of("NeedAppearances"), lib.PDFBool.True);
   }
   if (opts.flatten) {
-    if (!appearancesOk) fail("Some values use characters the standard PDF font can't draw, so the form can't be flattened. Untick flattening to keep it fillable.");
+    if (!appearancesOk)
+      fail("Some values use characters the standard PDF font can't draw, so the form can't be flattened. Untick flattening to keep it fillable.");
     flattenFields(lib, doc, form, form.getFields());
   }
   progress("Writing document", 1);

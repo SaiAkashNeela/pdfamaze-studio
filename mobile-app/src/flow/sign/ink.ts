@@ -25,7 +25,10 @@ export function inkFromStrokes(strokes: Point[][]): SignatureInk | null {
   if (!all.length) return null;
   const xs = all.map((p) => p.x);
   const ys = all.map((p) => p.y);
-  const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
+  const minX = Math.min(...xs),
+    maxX = Math.max(...xs),
+    minY = Math.min(...ys),
+    maxY = Math.max(...ys);
   return {
     paths: strokes.map(strokeToPath).filter(Boolean),
     box: { x: minX, y: minY, width: Math.max(1, maxX - minX), height: Math.max(1, maxY - minY) },

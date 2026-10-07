@@ -173,7 +173,9 @@ export async function addImage(
   if (!pdf || !img) fail("Add one PDF and one PNG or JPEG image.");
   const [lib, doc, imgBytes] = await Promise.all([loadPdfLib(), openEditableDocument(pdf), readBytes(img)]);
   const png = /png$/i.test(img.type) || /\.png$/i.test(img.name);
-  const image = await (png ? doc.embedPng(imgBytes) : doc.embedJpg(imgBytes)).catch(() => fail("That image couldn't be read. Try re-saving it as PNG or JPEG."));
+  const image = await (png ? doc.embedPng(imgBytes) : doc.embedJpg(imgBytes)).catch(() =>
+    fail("That image couldn't be read. Try re-saving it as PNG or JPEG."),
+  );
   const pages = doc.getPages();
   const targets = parsePageRanges(opts.pages, pages.length);
   for (const [n, index] of targets.entries()) {
@@ -253,7 +255,13 @@ export async function changeMetadata(
   if (opts.title.trim()) doc.setTitle(opts.title.trim());
   if (opts.author.trim()) doc.setAuthor(opts.author.trim());
   if (opts.subject.trim()) doc.setSubject(opts.subject.trim());
-  if (opts.keywords.trim()) doc.setKeywords(opts.keywords.split(",").map((k) => k.trim()).filter(Boolean));
+  if (opts.keywords.trim())
+    doc.setKeywords(
+      opts.keywords
+        .split(",")
+        .map((k) => k.trim())
+        .filter(Boolean),
+    );
   if (opts.creator.trim()) doc.setCreator(opts.creator.trim());
   if (opts.producer.trim()) doc.setProducer(opts.producer.trim());
   doc.setModificationDate(new Date());
@@ -284,7 +292,6 @@ export function parseBookmarkText(text: string, pageCount: number): Bookmark[] {
   return root;
 }
 
-
 function countAll(items: Bookmark[]): number {
   return items.reduce((n, b) => n + 1 + countAll(b.children), 0);
 }
@@ -314,19 +321,12 @@ function writeOutline(lib: PdfLib, doc: PDFDocument, items: Bookmark[]) {
   };
   const rootRef = doc.context.nextRef();
   const top = build(items, rootRef);
-  doc.context.assign(
-    rootRef,
-    doc.context.obj({ Type: "Outlines", First: top[0]!, Last: top[top.length - 1]!, Count: lib.PDFNumber.of(countAll(items)) }),
-  );
+  doc.context.assign(rootRef, doc.context.obj({ Type: "Outlines", First: top[0]!, Last: top[top.length - 1]!, Count: lib.PDFNumber.of(countAll(items)) }));
   doc.catalog.set(lib.PDFName.of("Outlines"), rootRef);
   doc.catalog.set(lib.PDFName.of("PageMode"), lib.PDFName.of("UseOutlines"));
 }
 
-export async function editBookmarks(
-  files: LocalFile[],
-  opts: { mode: string; bookmarks: string },
-  progress: ProgressFn,
-): Promise<OutputFile[]> {
+export async function editBookmarks(files: LocalFile[], opts: { mode: string; bookmarks: string }, progress: ProgressFn): Promise<OutputFile[]> {
   const file = requireFile(files);
   const name = baseName(file.name);
   const [lib, doc] = await Promise.all([loadPdfLib(), openEditableDocument(file)]);
@@ -339,4 +339,3 @@ export async function editBookmarks(
   }
   return [{ name: `${name}-bookmarks.pdf`, blob: await saveClean(doc) }];
 }
-

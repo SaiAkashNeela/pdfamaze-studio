@@ -214,9 +214,7 @@ export async function showJavaScript(files: LocalFile[], progress: ProgressFn): 
       describe(a, `Page ${i + 1}, ${label}`);
     }
   });
-  const body = found.length
-    ? `// JavaScript found in ${file.name}\n\n${found.join("\n")}`
-    : `// "${file.name}" does not contain JavaScript.\n`;
+  const body = found.length ? `// JavaScript found in ${file.name}\n\n${found.join("\n")}` : `// "${file.name}" does not contain JavaScript.\n`;
   return [{ name: `${baseName(file.name)}-javascript.txt`, blob: textBlob(body) }];
 }
 

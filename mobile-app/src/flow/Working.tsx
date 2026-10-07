@@ -4,10 +4,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { t } from "@/i18n";
 import { useTheme } from "@/theme/ThemeProvider";
 import { radius, space } from "@/theme/tokens";
+import { Button } from "@/ui/Button";
 import { Text } from "@/ui/Text";
 
 /** Full-screen "working" state with a big progress bar and plain status words. */
-export function Working({ status, ratio }: { status: string; ratio?: number }) {
+export function Working({ status, ratio, onLeave }: { status: string; ratio?: number; onLeave?: () => void }) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const [width] = useState(() => new Animated.Value(0));
@@ -38,6 +39,7 @@ export function Working({ status, ratio }: { status: string; ratio?: number }) {
       <Text variant="small" tone="muted" center style={{ marginTop: space.lg, maxWidth: 320 }}>
         {t("tool.workingHint")}
       </Text>
+      {onLeave ? <Button kind="secondary" label={t("tool.leave")} onPress={onLeave} style={{ alignSelf: "stretch", marginTop: space.md }} /> : null}
     </View>
   );
 }

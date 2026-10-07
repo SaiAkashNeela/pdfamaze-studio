@@ -60,7 +60,9 @@ export function SignaturePad({ color, strokes, onChange, onDrawing }: Props) {
           {paths.map((d) => (
             <Path key={d} d={d} stroke={color} strokeWidth={PAD_STROKE} strokeLinecap="round" strokeLinejoin="round" fill="none" />
           ))}
-          {live.length ? <Path d={strokeToPath(live)} stroke={color} strokeWidth={PAD_STROKE} strokeLinecap="round" strokeLinejoin="round" fill="none" /> : null}
+          {live.length ? (
+            <Path d={strokeToPath(live)} stroke={color} strokeWidth={PAD_STROKE} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+          ) : null}
         </Svg>
         {empty ? (
           <View pointerEvents="none" style={styles.placeholder}>

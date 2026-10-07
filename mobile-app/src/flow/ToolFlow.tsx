@@ -17,11 +17,9 @@ import { Notice } from "@/ui/Notice";
 import { Screen } from "@/ui/Screen";
 import { Text } from "@/ui/Text";
 import { FilePicker } from "./FilePicker";
-import { Result } from "./Result";
 import { Step } from "./Step";
 import { ToolHeader } from "./ToolHeader";
-import { useJob, type JobState } from "./useJob";
-import { Working } from "./Working";
+import { useStartJob } from "./useStartJob";
 
 /** Splits the currently visible fields into the essentials and the "More options" extras. */
 function groupFields(tool: Tool, values: FieldValues) {
@@ -61,13 +59,12 @@ function Options({ tool, values, onChange }: { tool: Tool; values: FieldValues; 
   );
 }
 
-function Footer({ tool, files, job, onStart }: { tool: Tool; files: LocalFile[]; job: JobState; onStart: () => void }) {
+function Footer({ tool, files, onStart }: { tool: Tool; files: LocalFile[]; onStart: () => void }) {
   const minFiles = Math.max(1, tool.minFiles);
   const ready = files.length >= minFiles;
   const waitingFor = files.length === 0 && minFiles === 1 ? t("tool.needFile") : t("tool.needFiles", { count: minFiles });
   return (
     <>
-      {job.phase === "error" ? <Notice kind="error" title={t("error.title")} body={job.message} /> : null}
       {ready ? null : (
         <Text variant="small" tone="muted" center>
           {waitingFor}
@@ -81,40 +78,19 @@ function Footer({ tool, files, job, onStart }: { tool: Tool; files: LocalFile[];
 export function ToolFlow({ tool, inTab, autoSource }: { tool: Tool; inTab?: boolean; autoSource?: Source }) {
   const [files, setFiles] = useState<LocalFile[]>([]);
   const [values, setValues] = useState<FieldValues>(() => defaultValues(tool));
-  const job = useJob();
-
-  const start = () => {
-    const inputSize = files.reduce((sum, f) => sum + f.size, 0);
-    void job.run(inputSize, (progress) => tool.run(files, values, progress));
-  };
-
-  if (job.state.phase === "done") {
-    return (
-      <Result
-        results={job.state.results}
-        inputSize={job.state.inputSize}
-        showSavings={tool.slug === "compress"}
-        onAgain={() => {
-          setFiles([]);
-          job.reset();
-        }}
-      />
-    );
-  }
+  const startJob = useStartJob(tool);
+  const start = () => startJob(files, (progress) => tool.run(files, values, progress));
 
   return (
-    <>
-      <Screen back={!inTab} inTab={inTab} footer={<Footer tool={tool} files={files} job={job.state} onStart={start} />}>
-        <ToolHeader tool={tool} />
-        <Step n={1} title={tool.multiple ? t("tool.stepFilesMany") : t("tool.stepFiles")} done={files.length >= Math.max(1, tool.minFiles)}>
-          <FilePicker tool={tool} files={files} onChange={setFiles} autoSource={autoSource} />
-        </Step>
-        <Step n={2} title={t("tool.stepOptions")}>
-          <Options tool={tool} values={values} onChange={(name, v) => setValues((old) => ({ ...old, [name]: v }))} />
-          {tool.caveat ? <Notice kind="info" body={tool.caveat} /> : null}
-        </Step>
-      </Screen>
-      {job.state.phase === "running" ? <Working status={job.state.status} ratio={job.state.ratio} /> : null}
-    </>
+    <Screen back={!inTab} inTab={inTab} footer={<Footer tool={tool} files={files} onStart={start} />}>
+      <ToolHeader tool={tool} />
+      <Step n={1} title={tool.multiple ? t("tool.stepFilesMany") : t("tool.stepFiles")} done={files.length >= Math.max(1, tool.minFiles)}>
+        <FilePicker tool={tool} files={files} onChange={setFiles} autoSource={autoSource} />
+      </Step>
+      <Step n={2} title={t("tool.stepOptions")}>
+        <Options tool={tool} values={values} onChange={(name, v) => setValues((old) => ({ ...old, [name]: v }))} />
+        {tool.caveat ? <Notice kind="info" body={tool.caveat} /> : null}
+      </Step>
+    </Screen>
   );
 }

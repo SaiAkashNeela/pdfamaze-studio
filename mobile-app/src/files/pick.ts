@@ -14,16 +14,17 @@ const MAX_PHOTO_SIDE = 2400;
 
 function mimeTypes(accept: string): string | string[] {
   if (accept === "*") return "*/*";
-  const list = accept.split(",").map((s) => s.trim()).filter((s) => s.includes("/"));
+  const list = accept
+    .split(",")
+    .map((s) => s.trim())
+    .filter((s) => s.includes("/"));
   return list.length ? list : "*/*";
 }
 
 export async function pickDocuments(accept: string, multiple: boolean): Promise<LocalFile[]> {
   const result = await DocumentPicker.getDocumentAsync({ type: mimeTypes(accept), multiple, copyToCacheDirectory: true });
   if (result.canceled) return [];
-  return result.assets.map(
-    (a) => new LocalFile(a.uri, a.name, a.mimeType ?? guessType(a.name), a.size ?? safeSize(a.uri), a.lastModified ?? Date.now()),
-  );
+  return result.assets.map((a) => new LocalFile(a.uri, a.name, a.mimeType ?? guessType(a.name), a.size ?? safeSize(a.uri), a.lastModified ?? Date.now()));
 }
 
 export async function pickPhotos(multiple: boolean): Promise<LocalFile[]> {

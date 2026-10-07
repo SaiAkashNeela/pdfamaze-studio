@@ -9,18 +9,25 @@ import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { clearResults } from "@/files/output";
+import { JobsProvider } from "@/jobs/JobsProvider";
+import { recordAppOpen } from "@/stats/db";
 import { ThemeProvider, useTheme } from "@/theme/ThemeProvider";
 
 void SplashScreen.preventAutoHideAsync();
 // Results from earlier visits are temporary; nothing should linger on the phone.
 clearResults();
+recordAppOpen();
 
 function AppStack() {
   const { colors, scheme } = useTheme();
   return (
     <>
       <StatusBar style={scheme === "dark" ? "light" : "dark"} />
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background }, animation: "slide_from_right" }} />
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background }, animation: "slide_from_right" }}>
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="onboarding" options={{ animation: "fade", gestureEnabled: false }} />
+        <Stack.Screen name="job/[id]" options={{ gestureEnabled: false }} />
+      </Stack>
     </>
   );
 }
@@ -46,7 +53,9 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <ThemeProvider>
-          <AppStack />
+          <JobsProvider>
+            <AppStack />
+          </JobsProvider>
         </ThemeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

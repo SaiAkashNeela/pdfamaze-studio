@@ -173,11 +173,28 @@ const editTools: Tool[] = [
     tag: "EDIT",
     keywords: "approved paid received date",
     fields: [
-      { name: "text", label: "Stamp words", type: "textarea", rows: 2, default: "APPROVED @date", hint: "@date adds today's date. @page_number adds the page number." },
+      {
+        name: "text",
+        label: "Stamp words",
+        type: "textarea",
+        rows: 2,
+        default: "APPROVED @date",
+        hint: "@date adds today's date. @page_number adds the page number.",
+      },
       { name: "position", label: "Where", type: "select", default: "5", options: GRID_POSITIONS },
       { name: "color", label: "Colour", type: "color", default: "#c84a27" },
       { name: "size", label: "Text size", type: "range", min: 8, max: 120, step: 2, default: 40, unit: "pt" },
-      { name: "font", label: "Letter style", type: "select", default: "helvetica", options: [{ value: "helvetica", label: "Plain (Helvetica)" }, { value: "times", label: "Classic (Times)" }, { value: "courier", label: "Typewriter (Courier)" }] },
+      {
+        name: "font",
+        label: "Letter style",
+        type: "select",
+        default: "helvetica",
+        options: [
+          { value: "helvetica", label: "Plain (Helvetica)" },
+          { value: "times", label: "Classic (Times)" },
+          { value: "courier", label: "Typewriter (Courier)" },
+        ],
+      },
       { name: "margin", label: "Distance from edge", type: "select", default: "medium", options: MARGIN_OPTIONS },
       { name: "rotation", label: "Tilt", type: "range", min: -180, max: 180, step: 5, default: 0, unit: "°" },
       { name: "opacity", label: "How strong", type: "range", min: 5, max: 100, step: 5, default: 70, unit: "%" },
@@ -187,7 +204,17 @@ const editTools: Tool[] = [
     run: async (files, v, p) =>
       content.addStamp(
         files,
-        { text: str(v["text"]), font: str(v["font"]), size: num(v["size"]), position: str(v["position"]), margin: str(v["margin"]), rotation: num(v["rotation"]), opacity: num(v["opacity"]), color: str(v["color"]), pages: str(v["pages"]) },
+        {
+          text: str(v["text"]),
+          font: str(v["font"]),
+          size: num(v["size"]),
+          position: str(v["position"]),
+          margin: str(v["margin"]),
+          rotation: num(v["rotation"]),
+          opacity: num(v["opacity"]),
+          color: str(v["color"]),
+          pages: str(v["pages"]),
+        },
         p,
       ),
   },
@@ -213,7 +240,11 @@ const editTools: Tool[] = [
     ],
     basic: ["position", "width"],
     run: async (files, v, p) =>
-      content.addImage(files, { position: str(v["position"]), width: num(v["width"]), margin: str(v["margin"]), opacity: num(v["opacity"]), pages: str(v["pages"]) }, p),
+      content.addImage(
+        files,
+        { position: str(v["position"]), width: num(v["width"]), margin: str(v["margin"]), opacity: num(v["opacity"]), pages: str(v["pages"]) },
+        p,
+      ),
   },
   {
     slug: "crop",
@@ -296,15 +327,44 @@ const editTools: Tool[] = [
       { name: "keywords", label: "Keywords", type: "text", default: "", placeholder: "comma, separated" },
       { name: "creator", label: "Made with (app)", type: "text", default: "" },
       { name: "producer", label: "Producer", type: "text", default: "" },
-      { name: "trapped", label: "Trapped", type: "select", default: "unchanged", options: [{ value: "unchanged", label: "Leave as is" }, { value: "True", label: "True" }, { value: "False", label: "False" }, { value: "Unknown", label: "Unknown" }] },
-      { name: "custom", label: "Custom details", type: "textarea", rows: 3, default: "", placeholder: "Department: Finance", hint: "One “Name: Value” per line." },
+      {
+        name: "trapped",
+        label: "Trapped",
+        type: "select",
+        default: "unchanged",
+        options: [
+          { value: "unchanged", label: "Leave as is" },
+          { value: "True", label: "True" },
+          { value: "False", label: "False" },
+          { value: "Unknown", label: "Unknown" },
+        ],
+      },
+      {
+        name: "custom",
+        label: "Custom details",
+        type: "textarea",
+        rows: 3,
+        default: "",
+        placeholder: "Department: Finance",
+        hint: "One “Name: Value” per line.",
+      },
     ],
     fieldsFor: (v) => (v["deleteAll"] ? ["deleteAll"] : ["deleteAll", "title", "author", "subject", "keywords", "creator", "producer", "trapped", "custom"]),
     basic: ["deleteAll", "title", "author"],
     run: async (files, v, p) =>
       content.changeMetadata(
         files,
-        { deleteAll: bool(v["deleteAll"]), title: str(v["title"]), author: str(v["author"]), subject: str(v["subject"]), keywords: str(v["keywords"]), creator: str(v["creator"]), producer: str(v["producer"]), trapped: str(v["trapped"]), custom: str(v["custom"]) },
+        {
+          deleteAll: bool(v["deleteAll"]),
+          title: str(v["title"]),
+          author: str(v["author"]),
+          subject: str(v["subject"]),
+          keywords: str(v["keywords"]),
+          creator: str(v["creator"]),
+          producer: str(v["producer"]),
+          trapped: str(v["trapped"]),
+          custom: str(v["custom"]),
+        },
         p,
       ),
   },
@@ -317,8 +377,24 @@ const editTools: Tool[] = [
     tag: "EDIT",
     keywords: "table of contents chapters outline",
     fields: [
-      { name: "mode", label: "What to do", type: "select", default: "replace", options: [{ value: "replace", label: "Write new bookmarks" }, { value: "remove", label: "Remove all bookmarks" }] },
-      { name: "bookmarks", label: "Bookmarks", type: "textarea", rows: 6, default: "Introduction | 1\nChapter 1 | 2\n- Section 1.1 | 3", hint: "One per line: “Title | page”. Start a line with “-” to put it under the one above." },
+      {
+        name: "mode",
+        label: "What to do",
+        type: "select",
+        default: "replace",
+        options: [
+          { value: "replace", label: "Write new bookmarks" },
+          { value: "remove", label: "Remove all bookmarks" },
+        ],
+      },
+      {
+        name: "bookmarks",
+        label: "Bookmarks",
+        type: "textarea",
+        rows: 6,
+        default: "Introduction | 1\nChapter 1 | 2\n- Section 1.1 | 3",
+        hint: "One per line: “Title | page”. Start a line with “-” to put it under the one above.",
+      },
     ],
     fieldsFor: (v) => (v["mode"] === "replace" ? ["mode", "bookmarks"] : ["mode"]),
     run: async (files, v, p) => content.editBookmarks(files, { mode: str(v["mode"]), bookmarks: str(v["bookmarks"]) }, p),
@@ -464,15 +540,54 @@ const organizeTools: Tool[] = [
     tag: "ORGANIZE",
     keywords: "n-up handout save paper",
     fields: [
-      { name: "perSheet", label: "Pages per sheet", type: "select", default: "4", options: [{ value: "2", label: "2" }, { value: "4", label: "4" }, { value: "9", label: "9" }, { value: "16", label: "16" }] },
-      { name: "orientation", label: "Sheet", type: "select", default: "portrait", options: [{ value: "portrait", label: "Tall (portrait)" }, { value: "landscape", label: "Wide (landscape)" }] },
-      { name: "arrangement", label: "Order", type: "select", default: "rows", options: [{ value: "rows", label: "Across, then down" }, { value: "columns", label: "Down, then across" }] },
+      {
+        name: "perSheet",
+        label: "Pages per sheet",
+        type: "select",
+        default: "4",
+        options: [
+          { value: "2", label: "2" },
+          { value: "4", label: "4" },
+          { value: "9", label: "9" },
+          { value: "16", label: "16" },
+        ],
+      },
+      {
+        name: "orientation",
+        label: "Sheet",
+        type: "select",
+        default: "portrait",
+        options: [
+          { value: "portrait", label: "Tall (portrait)" },
+          { value: "landscape", label: "Wide (landscape)" },
+        ],
+      },
+      {
+        name: "arrangement",
+        label: "Order",
+        type: "select",
+        default: "rows",
+        options: [
+          { value: "rows", label: "Across, then down" },
+          { value: "columns", label: "Down, then across" },
+        ],
+      },
       { name: "margin", label: "Sheet margin", type: "range", min: 0, max: 72, step: 6, default: 18, unit: "pt" },
       toggle("border", "Draw borders", false),
     ],
     basic: ["perSheet", "orientation"],
     run: async (files, v, p) =>
-      pages.multiPageLayout(files, { perSheet: str(v["perSheet"]), orientation: str(v["orientation"]), arrangement: str(v["arrangement"]), margin: num(v["margin"]), border: bool(v["border"]) }, p),
+      pages.multiPageLayout(
+        files,
+        {
+          perSheet: str(v["perSheet"]),
+          orientation: str(v["orientation"]),
+          arrangement: str(v["arrangement"]),
+          margin: num(v["margin"]),
+          border: bool(v["border"]),
+        },
+        p,
+      ),
   },
   {
     slug: "booklet",
@@ -483,7 +598,16 @@ const organizeTools: Tool[] = [
     tag: "ORGANIZE",
     keywords: "booklet fold staple print",
     fields: [
-      { name: "spine", label: "Fold on the", type: "select", default: "left", options: [{ value: "left", label: "Left (most languages)" }, { value: "right", label: "Right (Arabic, Hebrew…)" }] },
+      {
+        name: "spine",
+        label: "Fold on the",
+        type: "select",
+        default: "left",
+        options: [
+          { value: "left", label: "Left (most languages)" },
+          { value: "right", label: "Right (Arabic, Hebrew…)" },
+        ],
+      },
       { name: "gutter", label: "Gap in the middle", type: "range", min: 0, max: 72, step: 2, default: 0, unit: "pt" },
       toggle("border", "Draw borders", false),
     ],
@@ -500,8 +624,31 @@ const organizeTools: Tool[] = [
     keywords: "a4 letter paper size scale",
     caveat: "Links and form boxes on resized pages stop working.",
     fields: [
-      { name: "size", label: "Paper size", type: "select", default: "a4", options: [{ value: "a4", label: "A4" }, { value: "letter", label: "US Letter" }, { value: "legal", label: "US Legal" }, { value: "a3", label: "A3" }, { value: "a5", label: "A5" }, { value: "tabloid", label: "Tabloid" }] },
-      { name: "orientation", label: "Direction", type: "select", default: "auto", options: [{ value: "auto", label: "Same as each page" }, { value: "portrait", label: "Tall (portrait)" }, { value: "landscape", label: "Wide (landscape)" }] },
+      {
+        name: "size",
+        label: "Paper size",
+        type: "select",
+        default: "a4",
+        options: [
+          { value: "a4", label: "A4" },
+          { value: "letter", label: "US Letter" },
+          { value: "legal", label: "US Legal" },
+          { value: "a3", label: "A3" },
+          { value: "a5", label: "A5" },
+          { value: "tabloid", label: "Tabloid" },
+        ],
+      },
+      {
+        name: "orientation",
+        label: "Direction",
+        type: "select",
+        default: "auto",
+        options: [
+          { value: "auto", label: "Same as each page" },
+          { value: "portrait", label: "Tall (portrait)" },
+          { value: "landscape", label: "Wide (landscape)" },
+        ],
+      },
       { name: "factor", label: "Content size", type: "range", min: 10, max: 100, step: 5, default: 100, unit: "%" },
     ],
     basic: ["size", "orientation"],
@@ -546,8 +693,26 @@ const organizeTools: Tool[] = [
     keywords: "letterhead background combine",
     orderHint: "Put the main PDF first. The PDFs after it are laid on top.",
     fields: [
-      { name: "position", label: "Place the overlay", type: "select", default: "foreground", options: [{ value: "foreground", label: "In front of the page" }, { value: "background", label: "Behind the page" }] },
-      { name: "mode", label: "Page matching", type: "select", default: "sequential", options: [{ value: "sequential", label: "Overlay pages in order, repeating" }, { value: "interleaved", label: "First page of each overlay in turn" }] },
+      {
+        name: "position",
+        label: "Place the overlay",
+        type: "select",
+        default: "foreground",
+        options: [
+          { value: "foreground", label: "In front of the page" },
+          { value: "background", label: "Behind the page" },
+        ],
+      },
+      {
+        name: "mode",
+        label: "Page matching",
+        type: "select",
+        default: "sequential",
+        options: [
+          { value: "sequential", label: "Overlay pages in order, repeating" },
+          { value: "interleaved", label: "First page of each overlay in turn" },
+        ],
+      },
     ],
     basic: ["position"],
     run: async (files, v, p) => pages.overlayPdfs(files, { mode: str(v["mode"]), position: str(v["position"]) }, p),
@@ -571,7 +736,16 @@ const createTools: Tool[] = [
     sources: ["camera", "photos", "files"],
     orderHint: "Each photo becomes one page, in this order.",
     fields: [
-      { name: "fit", label: "Page size", type: "select", default: "a4", options: [{ value: "a4", label: "A4 paper, with a border" }, { value: "image", label: "Same size as each photo" }] },
+      {
+        name: "fit",
+        label: "Page size",
+        type: "select",
+        default: "a4",
+        options: [
+          { value: "a4", label: "A4 paper, with a border" },
+          { value: "image", label: "Same size as each photo" },
+        ],
+      },
       { name: "margin", label: "Border", type: "range", min: 0, max: 72, step: 6, default: 24, unit: "pt" },
     ],
     fieldsFor: (v) => (v["fit"] === "a4" ? ["fit", "margin"] : ["fit"]),
@@ -607,7 +781,13 @@ const securityTools: Tool[] = [
     fields: [
       { name: "password", label: "Password", type: "password", default: "", hint: "Needed to open the PDF." },
       { name: "confirmPassword", label: "Type the password again", type: "password", default: "" },
-      { name: "ownerPassword", label: "Separate password for editing (optional)", type: "password", default: "", hint: "Leave empty to use the same password." },
+      {
+        name: "ownerPassword",
+        label: "Separate password for editing (optional)",
+        type: "password",
+        default: "",
+        hint: "Leave empty to use the same password.",
+      },
     ],
     basic: ["password", "confirmPassword"],
     run: async (files, v, p) =>
@@ -671,7 +851,14 @@ const securityTools: Tool[] = [
     run: async (files, v, p) =>
       security.sanitizePdf(
         files,
-        { javascript: bool(v["javascript"]), embedded: bool(v["embedded"]), xmp: bool(v["xmp"]), metadata: bool(v["metadata"]), links: bool(v["links"]), fonts: bool(v["fonts"]) },
+        {
+          javascript: bool(v["javascript"]),
+          embedded: bool(v["embedded"]),
+          xmp: bool(v["xmp"]),
+          metadata: bool(v["metadata"]),
+          links: bool(v["links"]),
+          fonts: bool(v["fonts"]),
+        },
         p,
       ),
   },

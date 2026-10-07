@@ -19,12 +19,10 @@ import { Notice } from "@/ui/Notice";
 import { Screen } from "@/ui/Screen";
 import { Text } from "@/ui/Text";
 import { FilePicker } from "../FilePicker";
-import { Result } from "../Result";
 import { Step } from "../Step";
 import { ToolHeader } from "../ToolHeader";
 import { useFileData } from "../useFileData";
-import { useJob } from "../useJob";
-import { Working } from "../Working";
+import { useStartJob } from "../useStartJob";
 import { inkFromStrokes, PAD_STROKE, type Point } from "./ink";
 import { forgetSignature, loadSignature, saveSignature } from "./savedSignature";
 import { SignaturePad } from "./SignaturePad";
@@ -118,7 +116,14 @@ function PlacementStep({ value, onChange, pageCount }: { value: Placement; onCha
         onChange={(pages) => set({ pages })}
       />
       {value.pages === "number" ? (
-        <Stepper label={t("sign.pageNumber")} value={value.pageNumber} min={1} max={Math.max(1, pageCount ?? 999)} step={1} onChange={(pageNumber) => set({ pageNumber })} />
+        <Stepper
+          label={t("sign.pageNumber")}
+          value={value.pageNumber}
+          min={1}
+          max={Math.max(1, pageCount ?? 999)}
+          step={1}
+          onChange={(pageNumber) => set({ pageNumber })}
+        />
       ) : null}
       <PositionGrid label={t("sign.position")} value={value.position} onChange={(position) => set({ position })} />
       <OptionList
@@ -145,7 +150,7 @@ export function SignFlow({ tool }: { tool: Tool }) {
   const [remember, setRemember] = useState(!!saved);
   const [ink, setInk] = useState("blue");
   const [placement, setPlacement] = useState<Placement>({ pages: "last", pageNumber: 1, position: "9", size: "medium" });
-  const job = useJob();
+  const startJob = useStartJob(tool);
 
   const file = files[0];
   const pageInfo = useFileData(file, countPages);
@@ -160,62 +165,45 @@ export function SignFlow({ tool }: { tool: Tool }) {
     else forgetSignature();
     const pages = placement.pages === "number" ? String(placement.pageNumber) : placement.pages;
     const opts = { pages, position: Number(placement.position), width: SIZES[placement.size] ?? 0.32, color: INKS[ink]! };
-    void job.run(file.size, (progress) => signPdf(file, signature, opts, progress));
+    startJob([file], (progress) => signPdf(file, signature, opts, progress));
   };
 
-  if (job.state.phase === "done") {
-    return (
-      <Result
-        results={job.state.results}
-        inputSize={job.state.inputSize}
-        onAgain={() => {
-          setFiles([]);
-          job.reset();
-        }}
-      />
-    );
-  }
-
   return (
-    <>
-      <Screen
-        back
-        scrollEnabled={!drawing}
-        footer={
-          <>
-            {job.state.phase === "error" ? <Notice kind="error" title={t("error.title")} body={job.state.message} /> : null}
-            {ready ? null : (
-              <Text variant="small" tone="muted" center>
-                {waiting}
-              </Text>
-            )}
-            <Button large icon={PenLine} label={t("sign.action")} onPress={start} disabled={!ready} />
-          </>
-        }
-      >
-        <ToolHeader tool={tool} />
-        <Step n={1} title={t("tool.stepFiles")} done={!!file}>
-          <FilePicker tool={tool} files={files} onChange={setFiles} />
-        </Step>
-        <Step n={2} title={t("sign.drawTitle")} done={activeStrokes.length > 0}>
-          <SignatureStep
-            saved={saved}
-            useSaved={useSaved}
-            onUseSaved={setUseSaved}
-            strokes={strokes}
-            onStrokes={setStrokes}
-            onDrawing={setDrawing}
-            ink={ink}
-            onInk={setInk}
-            remember={remember}
-            onRemember={setRemember}
-          />
-        </Step>
-        <Step n={3} title={t("sign.placeTitle")}>
-          <PlacementStep value={placement} onChange={setPlacement} pageCount={pageInfo.status === "ready" ? pageInfo.value : null} />
-        </Step>
-      </Screen>
-      {job.state.phase === "running" ? <Working status={job.state.status} ratio={job.state.ratio} /> : null}
-    </>
+    <Screen
+      back
+      scrollEnabled={!drawing}
+      footer={
+        <>
+          {ready ? null : (
+            <Text variant="small" tone="muted" center>
+              {waiting}
+            </Text>
+          )}
+          <Button large icon={PenLine} label={t("sign.action")} onPress={start} disabled={!ready} />
+        </>
+      }
+    >
+      <ToolHeader tool={tool} />
+      <Step n={1} title={t("tool.stepFiles")} done={!!file}>
+        <FilePicker tool={tool} files={files} onChange={setFiles} />
+      </Step>
+      <Step n={2} title={t("sign.drawTitle")} done={activeStrokes.length > 0}>
+        <SignatureStep
+          saved={saved}
+          useSaved={useSaved}
+          onUseSaved={setUseSaved}
+          strokes={strokes}
+          onStrokes={setStrokes}
+          onDrawing={setDrawing}
+          ink={ink}
+          onInk={setInk}
+          remember={remember}
+          onRemember={setRemember}
+        />
+      </Step>
+      <Step n={3} title={t("sign.placeTitle")}>
+        <PlacementStep value={placement} onChange={setPlacement} pageCount={pageInfo.status === "ready" ? pageInfo.value : null} />
+      </Step>
+    </Screen>
   );
 }

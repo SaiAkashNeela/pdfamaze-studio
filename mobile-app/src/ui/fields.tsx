@@ -72,7 +72,12 @@ export function OptionList({
                 pressed && { opacity: 0.85 },
               ]}
             >
-              <View style={[styles.radio, { borderColor: selected ? colors.accent : colors.borderStrong, backgroundColor: selected ? colors.accent : "transparent" }]}>
+              <View
+                style={[
+                  styles.radio,
+                  { borderColor: selected ? colors.accent : colors.borderStrong, backgroundColor: selected ? colors.accent : "transparent" },
+                ]}
+              >
                 {selected ? <Check size={14} color={colors.accentForeground} strokeWidth={3} /> : null}
               </View>
               <Text variant={selected ? "bodyStrong" : "body"} style={{ flex: 1 }}>
@@ -114,7 +119,11 @@ export function PositionGrid({ label, value, onChange }: { label: string; value:
                     pressed && !selected && { backgroundColor: colors.muted },
                   ]}
                 >
-                  {selected ? <Check size={18} color={colors.accentForeground} strokeWidth={3} /> : <View style={[styles.dot, { backgroundColor: colors.borderStrong }]} />}
+                  {selected ? (
+                    <Check size={18} color={colors.accentForeground} strokeWidth={3} />
+                  ) : (
+                    <View style={[styles.dot, { backgroundColor: colors.borderStrong }]} />
+                  )}
                 </Pressable>
               );
             })}
@@ -128,7 +137,7 @@ export function PositionGrid({ label, value, onChange }: { label: string; value:
 /* ------------------------------------------------------------------ numbers */
 
 function formatNumber(n: number, step: number) {
-  const decimals = step < 1 ? String(step).split(".")[1]?.length ?? 1 : 0;
+  const decimals = step < 1 ? (String(step).split(".")[1]?.length ?? 1) : 0;
   return n.toFixed(decimals);
 }
 
@@ -171,7 +180,12 @@ export function Stepper({
         accessibilityState={{ disabled }}
         disabled={disabled}
         onPress={() => bump(dir)}
-        style={({ pressed }) => [styles.stepButton, { borderColor: colors.borderStrong, backgroundColor: colors.card }, disabled && { opacity: 0.35 }, pressed && { backgroundColor: colors.muted }]}
+        style={({ pressed }) => [
+          styles.stepButton,
+          { borderColor: colors.borderStrong, backgroundColor: colors.card },
+          disabled && { opacity: 0.35 },
+          pressed && { backgroundColor: colors.muted },
+        ]}
       >
         <Icon size={20} color={colors.foreground} strokeWidth={2.4} />
       </Pressable>
@@ -300,11 +314,7 @@ export function TextField({
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           maxFontSizeMultiplier={MAX_FONT_SCALE}
-          style={[
-            styles.input,
-            { color: colors.foreground },
-            multiline && { minHeight: 26 * rows + space.lg, textAlignVertical: "top", paddingTop: space.md },
-          ]}
+          style={[styles.input, { color: colors.foreground }, multiline && { minHeight: 26 * rows + space.lg, textAlignVertical: "top", paddingTop: space.md }]}
         />
         {secure ? (
           <Pressable
@@ -357,7 +367,9 @@ export function ColorField({ label, hint, value, onChange }: { label: string; hi
               }}
               style={[styles.swatch, { borderColor: selected ? colors.foreground : colors.border, borderWidth: selected ? 3 : 1 }]}
             >
-              <View style={[styles.swatchFill, { backgroundColor: s.hex }]}>{selected ? <Check size={20} color={isLight(s.hex) ? "#1c1712" : "#ffffff"} strokeWidth={3} /> : null}</View>
+              <View style={[styles.swatchFill, { backgroundColor: s.hex }]}>
+                {selected ? <Check size={20} color={isLight(s.hex) ? "#1c1712" : "#ffffff"} strokeWidth={3} /> : null}
+              </View>
             </Pressable>
           );
         })}
@@ -368,7 +380,9 @@ export function ColorField({ label, hint, value, onChange }: { label: string; hi
 
 function isLight(hex: string) {
   const n = parseInt(hex.replace("#", ""), 16);
-  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  const r = (n >> 16) & 255,
+    g = (n >> 8) & 255,
+    b = n & 255;
   return 0.299 * r + 0.587 * g + 0.114 * b > 160;
 }
 
@@ -385,7 +399,18 @@ export function FieldControl({ field, value, onChange }: { field: Field; value: 
       return <OptionList label={field.label} hint={field.hint} options={field.options} value={String(value)} onChange={onChange} />;
     }
     case "range":
-      return <Stepper label={field.label} hint={field.hint} value={Number(value)} min={field.min} max={field.max} step={field.step} unit={field.unit} onChange={onChange} />;
+      return (
+        <Stepper
+          label={field.label}
+          hint={field.hint}
+          value={Number(value)}
+          min={field.min}
+          max={field.max}
+          step={field.step}
+          unit={field.unit}
+          onChange={onChange}
+        />
+      );
     case "switch":
       return <ToggleRow label={field.label} hint={field.hint} value={Boolean(value)} onChange={onChange} />;
     case "color":
@@ -393,7 +418,17 @@ export function FieldControl({ field, value, onChange }: { field: Field; value: 
     case "password":
       return <TextField label={field.label} hint={field.hint} value={String(value)} onChange={onChange} secure />;
     case "textarea":
-      return <TextField label={field.label} hint={field.hint} value={String(value)} placeholder={field.placeholder} onChange={onChange} multiline rows={field.rows} />;
+      return (
+        <TextField
+          label={field.label}
+          hint={field.hint}
+          value={String(value)}
+          placeholder={field.placeholder}
+          onChange={onChange}
+          multiline
+          rows={field.rows}
+        />
+      );
     case "text":
       return (
         <TextField
