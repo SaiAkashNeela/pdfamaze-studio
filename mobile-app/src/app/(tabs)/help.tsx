@@ -15,7 +15,7 @@ import { Notice } from "@/ui/Notice";
 import { Screen } from "@/ui/Screen";
 import { Text } from "@/ui/Text";
 
-const CONTACT_EMAIL = "sai@levocell.ai";
+const CONTACT_EMAIL = "hello@saiakash.dev";
 const REPO_URL = "https://github.com/SaiAkashNeela/pdfamaze-studio";
 
 function Numbered({ n, text }: { n: number; text: string }) {
