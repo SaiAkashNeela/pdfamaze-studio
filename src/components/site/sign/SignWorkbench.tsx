@@ -16,7 +16,6 @@ import { acceptsFile, PdfError } from "@/lib/pdf/core";
 import { takeHandoff } from "@/lib/handoff";
 import { imageAspect } from "@/lib/signature-image";
 import { loadSignatures, newSignatureId, storeSignatures, type SavedSignature } from "@/lib/signatures";
-import { trackToolRun } from "@/lib/analytics";
 import type { PDFDocumentProxy } from "pdfjs-dist";
 import type { Tool } from "@/lib/tools";
 
@@ -178,7 +177,6 @@ export function SignWorkbench({ tool }: { tool: Tool }) {
       const { signPdf } = await import("@/lib/pdf/ops/sign");
       const results = await signPdf(state.file, state.placements, (label, ratio) => dispatch({ type: "STEP", label, ratio }));
       dispatch({ type: "SUCCESS", results });
-      trackToolRun(tool.slug);
     } catch (e) {
       dispatch({ type: "FAIL", error: e instanceof PdfError ? e.message : "The signature couldn't be applied to this file. It may be damaged or unsupported." });
     }

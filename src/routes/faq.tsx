@@ -77,8 +77,7 @@ function FaqPage() {
 
       <Section heading="Still have questions?">
         <p>
-          Feel free to explore our <Link to="/privacy">Privacy Policy</Link> or check out our{" "}
-          <Link to="/stats">Usage Statistics</Link>.
+          Feel free to read our <Link to="/privacy">Privacy Policy</Link>.
         </p>
       </Section>
     </DocPage>

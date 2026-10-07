@@ -12,7 +12,6 @@ import { UploadStage } from "./tool-shell/UploadStage";
 import { acceptsFile, PdfError, type OutputFile } from "@/lib/pdf/core";
 import { takeHandoff } from "@/lib/handoff";
 import { defaultValues, type Field, type FieldValues, type Tool } from "@/lib/tools";
-import { trackToolRun } from "@/lib/analytics";
 
 type Status = "idle" | "working" | "done" | "error";
 
@@ -144,7 +143,6 @@ export function ToolRunner({ tool }: { tool: Tool }) {
     try {
       const out = await tool.run(files, state.values, (label, ratio) => dispatch({ type: "UPDATE_STEP", label, ratio }));
       dispatch({ type: "RUN_SUCCESS", results: out });
-      trackToolRun(tool.slug);
     } catch (e) {
       const msg =
         e instanceof PdfError

@@ -13,7 +13,6 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as CoffeeRouteImport } from './routes/coffee'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as PrivacyRouteImport } from './routes/privacy'
-import { Route as StatsRouteImport } from './routes/stats'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as ToolsIndexRouteImport } from './routes/tools/index'
 import { Route as ToolsSlugRouteImport } from './routes/tools/$slug'
@@ -38,11 +37,6 @@ const PrivacyRoute = PrivacyRouteImport.update({
   path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
-const StatsRoute = StatsRouteImport.update({
-  id: '/stats',
-  path: '/stats',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
@@ -64,7 +58,6 @@ export interface FileRoutesByFullPath {
   '/coffee': typeof CoffeeRoute
   '/faq': typeof FaqRoute
   '/privacy': typeof PrivacyRoute
-  '/stats': typeof StatsRoute
   '/terms': typeof TermsRoute
   '/tools/$slug': typeof ToolsSlugRoute
   '/tools/': typeof ToolsIndexRoute
@@ -74,7 +67,6 @@ export interface FileRoutesByTo {
   '/coffee': typeof CoffeeRoute
   '/faq': typeof FaqRoute
   '/privacy': typeof PrivacyRoute
-  '/stats': typeof StatsRoute
   '/terms': typeof TermsRoute
   '/tools/$slug': typeof ToolsSlugRoute
   '/tools': typeof ToolsIndexRoute
@@ -85,7 +77,6 @@ export interface FileRoutesById {
   '/coffee': typeof CoffeeRoute
   '/faq': typeof FaqRoute
   '/privacy': typeof PrivacyRoute
-  '/stats': typeof StatsRoute
   '/terms': typeof TermsRoute
   '/tools/$slug': typeof ToolsSlugRoute
   '/tools/': typeof ToolsIndexRoute
@@ -97,27 +88,18 @@ export interface FileRouteTypes {
     | '/coffee'
     | '/faq'
     | '/privacy'
-    | '/stats'
     | '/terms'
     | '/tools/$slug'
     | '/tools/'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/'
-    | '/coffee'
-    | '/faq'
-    | '/privacy'
-    | '/stats'
-    | '/terms'
-    | '/tools/$slug'
-    | '/tools'
+    '/' | '/coffee' | '/faq' | '/privacy' | '/terms' | '/tools/$slug' | '/tools'
   id:
     | '__root__'
     | '/'
     | '/coffee'
     | '/faq'
     | '/privacy'
-    | '/stats'
     | '/terms'
     | '/tools/$slug'
     | '/tools/'
@@ -128,7 +110,6 @@ export interface RootRouteChildren {
   CoffeeRoute: typeof CoffeeRoute
   FaqRoute: typeof FaqRoute
   PrivacyRoute: typeof PrivacyRoute
-  StatsRoute: typeof StatsRoute
   TermsRoute: typeof TermsRoute
   ToolsSlugRoute: typeof ToolsSlugRoute
   ToolsIndexRoute: typeof ToolsIndexRoute
@@ -164,13 +145,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/stats': {
-      id: '/stats'
-      path: '/stats'
-      fullPath: '/stats'
-      preLoaderRoute: typeof StatsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/terms': {
       id: '/terms'
       path: '/terms'
@@ -200,7 +174,6 @@ const rootRouteChildren: RootRouteChildren = {
   CoffeeRoute: CoffeeRoute,
   FaqRoute: FaqRoute,
   PrivacyRoute: PrivacyRoute,
-  StatsRoute: StatsRoute,
   TermsRoute: TermsRoute,
   ToolsSlugRoute: ToolsSlugRoute,
   ToolsIndexRoute: ToolsIndexRoute,

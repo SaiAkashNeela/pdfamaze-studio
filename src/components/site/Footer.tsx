@@ -41,11 +41,6 @@ export function Footer() {
               </Link>
             </li>
             <li>
-              <Link to="/stats" className="text-muted-foreground hover:text-foreground">
-                Usage &amp; Stats
-              </Link>
-            </li>
-            <li>
               <Link to="/coffee" className="text-muted-foreground hover:text-foreground">
                 Support the project
               </Link>
