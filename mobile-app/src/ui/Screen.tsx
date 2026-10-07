@@ -5,7 +5,7 @@ import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { t } from "@/i18n";
 import { useTheme } from "@/theme/ThemeProvider";
-import { space, TAP } from "@/theme/tokens";
+import { space } from "@/theme/tokens";
 import { Text } from "./Text";
 
 type Props = {
@@ -19,12 +19,15 @@ type Props = {
   headerLeft?: ReactNode;
   /** Turn off while a finger is drawing, so the page doesn't move under it. */
   scrollEnabled?: boolean;
+  /** Inside the tab bar, which already sits above the home indicator. */
+  inTab?: boolean;
 };
 
 /** Page frame: safe areas, a plain "‹ Back" button with a word, scrolling content, sticky footer. */
-export function Screen({ children, footer, back, onBack, headerRight, headerLeft, scrollEnabled = true }: Props) {
+export function Screen({ children, footer, back, onBack, headerRight, headerLeft, scrollEnabled = true, inTab }: Props) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
+  const bottom = inTab ? 0 : insets.bottom;
   const goBack = onBack ?? (() => (router.canGoBack() ? router.back() : router.replace("/")));
 
   return (
@@ -52,14 +55,14 @@ export function Screen({ children, footer, back, onBack, headerRight, headerLeft
         <ScrollView
           style={styles.flex}
           scrollEnabled={scrollEnabled}
-          contentContainerStyle={[styles.content, { paddingBottom: footer ? space.xl : insets.bottom + space.xxl }]}
+          contentContainerStyle={[styles.content, { paddingBottom: footer ? space.xl : bottom + space.xxl }]}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
         >
           {children}
         </ScrollView>
         {footer ? (
-          <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, space.lg), backgroundColor: colors.background, borderTopColor: colors.border }]}>
+          <View style={[styles.footer, { paddingBottom: Math.max(bottom, space.md), backgroundColor: colors.background, borderTopColor: colors.border }]}>
             {footer}
           </View>
         ) : null}

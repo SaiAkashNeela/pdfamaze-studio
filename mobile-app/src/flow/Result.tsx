@@ -113,7 +113,7 @@ export function Result({ results, inputSize, showSavings, onAgain }: Props) {
 
       <View style={{ gap: space.sm, marginTop: space.xl }}>
         <Button kind="secondary" icon={RefreshCw} label={t("result.startOver")} onPress={onAgain} />
-        <Button kind="ghost" icon={House} label={t("result.home")} onPress={() => router.dismissTo("/")} />
+        <Button kind="ghost" icon={House} label={t("result.home")} onPress={() => router.navigate("/")} />
       </View>
     </Screen>
   );

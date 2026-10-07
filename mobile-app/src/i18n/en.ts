@@ -18,6 +18,12 @@ export const en = {
     more: "More options",
     fewer: "Fewer options",
   },
+  tabs: {
+    tools: "Tools",
+    scan: "Scan",
+    scanHint: "Scan paper with the camera and make a PDF",
+    help: "Help",
+  },
   home: {
     eyebrow: "Private PDF tools",
     title: "What would you like to do?",

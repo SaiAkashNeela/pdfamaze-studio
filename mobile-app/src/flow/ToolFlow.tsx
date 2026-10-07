@@ -9,7 +9,7 @@ import { View } from "react-native";
 import type { LocalFile } from "@/engine/core";
 import { t } from "@/i18n";
 import { defaultValues } from "@/tools/registry";
-import type { Field, FieldValues, Tool } from "@/tools/types";
+import type { Field, FieldValues, Source, Tool } from "@/tools/types";
 import { space } from "@/theme/tokens";
 import { Button } from "@/ui/Button";
 import { FieldControl } from "@/ui/fields";
@@ -78,7 +78,7 @@ function Footer({ tool, files, job, onStart }: { tool: Tool; files: LocalFile[];
   );
 }
 
-export function ToolFlow({ tool }: { tool: Tool }) {
+export function ToolFlow({ tool, inTab, autoSource }: { tool: Tool; inTab?: boolean; autoSource?: Source }) {
   const [files, setFiles] = useState<LocalFile[]>([]);
   const [values, setValues] = useState<FieldValues>(() => defaultValues(tool));
   const job = useJob();
@@ -104,10 +104,10 @@ export function ToolFlow({ tool }: { tool: Tool }) {
 
   return (
     <>
-      <Screen back footer={<Footer tool={tool} files={files} job={job.state} onStart={start} />}>
+      <Screen back={!inTab} inTab={inTab} footer={<Footer tool={tool} files={files} job={job.state} onStart={start} />}>
         <ToolHeader tool={tool} />
         <Step n={1} title={tool.multiple ? t("tool.stepFilesMany") : t("tool.stepFiles")} done={files.length >= Math.max(1, tool.minFiles)}>
-          <FilePicker tool={tool} files={files} onChange={setFiles} />
+          <FilePicker tool={tool} files={files} onChange={setFiles} autoSource={autoSource} />
         </Step>
         <Step n={2} title={t("tool.stepOptions")}>
           <Options tool={tool} values={values} onChange={(name, v) => setValues((old) => ({ ...old, [name]: v }))} />

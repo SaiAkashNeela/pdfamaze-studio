@@ -2,8 +2,7 @@
  * Home: one question ("What would you like to do?"), the eight most common jobs as big tiles,
  * then every tool in plain-language groups. Search is right there for anyone who knows the word.
  */
-import { router } from "expo-router";
-import { CircleQuestionMark, Search, X } from "lucide-react-native";
+import { Search, X } from "lucide-react-native";
 import { useState } from "react";
 import { Pressable, StyleSheet, TextInput, View } from "react-native";
 import { t } from "@/i18n";
@@ -33,18 +32,8 @@ export default function Home() {
 
   return (
     <Screen
+      inTab
       headerLeft={<Wordmark />}
-      headerRight={
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={t("about.title")}
-          onPress={() => router.push("/about")}
-          style={({ pressed }) => [styles.help, { borderColor: colors.border, backgroundColor: pressed ? colors.muted : colors.card }]}
-        >
-          <CircleQuestionMark size={20} color={colors.foreground} />
-          <Text variant="bodyStrong">{t("home.help")}</Text>
-        </Pressable>
-      }
     >
       <View style={{ gap: space.xs + 2, marginTop: space.md }}>
         <Text variant="label" tone="accent">
@@ -133,7 +122,6 @@ function Section({ title, color, children }: { title: string; color?: string; ch
 }
 
 const styles = StyleSheet.create({
-  help: { flexDirection: "row", alignItems: "center", gap: 6, minHeight: 44, paddingHorizontal: space.md, borderRadius: radius.pill, borderWidth: 1 },
   search: {
     marginTop: space.lg,
     minHeight: TAP,

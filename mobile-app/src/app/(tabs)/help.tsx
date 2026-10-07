@@ -31,7 +31,7 @@ export default function About() {
   const version = Constants.expoConfig?.version ?? "1.0.0";
 
   return (
-    <Screen back>
+    <Screen inTab>
       <View style={{ gap: space.md, marginTop: space.sm }}>
         <LogoMark size={52} />
         <Text variant="display" accessibilityRole="header">

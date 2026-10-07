@@ -3,7 +3,7 @@
  * with plain "move up / move down / remove" buttons instead of drag gestures.
  */
 import { ArrowDown, ArrowUp, Camera, FileText, FolderOpen, Image as ImageIcon, Images, Plus, X } from "lucide-react-native";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { acceptsFile, formatBytes, type LocalFile } from "@/engine/core";
 import { countPages, pickDocuments, pickPhotos, takePhoto } from "@/files/pick";
@@ -20,15 +20,16 @@ type Props = {
   tool: Tool;
   files: LocalFile[];
   onChange: (files: LocalFile[]) => void;
+  /** Open this source as soon as the screen appears (the Scan tab opens the camera). */
+  autoSource?: Source;
 };
 
-export function FilePicker({ tool, files, onChange }: Props) {
+export function FilePicker({ tool, files, onChange, autoSource }: Props) {
   const [message, setMessage] = useState<string | null>(null);
   const sources: Source[] = tool.sources ?? ["files"];
   const hasFiles = files.length > 0;
 
   const add = async (source: Source) => {
-    setMessage(null);
     try {
       const picked =
         source === "camera"
@@ -36,6 +37,7 @@ export function FilePicker({ tool, files, onChange }: Props) {
           : source === "photos"
             ? await pickPhotos(tool.multiple)
             : await pickDocuments(tool.accept, tool.multiple);
+      setMessage(null);
       if (!picked.length) return;
       const ok = picked.filter((f) => acceptsFile(tool.accept, f));
       const rejected = picked.find((f) => !acceptsFile(tool.accept, f));
@@ -46,6 +48,14 @@ export function FilePicker({ tool, files, onChange }: Props) {
       setMessage(e instanceof Error && e.message ? e.message : t("tool.pickerError"));
     }
   };
+
+  useEffect(() => {
+    if (!autoSource) return;
+    // Once, just after the screen has appeared, so the camera slides up over a drawn page.
+    const timer = setTimeout(() => void add(autoSource), 350);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const move = (index: number, dir: -1 | 1) => {
     const next = [...files];
