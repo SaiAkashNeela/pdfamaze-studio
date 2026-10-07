@@ -82,7 +82,7 @@ extract images/attachments, repair, split by bookmarks, auto rename, HTML to PDF
 
 ## Before releasing
 
-- Set the real `ios.bundleIdentifier` and `android.package` in `app.json` (currently placeholders).
+- App ID is `com.pdfamaze.app` (iOS bundle identifier and Android package). It cannot change after the first store release.
 - In the production build profile, block the network permission on Android
   (`android.blockedPermissions: ["android.permission.INTERNET"]`), so the "no internet" promise
   is enforced by the OS. Keep it for development builds, which need the network to reach Metro.

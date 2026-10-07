@@ -9,7 +9,7 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "ai.levocell.pdfamaze",
+      "bundleIdentifier": "com.pdfamaze.app",
       "config": {
         "usesNonExemptEncryption": false
       },
@@ -27,7 +27,7 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "ai.levocell.pdfamaze"
+      "package": "com.pdfamaze.app"
     },
     "web": {
       "output": "static",
