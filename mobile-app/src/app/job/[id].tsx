@@ -1,10 +1,11 @@
-import { Redirect, router, useLocalSearchParams } from "expo-router";
-import { useEffect } from "react";
+import { Redirect, router, useFocusEffect, useLocalSearchParams } from "expo-router";
+import { useCallback, useEffect } from "react";
 import { View } from "react-native";
 import { Result } from "@/flow/Result";
 import { Working } from "@/flow/Working";
 import { t } from "@/i18n";
 import { useJobs } from "@/jobs/JobsProvider";
+import { setViewingJob } from "@/jobs/viewing";
 import { space } from "@/theme/tokens";
 import { Button } from "@/ui/Button";
 import { Notice } from "@/ui/Notice";
@@ -16,6 +17,13 @@ export default function JobScreen() {
   const { jobs, markSeen, dismiss } = useJobs();
   const job = jobs.find((j) => j.id === id);
   const finished = job?.status === "done" || job?.status === "error";
+
+  useFocusEffect(
+    useCallback(() => {
+      setViewingJob(String(id));
+      return () => setViewingJob(null);
+    }, [id]),
+  );
 
   useEffect(() => {
     if (finished && id) markSeen(String(id));

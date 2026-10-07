@@ -183,6 +183,14 @@ export const en = {
     makeOne: "Make PDF (1 page)",
     makeMany: "Make PDF ({count} pages)",
   },
+  notify: {
+    channel: "Finished files",
+    title: "Your file is ready",
+    body: "{tool} is done. Tap to save or share it.",
+    reminderChannel: "Weekly reminder",
+    reminderTitle: "Need anything done to a PDF?",
+    reminderBody: "Sign, scan, merge or tidy up a PDF. PDFamaze is here, and your files never leave your phone.",
+  },
   jobs: {
     title: "Your files",
     progress: "Working… {percent}%",
@@ -247,6 +255,8 @@ export const en = {
     email: "Email {email}",
     github: "See the code on GitHub",
     welcomeAgain: "Show the welcome screens again",
+    reminder: "Weekly reminder",
+    reminderHint: "A friendly note if you haven't opened PDFamaze for a week. Never more than once a week.",
     openSource: "PDFamaze is free and open source (MIT licence).",
     version: "Version {version}",
   },

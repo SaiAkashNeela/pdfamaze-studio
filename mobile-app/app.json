@@ -12,6 +12,11 @@
       "bundleIdentifier": "ai.levocell.pdfamaze",
       "config": {
         "usesNonExemptEncryption": false
+      },
+      "icon": {
+        "light": "./assets/images/icon.png",
+        "dark": "./assets/images/icon-dark.png",
+        "tinted": "./assets/images/icon-tinted.png"
       }
     },
     "android": {
@@ -52,7 +57,14 @@
       ],
       "expo-sharing",
       "expo-localization",
-      "expo-sqlite"
+      "expo-sqlite",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/notification-icon.png",
+          "color": "#c84a27"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

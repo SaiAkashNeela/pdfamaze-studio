@@ -10,6 +10,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { clearResults } from "@/files/output";
 import { JobsProvider } from "@/jobs/JobsProvider";
+import { listenForTaps, scheduleWeeklyReminder, setUpNotifications } from "@/jobs/notify";
 import { recordAppOpen } from "@/stats/db";
 import { ThemeProvider, useTheme } from "@/theme/ThemeProvider";
 
@@ -17,9 +18,13 @@ void SplashScreen.preventAutoHideAsync();
 // Results from earlier visits are temporary; nothing should linger on the phone.
 clearResults();
 recordAppOpen();
+setUpNotifications();
+// Restart the weekly reminder's 7-day clock: it only fires after a week without opening the app.
+void scheduleWeeklyReminder();
 
 function AppStack() {
   const { colors, scheme } = useTheme();
+  useEffect(() => listenForTaps(), []);
   return (
     <>
       <StatusBar style={scheme === "dark" ? "light" : "dark"} />

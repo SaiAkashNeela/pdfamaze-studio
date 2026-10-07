@@ -10,9 +10,11 @@ export type Prefs = {
   theme: ThemeChoice;
   /** Has seen the first-run welcome screens. */
   onboarded: boolean;
+  /** Gentle "PDFamaze is here when you need it" note after a quiet week. */
+  weeklyReminder: boolean;
 };
 
-const DEFAULTS: Prefs = { theme: "system", onboarded: false };
+const DEFAULTS: Prefs = { theme: "system", onboarded: false, weeklyReminder: true };
 
 function prefsFile() {
   return new File(Paths.document, "prefs.json");

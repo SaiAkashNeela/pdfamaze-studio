@@ -39,7 +39,7 @@ Every dependency is bundled in Expo Go, so no native build is needed during deve
 The app is meant to be usable by anyone, from a grandparent to a child.
 
 - **One recipe for every tool.** 1. Choose your file. 2. Choose how. 3. Press the big button.
-- **Big targets.** At least 56pt for anything you can tap. Text is 17pt and follows the phone's text-size setting.
+- **Big targets.** Main controls are 52pt tall and nothing tappable is under 48pt. Text is 16pt and follows the phone's text-size setting.
 - **Words, not icons alone.** Every button has a label. "Back" is spelled out.
 - **No hidden gestures.** Files are reordered with Up/Down buttons, not drag-and-drop. Numbers have − and + buttons beside the slider.
 - **Only the essentials first.** Rarely used options sit behind "More options".
@@ -53,6 +53,24 @@ meanwhile", and it keeps going; the Tools tab shows progress and a badge, then "
 The PDF engine runs on the JavaScript thread, so if you switch to another app the phone pauses it
 after a few seconds and it resumes when you come back. True OS-level background processing would
 need a native module (not available in Expo Go).
+
+## Notifications
+
+Local only (no push service, no server). Permission is asked the first time a job starts.
+
+- **"Your file is ready"**: once per finished job, unless you're already looking at it. Tapping it opens the file.
+- **Weekly reminder**: a friendly note after a week without opening the app. The 7-day clock restarts on every
+  open, so regular users never see it. It can be switched off in Help.
+
+## Icons and store assets
+
+`python3 scripts/make-icons.py` regenerates everything from the logo:
+
+- `assets/images/`: iOS icon (opaque, plus iOS 18 dark and tinted variants), Android adaptive layers and
+  themed icon, notification icon, splash and favicon
+- `store/`: `app-store-icon-1024.png`, `play-store-icon-512.png`, `play-feature-graphic-1024x500.png`
+
+Screenshots for the store listings still need to be taken on real devices.
 
 ## Not yet on mobile
 

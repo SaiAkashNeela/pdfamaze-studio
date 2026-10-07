@@ -44,6 +44,6 @@ Docs: https://docs.expo.dev/eas/index.md
 
 - Privacy contract: no file or document content ever leaves the phone. No analytics, no accounts, no network calls.
 - `src/engine/` mirrors the web app's `src/lib/pdf/`. Keep operation code identical to the web where possible; platform differences belong in `src/engine/core.ts`.
-- Accessibility bar: tap targets ≥ 56pt, every control labelled for screen readers, no gesture-only actions, plain language. See README "Design principles".
+- Accessibility bar: tap targets ≥ 48pt (52pt for main controls), every control labelled for screen readers, no gesture-only actions, plain language. See README "Design principles".
 - All user-facing strings go through `t()` / `tx()` from `src/i18n`.
 - Quality gates: `bun run typecheck` (zero errors), `bun test` (engine tests), and React Doctor 100/100 via `bun x react-doctor . --yes` (scan from the root so it sees bun.lock).

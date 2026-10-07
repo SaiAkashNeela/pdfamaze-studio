@@ -1,15 +1,17 @@
 import Constants from "expo-constants";
 import { router } from "expo-router";
 import { CodeXml, Mail, Sparkles } from "lucide-react-native";
+import { useState } from "react";
 import { Linking } from "react-native";
 import { View } from "react-native";
 import { t } from "@/i18n";
+import { cancelWeeklyReminder, scheduleWeeklyReminder } from "@/jobs/notify";
 import { loadPrefs, savePrefs } from "@/theme/prefs";
 import { useTheme } from "@/theme/ThemeProvider";
 import { space } from "@/theme/tokens";
 import { Button } from "@/ui/Button";
 import { Card } from "@/ui/Card";
-import { OptionList } from "@/ui/fields";
+import { OptionList, ToggleRow } from "@/ui/fields";
 import { LogoMark } from "@/ui/Logo";
 import { Notice } from "@/ui/Notice";
 import { Screen } from "@/ui/Screen";
@@ -36,6 +38,7 @@ function Numbered({ n, text }: { n: number; text: string }) {
 
 export default function About() {
   const { choice, setChoice } = useTheme();
+  const [reminder, setReminder] = useState(() => loadPrefs().weeklyReminder);
   const version = Constants.expoConfig?.version ?? "1.0.0";
 
   return (
@@ -77,6 +80,19 @@ export default function About() {
           ]}
           value={choice}
           onChange={(v) => setChoice(v as typeof choice)}
+        />
+      </View>
+
+      <View style={{ gap: space.md, marginTop: space.xl }}>
+        <ToggleRow
+          label={t("about.reminder")}
+          hint={t("about.reminderHint")}
+          value={reminder}
+          onChange={(on) => {
+            setReminder(on);
+            savePrefs({ ...loadPrefs(), weeklyReminder: on });
+            void (on ? scheduleWeeklyReminder() : cancelWeeklyReminder());
+          }}
         />
       </View>
 

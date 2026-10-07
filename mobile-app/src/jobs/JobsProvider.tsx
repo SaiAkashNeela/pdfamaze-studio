@@ -12,7 +12,9 @@ import { PdfError } from "@/engine/core";
 import { writeResults } from "@/files/output";
 import { t } from "@/i18n";
 import { recordToolRun } from "@/stats/db";
+import { askOnce, notifyJobDone } from "./notify";
 import type { Job, StartArgs } from "./types";
+import { isWatching } from "./viewing";
 
 type JobsValue = {
   jobs: Job[];
@@ -33,12 +35,14 @@ function nextJobId() {
 type Patch = (job: Job) => Job;
 
 /** Does the work, saves the results and records the run in the local stats. */
-async function runJob({ slug, files, inputSize, work }: StartArgs, update: (patch: Patch) => void) {
+async function runJob(id: string, { slug, title, files, inputSize, work }: StartArgs, update: (patch: Patch) => void) {
   try {
     const outputs = await work((step, ratio) => update((j) => (j.status === "running" ? { ...j, step, ratio } : j)));
     const results = writeResults(outputs);
     recordToolRun(slug, true, files, inputSize);
     void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
+    // The app's one notification: "your file is ready". Skipped if you're already watching it finish.
+    if (!isWatching(id)) void notifyJobDone(id, title);
     update((j) => ({ id: j.id, slug: j.slug, title: j.title, startedAt: j.startedAt, inputSize: j.inputSize, seen: j.seen, status: "done", results }));
   } catch (e) {
     recordToolRun(slug, false, files, inputSize);
@@ -60,7 +64,8 @@ export function JobsProvider({ children }: { children: ReactNode }) {
       const base = { id, slug: args.slug, title: args.title, startedAt: Date.now(), inputSize: args.inputSize, seen: false };
       setJobs((all) => [{ ...base, status: "running", step: t("tool.working") }, ...all]);
       // Yield first so the progress screen paints before pdf-lib starts holding the thread.
-      setTimeout(() => void runJob(args, (patch) => update(id, patch)), 60);
+      setTimeout(() => void runJob(id, args, (patch) => update(id, patch)), 60);
+      void askOnce();
       return id;
     };
 
