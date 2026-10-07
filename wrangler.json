@@ -10,13 +10,6 @@
 		"directory": ".output/public",
 		"binding": "ASSETS"
 	},
-	"kv_namespaces": [
-		{
-			"binding": "STATS_KV",
-			"id": "c792dcc372604061aaa957e9cc46844e",
-			"remote": true
-		}
-	],
 	"routes": [
 		{
 			"pattern": "pdfamaze.com",

@@ -31,11 +31,9 @@ function PrivacyPage() {
 
       <Section heading="What is stored on your device">
         <p>
-          Your theme preference (light, dark or system), anonymous local usage statistics
-          (which tools you ran and visit counts), saved in <code>localStorage</code> so the site remembers
-          your theme and displays your personal usage breakdown on the <Link to="/stats">Stats page</Link>.
-          It contains no personal data, no document filenames, and never leaves your browser. Clearing
-          site data removes it completely.
+          Only your theme preference (light, dark or system), saved in <code>localStorage</code> so the site
+          remembers it. It contains no personal data and never leaves your browser. Clearing site data removes
+          it completely.
         </p>
         <p>
           If you tick <em>Remember on this device</em> in <Link to="/tools/$slug" params={{ slug: "sign" }}>Sign PDF</Link>,
@@ -50,10 +48,8 @@ function PrivacyPage() {
 
       <Section heading="Analytics and telemetry">
         <p>
-          No analytics that read, sample, or transmit document contents are used. When you visit the site,
-          Cloudflare's edge network provides an ephemeral, anonymous ISO country code header (e.g. <code>cf-ipcountry</code>)
-          to compute aggregate country distribution on the <Link to="/stats">Stats page</Link> without ever recording or
-          storing your IP address.
+          None. PDFamaze does not count visits, track which tools you use, or record where you are. There is no
+          analytics script, no usage counter and no telemetry endpoint.
         </p>
       </Section>
 

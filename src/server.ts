@@ -44,8 +44,6 @@ function isH3SwallowedErrorBody(body: string): boolean {
   }
 }
 
-import { getGlobalStatsFromKv, recordEventInKv } from "./lib/server/kv-stats";
-
 /** Sitemap and AI-crawler files, generated from the tool registry on request. */
 const SITE_FILES: Record<string, { type: string; build: "sitemapXml" | "llmsTxt" | "llmsFullTxt" }> = {
   "/sitemap.xml": { type: "application/xml; charset=utf-8", build: "sitemapXml" },
@@ -69,70 +67,6 @@ export default {
 
     const siteFile = await serveSiteFile(url.pathname);
     if (siteFile) return siteFile;
-
-    // Provide Cloudflare edge geographic telemetry
-    if (url.pathname === "/api/geo") {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const cf = (request as any).cf || {};
-      const country = cf.country || request.headers.get("cf-ipcountry") || "GB";
-      const city = cf.city || request.headers.get("cf-ipcity") || "London";
-      const region = cf.region || request.headers.get("cf-region") || "England";
-      const colo = cf.colo || request.headers.get("cf-ray")?.split("-").pop() || "LHR";
-      const timezone = cf.timezone || request.headers.get("cf-timezone") || "UTC";
-
-      return new Response(
-        JSON.stringify({
-          country,
-          city,
-          region,
-          colo,
-          timezone,
-        }),
-        {
-          headers: {
-            "content-type": "application/json; charset=utf-8",
-            "cache-control": "no-store",
-            "access-control-allow-origin": "*",
-          },
-        },
-      );
-    }
-
-    // Get global aggregate stats from Cloudflare KV
-    if (url.pathname === "/api/stats" && request.method === "GET") {
-      const stats = await getGlobalStatsFromKv(env);
-      return new Response(JSON.stringify(stats), {
-        headers: {
-          "content-type": "application/json; charset=utf-8",
-          "cache-control": "no-store, no-cache, must-revalidate",
-          "access-control-allow-origin": "*",
-        },
-      });
-    }
-
-    // Track anonymous event in Cloudflare KV
-    if (url.pathname === "/api/track" && request.method === "POST") {
-      try {
-        const body = (await request.json()) as {
-          type: "tool" | "pageview";
-          slug?: string | undefined;
-          country?: string | undefined;
-          colo?: string | undefined;
-        };
-        const updated = await recordEventInKv(env, body);
-        return new Response(JSON.stringify({ success: true, stats: updated }), {
-          headers: {
-            "content-type": "application/json; charset=utf-8",
-            "access-control-allow-origin": "*",
-          },
-        });
-      } catch (err) {
-        return new Response(JSON.stringify({ error: "Invalid payload" }), {
-          status: 400,
-          headers: { "content-type": "application/json; charset=utf-8" },
-        });
-      }
-    }
 
     try {
       const handler = await getServerEntry();

@@ -43,7 +43,7 @@
 - **Zero File Uploads:** Files are read into your browser tab's RAM via `File` and `ArrayBuffer` APIs.
 - **Offline Capable:** Load the site once, disconnect from Wi-Fi, and every tool continues to work seamlessly.
 - **Zero Tracking:** No advertising cookies, no IP logging, and no analytics inspection of file names or contents.
-- **Local Analytics:** Tool usage counts are aggregated privately in your device's `localStorage` for usage breakdown on the `/stats` page.
+- **No Analytics:** No visit counters, no tool-usage tracking, no telemetry endpoints.
 
 ---
 

@@ -1,21 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ToolRow, ToolTile } from "@/components/site/ToolRow";
 import { ToolFinder } from "@/components/site/search/ToolFinder";
 import { siteConfig } from "@/lib/site-config";
 import { pageHead, toolListJsonLd } from "@/lib/seo";
 import { CATEGORIES, tools, toolsIn } from "@/lib/tools";
-import { trackPageView } from "@/lib/analytics";
-import { getGeoTelemetry } from "@/lib/server/geo";
 
 export const Route = createFileRoute("/")({
-  loader: async () => {
-    try {
-      return await getGeoTelemetry();
-    } catch {
-      return null;
-    }
-  },
   head: () =>
     pageHead({
       path: "/",
@@ -34,16 +25,7 @@ const POPULAR = ["sign", "merge", "compress", "split", "fill-form", "ocr", "imag
 const categoryId = (heading: string) => heading.toLowerCase().replace(/[^a-z]+/g, "-").replace(/-$/, "");
 
 function Home() {
-  const geo = Route.useLoaderData();
   const [query, setQuery] = useState("");
-
-  useEffect(() => {
-    if (geo?.country) {
-      trackPageView(geo);
-    } else {
-      trackPageView();
-    }
-  }, [geo]);
 
   return (
     <>

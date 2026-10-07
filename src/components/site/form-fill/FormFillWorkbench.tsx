@@ -10,7 +10,6 @@ import { FormFieldInput } from "./FormFieldInput";
 import { acceptsFile, PdfError, type OutputFile } from "@/lib/pdf/core";
 import { takeHandoff } from "@/lib/handoff";
 import type { FormFieldInfo, FormValues } from "@/lib/pdf/ops/forms";
-import { trackToolRun } from "@/lib/analytics";
 import type { Tool } from "@/lib/tools";
 
 type State = {
@@ -136,7 +135,6 @@ export function FormFillWorkbench({ tool }: { tool: Tool }) {
       const { fillForm } = await import("@/lib/pdf/ops/forms");
       const results = await fillForm(state.file, state.values, { flatten: state.flatten }, (label, ratio) => dispatch({ type: "STEP", label, ratio }));
       dispatch({ type: "DONE", results });
-      trackToolRun(tool.slug);
     } catch (e) {
       dispatch({ type: "FAIL", error: message(e, "The form couldn't be filled. The file may be damaged or unsupported.") });
     }
