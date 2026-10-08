@@ -38,6 +38,12 @@
 
 ---
 
+## 📱 Mobile app
+
+A companion iOS and Android app lives in [`mobile-app/`](mobile-app/): the same paper & ink design and the same
+PDF engine, built with Expo / React Native. It works fully offline and keeps every file on the phone.
+See [mobile-app/README.md](mobile-app/README.md).
+
 ## 🔒 Privacy & Security Model
 
 - **Zero File Uploads:** Files are read into your browser tab's RAM via `File` and `ArrayBuffer` APIs.

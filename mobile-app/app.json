@@ -1,0 +1,83 @@
+{
+  "expo": {
+    "name": "PDFamaze",
+    "slug": "pdfamaze-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "pdfamaze",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.pdfamaze.app",
+      "config": {
+        "usesNonExemptEncryption": false
+      },
+      "icon": {
+        "light": "./assets/images/icon.png",
+        "dark": "./assets/images/icon-dark.png",
+        "tinted": "./assets/images/icon-tinted.png"
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#faf7f3",
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "backgroundImage": "./assets/images/android-icon-background.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "package": "com.pdfamaze.app"
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#faf7f3",
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 76,
+          "dark": {
+            "backgroundColor": "#13110e",
+            "image": "./assets/images/splash-icon.png"
+          }
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "PDFamaze opens the photos you pick to turn them into PDFs. They stay on your phone.",
+          "cameraPermission": "PDFamaze uses the camera to photograph paper documents and turn them into PDFs. Photos stay on your phone.",
+          "microphonePermission": false
+        }
+      ],
+      "expo-sharing",
+      "expo-localization",
+      "expo-sqlite",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/notification-icon.png",
+          "color": "#c84a27"
+        }
+      ],
+      "expo-asset"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "description": "Private PDF tools that work entirely on your phone. No account, no uploads.",
+    "owner": "isan333",
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "44dd6e0e-b31e-436f-8026-8539dd5725eb"
+      }
+    }
+  }
+}
