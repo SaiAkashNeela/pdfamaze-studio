@@ -16,6 +16,7 @@ import { useTheme } from "@/theme/ThemeProvider";
 import { radius, space } from "@/theme/tokens";
 import { Button } from "@/ui/Button";
 import { Segmented } from "@/ui/fields";
+import { useLayout } from "@/ui/layout";
 import { Notice } from "@/ui/Notice";
 import { Screen } from "@/ui/Screen";
 import { Text } from "@/ui/Text";
@@ -35,12 +36,14 @@ function PageThumb({
   count,
   onMove,
   onRemove,
+  width,
 }: {
   file: LocalFile;
   index: number;
   count: number;
   onMove: (dir: -1 | 1) => void;
   onRemove: () => void;
+  width: `${number}%`;
 }) {
   const { colors } = useTheme();
   const n = index + 1;
@@ -62,7 +65,7 @@ function PageThumb({
     </Pressable>
   );
   return (
-    <View style={styles.thumbWrap}>
+    <View style={[styles.thumbWrap, { width }]}>
       <View
         style={[styles.thumb, { borderColor: colors.border, backgroundColor: colors.surface }]}
         accessible
@@ -86,6 +89,9 @@ function PageThumb({
 
 export function ScanFlow() {
   const { colors } = useTheme();
+  const { wide } = useLayout();
+  // Three pages across on phones, five on tablets.
+  const thumbWidth: `${number}%` = wide ? "18%" : "30.5%";
   const [pages, setPages] = useState<LocalFile[]>([]);
   const [fit, setFit] = useState("a4");
   const [message, setMessage] = useState<string | null>(null);
@@ -151,9 +157,10 @@ export function ScanFlow() {
                 count={pages.length}
                 onMove={(dir) => move(i, dir)}
                 onRemove={() => setPages((p) => p.filter((x) => x.id !== file.id))}
+                width={thumbWidth}
               />
             ))}
-            <View style={styles.thumbWrap}>
+            <View style={[styles.thumbWrap, { width: thumbWidth }]}>
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={t("scan.addPage")}
@@ -258,7 +265,7 @@ const styles = StyleSheet.create({
   },
   heroIcon: { width: 60, height: 60, borderRadius: 30, alignItems: "center", justifyContent: "center", marginBottom: space.xs },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: space.md, marginTop: space.lg },
-  thumbWrap: { width: "30.5%", gap: space.xs },
+  thumbWrap: { gap: space.xs },
   thumb: { aspectRatio: 3 / 4, borderRadius: radius.md, borderWidth: 1, overflow: "hidden" },
   addTile: { borderStyle: "dashed", borderWidth: 1.5, alignItems: "center", justifyContent: "center", gap: 4 },
   pageBadge: {

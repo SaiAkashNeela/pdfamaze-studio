@@ -2,13 +2,13 @@
   "expo": {
     "name": "PDFamaze",
     "slug": "pdfamaze-mobile",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "pdfamaze",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "supportsTablet": false,
+      "supportsTablet": true,
       "bundleIdentifier": "com.pdfamaze.app",
       "config": {
         "usesNonExemptEncryption": false
@@ -50,8 +50,8 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "PDFamaze opens the photos you pick to turn them into PDFs. They stay on your phone.",
-          "cameraPermission": "PDFamaze uses the camera to photograph paper documents and turn them into PDFs. Photos stay on your phone.",
+          "photosPermission": "PDFamaze opens the photos you pick to turn them into PDFs. They stay on your device.",
+          "cameraPermission": "PDFamaze uses the camera to photograph paper documents and turn them into PDFs. Photos stay on your device.",
           "microphonePermission": false
         }
       ],

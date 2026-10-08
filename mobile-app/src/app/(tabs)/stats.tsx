@@ -18,6 +18,7 @@ import { Button } from "@/ui/Button";
 import { Card } from "@/ui/Card";
 import { Notice } from "@/ui/Notice";
 import { Screen } from "@/ui/Screen";
+import { useLayout } from "@/ui/layout";
 import { Text } from "@/ui/Text";
 import { ToolIcon } from "@/ui/ToolIcon";
 
@@ -107,6 +108,7 @@ function Week({ days }: { days: StatsSummary["week"] }) {
 }
 
 export default function StatsScreen() {
+  const { wide } = useLayout();
   const [stats, setStats] = useState<StatsSummary | null>(null);
 
   // Re-read whenever the tab is opened, so a job finished a moment ago shows up.
@@ -146,13 +148,18 @@ export default function StatsScreen() {
 
       {s ? (
         <View style={{ gap: space.md, marginTop: space.xl }}>
-          <View style={{ flexDirection: "row", gap: space.md }}>
-            <StatTile value={String(s.runs)} label={t("stats.runs")} />
-            <StatTile value={String(s.opens)} label={t("stats.opens")} />
-          </View>
-          <View style={{ flexDirection: "row", gap: space.md }}>
-            <StatTile value={String(s.files)} label={t("stats.files")} />
-            <StatTile value={formatBytes(s.bytes)} label={t("stats.bytes")} />
+          {/* Two rows of two on phones, one row of four on tablets. */}
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: space.md }}>
+            {[
+              { value: String(s.runs), label: t("stats.runs") },
+              { value: String(s.opens), label: t("stats.opens") },
+              { value: String(s.files), label: t("stats.files") },
+              { value: formatBytes(s.bytes), label: t("stats.bytes") },
+            ].map((tile) => (
+              <View key={tile.label} style={{ flexBasis: wide ? "22%" : "45%", flexGrow: 1 }}>
+                <StatTile value={tile.value} label={tile.label} />
+              </View>
+            ))}
           </View>
         </View>
       ) : null}

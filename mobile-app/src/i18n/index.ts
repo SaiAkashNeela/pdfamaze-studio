@@ -2,6 +2,7 @@
  * Minimal i18n. `t("home.title")` looks a dot-path up in the active language, falls back to
  * English, then to the provided default. `{name}` placeholders are filled from `vars`.
  */
+import { DeviceType, deviceType } from "expo-device";
 import { getLocales } from "expo-localization";
 import { en, type Strings } from "./en";
 
@@ -30,9 +31,12 @@ function lookup(table: unknown, path: string): string | undefined {
 
 export type Vars = Record<string, string | number>;
 
+/** Filled into every string's `{device}` placeholder, so tablets don't read "on this phone". */
+const DEVICE = deviceType === DeviceType.TABLET ? "tablet" : "phone";
+
 function fill(text: string, vars?: Vars): string {
-  if (!vars) return text;
-  return text.replace(/\{(\w+)\}/g, (match, key: string) => (key in vars ? String(vars[key]) : match));
+  const all: Vars = { device: DEVICE, ...vars };
+  return text.replace(/\{(\w+)\}/g, (match, key: string) => (key in all ? String(all[key]) : match));
 }
 
 export function t(path: string, vars?: Vars, fallback?: string): string {

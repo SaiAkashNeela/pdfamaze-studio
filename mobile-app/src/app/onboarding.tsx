@@ -36,12 +36,12 @@ export default function Onboarding() {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background, paddingTop: insets.top + space.md, paddingBottom: insets.bottom + space.lg }]}>
-      <View style={styles.top}>
+      <View style={[styles.top, styles.column]}>
         <Wordmark />
         {last ? null : <Button kind="ghost" label={t("onboarding.skip")} onPress={finish} style={{ paddingHorizontal: space.md }} />}
       </View>
 
-      <View style={styles.middle} accessible accessibilityLiveRegion="polite">
+      <View style={[styles.middle, styles.column]} accessible accessibilityLiveRegion="polite">
         <View style={[styles.badge, { backgroundColor: page === 0 ? colors.successSoft : colors.accentSoft }]}>
           <Icon size={56} color={page === 0 ? colors.success : colors.accent} strokeWidth={1.8} />
         </View>
@@ -56,7 +56,7 @@ export default function Onboarding() {
         </Text>
       </View>
 
-      <View style={{ gap: space.lg }}>
+      <View style={[styles.column, { gap: space.lg }]}>
         <View style={styles.dots} accessible={false} importantForAccessibility="no-hide-descendants">
           {PAGES.map((p, i) => (
             <View key={p.key} style={[styles.dot, { backgroundColor: i === page ? colors.accent : colors.border, width: i === page ? 24 : 8 }]} />
@@ -70,7 +70,9 @@ export default function Onboarding() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, paddingHorizontal: space.xl, justifyContent: "space-between" },
+  root: { flex: 1, paddingHorizontal: space.xl, justifyContent: "space-between", alignItems: "center" },
+  /** Keeps each part a readable width on tablets. */
+  column: { width: "100%", maxWidth: 560 },
   top: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", minHeight: 44 },
   middle: { alignItems: "center", gap: space.md, paddingHorizontal: space.sm },
   badge: { width: 112, height: 112, borderRadius: radius.pill, alignItems: "center", justifyContent: "center", marginBottom: space.md },

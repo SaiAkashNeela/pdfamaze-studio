@@ -12,6 +12,7 @@ import { CATEGORIES, FAVOURITES, getTool, searchTools, toolsIn } from "@/tools/r
 import type { Tool } from "@/tools/types";
 import { useTheme } from "@/theme/ThemeProvider";
 import { fonts, MAX_FONT_SCALE, radius, space, TAP } from "@/theme/tokens";
+import { BROWSE_WIDTH, Grid, useLayout } from "@/ui/layout";
 import { Wordmark } from "@/ui/Logo";
 import { Notice } from "@/ui/Notice";
 import { PrivacyBadge } from "@/ui/PrivacyBadge";
@@ -21,20 +22,18 @@ import { ToolRow, ToolTile } from "@/ui/ToolCards";
 
 const favourites = FAVOURITES.map(getTool).filter((tool): tool is Tool => !!tool);
 
-function pairs<T>(list: T[]): T[][] {
-  const out: T[][] = [];
-  for (let i = 0; i < list.length; i += 2) out.push(list.slice(i, i + 2));
-  return out;
-}
-
 export default function Home() {
   const { colors } = useTheme();
   const [query, setQuery] = useState("");
   const results = searchTools(query);
   const searching = query.trim().length > 0;
+  const { wide, extraWide } = useLayout();
+  const tileColumns = extraWide ? 4 : wide ? 3 : 2;
+  const rowColumns = wide ? 2 : 1;
+  const slug = (tool: Tool) => tool.slug;
 
   return (
-    <Screen inTab headerLeft={<Wordmark />} headerRight={<PrivacyBadge onPress={() => router.navigate("/help")} />}>
+    <Screen inTab maxWidth={BROWSE_WIDTH} headerLeft={<Wordmark />} headerRight={<PrivacyBadge onPress={() => router.navigate("/help")} />}>
       <View style={{ gap: space.xs + 2, marginTop: space.md }}>
         <Text variant="label" tone="accent">
           {t("home.eyebrow")}
@@ -76,22 +75,12 @@ export default function Home() {
           <Text variant="small" tone="muted" accessibilityLiveRegion="polite">
             {results.length ? t("home.results", { count: results.length }) : t("home.noResults", { query: query.trim() })}
           </Text>
-          {results.map((tool) => (
-            <ToolRow key={tool.slug} tool={tool} />
-          ))}
+          <Grid items={results} columns={rowColumns} gap={space.sm} keyOf={slug} render={(tool) => <ToolRow tool={tool} />} />
         </View>
       ) : (
         <>
           <Section title={t("home.favourites")}>
-            <View style={{ gap: space.md }}>
-              {pairs(favourites).map((row) => (
-                <View key={row.map((r) => r.slug).join()} style={{ flexDirection: "row", gap: space.md }}>
-                  {row.map((tool) => (
-                    <ToolTile key={tool.slug} tool={tool} />
-                  ))}
-                </View>
-              ))}
-            </View>
+            <Grid items={favourites} columns={tileColumns} keyOf={slug} render={(tool) => <ToolTile tool={tool} />} />
           </Section>
 
           <View style={{ marginTop: space.xl }}>
@@ -100,11 +89,7 @@ export default function Home() {
 
           {CATEGORIES.map((c) => (
             <Section key={c.key} title={t(`home.categories.${c.key}`)} color={colors.tags[c.tags[0]!]}>
-              <View style={{ gap: space.sm }}>
-                {toolsIn(c.tags).map((tool) => (
-                  <ToolRow key={tool.slug} tool={tool} />
-                ))}
-              </View>
+              <Grid items={toolsIn(c.tags)} columns={rowColumns} gap={space.sm} keyOf={slug} render={(tool) => <ToolRow tool={tool} />} />
             </Section>
           ))}
         </>

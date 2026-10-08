@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { t } from "@/i18n";
 import { useTheme } from "@/theme/ThemeProvider";
 import { space } from "@/theme/tokens";
+import { READING_WIDTH } from "./layout";
 import { Text } from "./Text";
 
 type Props = {
@@ -21,19 +22,22 @@ type Props = {
   scrollEnabled?: boolean;
   /** Inside the tab bar, which already sits above the home indicator. */
   inTab?: boolean;
+  /** Widest the content may get on tablets. Defaults to a comfortable reading width. */
+  maxWidth?: number;
 };
 
 /** Page frame: safe areas, a plain "‹ Back" button with a word, scrolling content, sticky footer. */
-export function Screen({ children, footer, back, onBack, headerRight, headerLeft, scrollEnabled = true, inTab }: Props) {
+export function Screen({ children, footer, back, onBack, headerRight, headerLeft, scrollEnabled = true, inTab, maxWidth = READING_WIDTH }: Props) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const bottom = inTab ? 0 : insets.bottom;
+  const column = { width: "100%" as const, maxWidth, alignSelf: "center" as const };
   const goBack = onBack ?? (() => (router.canGoBack() ? router.back() : router.replace("/")));
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background, paddingTop: insets.top }]}>
       {back || headerRight || headerLeft ? (
-        <View style={styles.header}>
+        <View style={[styles.header, column]}>
           {back ? (
             <Pressable
               accessibilityRole="button"
@@ -55,7 +59,7 @@ export function Screen({ children, footer, back, onBack, headerRight, headerLeft
         <ScrollView
           style={styles.flex}
           scrollEnabled={scrollEnabled}
-          contentContainerStyle={[styles.content, { paddingBottom: footer ? space.xl : bottom + space.xxl }]}
+          contentContainerStyle={[styles.content, column, { paddingBottom: footer ? space.xl : bottom + space.xxl }]}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
         >
@@ -63,7 +67,7 @@ export function Screen({ children, footer, back, onBack, headerRight, headerLeft
         </ScrollView>
         {footer ? (
           <View style={[styles.footer, { paddingBottom: Math.max(bottom, space.md), backgroundColor: colors.background, borderTopColor: colors.border }]}>
-            {footer}
+            <View style={[column, { gap: space.sm }]}>{footer}</View>
           </View>
         ) : null}
       </KeyboardAvoidingView>
@@ -83,5 +87,5 @@ const styles = StyleSheet.create({
   },
   back: { flexDirection: "row", alignItems: "center", minHeight: 44, paddingRight: space.md, gap: 2 },
   content: { paddingHorizontal: space.lg, paddingTop: space.xs },
-  footer: { paddingHorizontal: space.lg, paddingTop: space.md, borderTopWidth: StyleSheet.hairlineWidth, gap: space.sm },
+  footer: { paddingHorizontal: space.lg, paddingTop: space.md, borderTopWidth: StyleSheet.hairlineWidth },
 });
