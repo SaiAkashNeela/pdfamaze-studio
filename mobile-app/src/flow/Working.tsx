@@ -39,13 +39,13 @@ export function Working({ status, ratio, onLeave }: { status: string; ratio?: nu
       <Text variant="small" tone="muted" center style={{ marginTop: space.lg, maxWidth: 320 }}>
         {t("tool.workingHint")}
       </Text>
-      {onLeave ? <Button kind="secondary" label={t("tool.leave")} onPress={onLeave} style={{ alignSelf: "stretch", marginTop: space.md }} /> : null}
+      {onLeave ? <Button kind="secondary" label={t("tool.leave")} onPress={onLeave} style={{ width: "100%", maxWidth: 480, marginTop: space.md }} /> : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   root: { ...StyleSheet.absoluteFill, alignItems: "center", justifyContent: "center", gap: space.lg, paddingHorizontal: space.xxl },
-  track: { alignSelf: "stretch", height: 14, borderRadius: radius.pill, overflow: "hidden" },
+  track: { width: "100%", maxWidth: 480, height: 14, borderRadius: radius.pill, overflow: "hidden" },
   fill: { height: "100%", borderRadius: radius.pill },
 });

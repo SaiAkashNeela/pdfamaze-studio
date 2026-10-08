@@ -61,7 +61,7 @@ export function receive(raw: string) {
 
 /** Called by the host if the WebView's process dies (low memory, etc.). */
 export function crashed() {
-  const error = new PdfError("The page renderer stopped, probably because the phone ran low on memory. Try fewer pages or a lower resolution.");
+  const error = new PdfError("The page renderer stopped, probably because the device ran low on memory. Try fewer pages or a lower resolution.");
   readyWaiter?.reject(error);
   readyWaiter = null;
   for (const waiter of pending.values()) waiter.reject(error);

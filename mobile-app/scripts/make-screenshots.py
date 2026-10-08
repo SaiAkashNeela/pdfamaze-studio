@@ -3,13 +3,17 @@
 Turns raw simulator screenshots into store screenshots: the screen on a paper-coloured canvas
 with a short caption, in the sizes both stores accept.
 
-    python3 scripts/make-screenshots.py <raw-dir>
+    python3 scripts/make-screenshots.py <raw-dir>              # phone screenshots
+    python3 scripts/make-screenshots.py <raw-dir> --tablet     # iPad / Android tablet screenshots
 
 <raw-dir> holds PNGs named like the SHOTS keys below (e.g. 01-home.png). Outputs:
   store/screenshots/play/*.png                1080 x 1920  (Google Play phone, 9:16)
   store/screenshots/appstore-6.3/*.png        1206 x 2622  (App Store "iPhone with Dynamic Island, medium display")
   store/screenshots/appstore-6.9/*.png        1320 x 2868  (App Store "iPhone with Dynamic Island, large display")
   store/screenshots/appstore-header.png       3840 x 1646  (App Store product page header)
+With --tablet (raw screenshots from the 13" iPad simulator):
+  store/screenshots/appstore-ipad-13/*.png    2064 x 2752  (App Store 13-inch iPad)
+  store/screenshots/play-tablet/*.png         1440 x 2560  (Google Play 7"/10" tablet, 9:16)
 """
 import os
 import sys
@@ -52,7 +56,7 @@ def rounded(img, radius):
     return out
 
 
-def compose(raw_path, eyebrow, caption, dark, size, out_path):
+def compose(raw_path, eyebrow, caption, dark, size, out_path, corner=64):
     w, h = size
     s = w / 1080  # everything below is designed at 1080 wide
     bg, grid, ink, accent = (DARK_BG, DARK_GRID, DARK_INK, DARK_ACCENT) if dark else (PAPER, GRID, INK, ACCENT)
@@ -78,7 +82,7 @@ def compose(raw_path, eyebrow, caption, dark, size, out_path):
     max_w = int(w * 0.78)
     scale = min(max_w / shot.width, max_h / shot.height)
     shot = shot.resize((int(shot.width * scale), int(shot.height * scale)), Image.LANCZOS)
-    radius = int(64 * s)
+    radius = int(corner * s)
     screen = rounded(shot.convert("RGBA"), radius)
     x = (w - shot.width) // 2
     y = area_top
@@ -137,7 +141,11 @@ def header(raw_dir, out_path, size=(3840, 1646)):
 
 def main():
     raw_dir = sys.argv[1]
-    targets = {"play": (1080, 1920), "appstore-6.3": (1206, 2622), "appstore-6.9": (1320, 2868)}
+    tablet = "--tablet" in sys.argv
+    if tablet:
+        targets = {"appstore-ipad-13": (2064, 2752), "play-tablet": (1440, 2560)}
+    else:
+        targets = {"play": (1080, 1920), "appstore-6.3": (1206, 2622), "appstore-6.9": (1320, 2868)}
     for name in targets:
         os.makedirs(os.path.join(OUT, name), exist_ok=True)
     for stem, (eyebrow, caption, dark) in SHOTS.items():
@@ -146,9 +154,10 @@ def main():
             print(f"skip {stem} (no raw screenshot)")
             continue
         for name, size in targets.items():
-            compose(raw, eyebrow, caption, dark, size, os.path.join(OUT, name, f"{stem}.png"))
+            # iPad screens have much gentler corners than phones.
+            compose(raw, eyebrow, caption, dark, size, os.path.join(OUT, name, f"{stem}.png"), corner=22 if tablet else 64)
         print(f"made {stem}")
-    if all(os.path.exists(os.path.join(raw_dir, f"{s}.png")) for s in ("01-home", "03-sign", "05-stats")):
+    if not tablet and all(os.path.exists(os.path.join(raw_dir, f"{s}.png")) for s in ("01-home", "03-sign", "05-stats")):
         header(raw_dir, os.path.join(OUT, "appstore-header.png"))
         print("made appstore-header")
 
