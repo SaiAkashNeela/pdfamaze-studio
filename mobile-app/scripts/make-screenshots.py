@@ -6,8 +6,9 @@ with a short caption, in the sizes both stores accept.
     python3 scripts/make-screenshots.py <raw-dir>
 
 <raw-dir> holds PNGs named like the SHOTS keys below (e.g. 01-home.png). Outputs:
-  store/screenshots/play/*.png      1080 x 1920  (Google Play phone, 9:16)
-  store/screenshots/appstore/*.png  1290 x 2796  (App Store 6.7"/6.9" iPhone)
+  store/screenshots/play/*.png                1080 x 1920  (Google Play phone, 9:16)
+  store/screenshots/appstore-6.3/*.png        1206 x 2622  (App Store "iPhone with Dynamic Island, medium display")
+  store/screenshots/appstore-6.9/*.png        1320 x 2868  (App Store "iPhone with Dynamic Island, large display")
 """
 import os
 import sys
@@ -96,7 +97,7 @@ def compose(raw_path, eyebrow, caption, dark, size, out_path):
 
 def main():
     raw_dir = sys.argv[1]
-    targets = {"play": (1080, 1920), "appstore": (1290, 2796)}
+    targets = {"play": (1080, 1920), "appstore-6.3": (1206, 2622), "appstore-6.9": (1320, 2868)}
     for name in targets:
         os.makedirs(os.path.join(OUT, name), exist_ok=True)
     for stem, (eyebrow, caption, dark) in SHOTS.items():
