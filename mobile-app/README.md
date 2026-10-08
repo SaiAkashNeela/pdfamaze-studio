@@ -19,6 +19,23 @@ bun x react-doctor . --yes   # code quality (target 100/100)
 
 Every dependency is bundled in Expo Go, so no native build is needed during development.
 
+## Building your own copy
+
+You can run and modify the app without any accounts: `bun install`, then `bunx expo start` and open it in
+Expo Go (or the iOS simulator / Android emulator).
+
+Store builds go through [EAS Build](https://docs.expo.dev/build/introduction/), and `app.json` is linked to the
+original author's Expo project (`owner` and `extra.eas.projectId`), so `eas build` won't work on a fork as-is.
+To build under your own account:
+
+1. Remove `owner` and `extra.eas.projectId` from `app.json`.
+2. Run `bunx eas-cli login`, then `bunx eas-cli init` to create and link your own project.
+3. Change the app ID (`ios.bundleIdentifier` and `android.package`, currently `com.pdfamaze.app`) to one
+   you own, e.g. `com.yourname.pdftools`. Store IDs are unique, so the original can't be reused.
+4. Remove `submit.production.ios.ascAppId` from `eas.json` (it points at the original App Store app).
+5. `bunx eas-cli build --platform all --profile preview` for installable test builds, or `--profile production`
+   for store builds. EAS creates and stores your signing credentials; nothing secret goes in the repo.
+
 ## What's inside
 
 | Path | What it is |
