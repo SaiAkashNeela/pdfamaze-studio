@@ -122,9 +122,11 @@ split by bookmarks, auto rename, HTML to PDF.
 
 JavaScript-only fixes can ship without a store review through EAS Update (`expo-updates`).
 
-- **iOS only.** Production Android builds block the INTERNET permission, so `app.config.ts` turns
-  `expo-updates` off there (`EAS_BUILD_PLATFORM === "android"`) and Android updates go through
-  Google Play. Preview Android builds keep updates on.
+- **iOS only.** Production Android builds block the INTERNET permission, so
+  `plugins/with-offline-android-updates.js` turns `expo-updates` off in their manifest and Android
+  updates go through Google Play. Preview Android builds keep updates on. It's a manifest-only
+  plugin on purpose: anything that makes the app config differ by platform changes the runtime
+  fingerprint on EAS and fails the build.
 - `runtimeVersion` uses the `fingerprint` policy: any native change (new module, config plugin,
   SDK bump) changes the runtime, so an update can never land on a binary it doesn't match. Those
   changes need a new store build.

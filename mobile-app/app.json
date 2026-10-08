@@ -71,7 +71,8 @@
           "color": "#c84a27"
         }
       ],
-      "expo-asset"
+      "expo-asset",
+      "./plugins/with-offline-android-updates"
     ],
     "experiments": {
       "typedRoutes": true,
