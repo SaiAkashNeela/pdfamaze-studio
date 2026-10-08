@@ -94,6 +94,14 @@ function PrivacyPage() {
           phone and never uploaded</strong>. The app has no servers to send them to. On Android, the store version
           doesn&apos;t even request permission to use the internet, so the operating system itself blocks any upload.
         </p>
+        <p>
+          <strong>App updates on iOS.</strong> When it opens, the iPhone and iPad app checks Expo&apos;s update
+          service (EAS Update) for a newer version of its own code and downloads it if there is one. That request
+          contains only what the app needs to find the right update: its version, platform and the ID of the code it
+          is running, plus the IP address any internet request has. It never contains your files, their names or
+          anything about how you use the app. Without a connection the check simply fails and the app runs as normal.
+          The Android app doesn&apos;t do this; it gets updates only through Google Play.
+        </p>
         <p>The app asks for these permissions, and only uses them for what you choose to do:</p>
         <ul className="list-disc space-y-1 pl-5">
           <li>

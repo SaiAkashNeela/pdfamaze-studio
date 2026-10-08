@@ -118,6 +118,29 @@ compress (re-render mode), grayscale, colour tools, scanner effect, remove blank
 full flatten, extract text, OCR, compare, redact, PDF info, extract images/attachments, repair,
 split by bookmarks, auto rename, HTML to PDF.
 
+## Over-the-air updates
+
+JavaScript-only fixes can ship without a store review through EAS Update (`expo-updates`).
+
+- **iOS only.** Production Android builds block the INTERNET permission, so `app.config.ts` turns
+  `expo-updates` off there (`EAS_BUILD_PLATFORM === "android"`) and Android updates go through
+  Google Play. Preview Android builds keep updates on.
+- `runtimeVersion` uses the `fingerprint` policy: any native change (new module, config plugin,
+  SDK bump) changes the runtime, so an update can never land on a binary it doesn't match. Those
+  changes need a new store build.
+- Builds are tied to channels in `eas.json`: `preview` and `production`.
+- The app checks on launch and applies a downloaded update on the next launch. Offline, it runs
+  the bundle it has.
+
+Publish:
+
+```sh
+eas update --channel production --platform ios --message "Fix …"
+eas update --channel preview --message "Try …"
+```
+
+Roll back with `eas update:rollback`.
+
 ## Before releasing
 
 - App ID is `com.pdfamaze.app` (iOS bundle identifier and Android package). It cannot change after the first store release.

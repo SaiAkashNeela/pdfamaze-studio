@@ -7,6 +7,12 @@
     "icon": "./assets/images/icon.png",
     "scheme": "pdfamaze",
     "userInterfaceStyle": "automatic",
+    "runtimeVersion": {
+      "policy": "fingerprint"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/44dd6e0e-b31e-436f-8026-8539dd5725eb"
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.pdfamaze.app",

@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@pdfsmaller/pdf-encrypt-lite": "^1.2.0",
-    "@tanstack/react-query": "^5.104.0",
+    "@tanstack/react-query": "^5.104.1",
     "@tanstack/react-router": "1.170.18",
     "@tanstack/react-start": "1.168.32",
     "clsx": "^2.1.1",
@@ -24,7 +24,7 @@
     "jspdf": "^4.2.1",
     "lucide-react": "^0.575.0",
     "pdf-lib": "^1.17.1",
-    "pdfjs-dist": "^6.3.289",
+    "pdfjs-dist": "^6.4.299",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "signature_pad": "^5.1.4",
@@ -38,7 +38,7 @@
     "@eslint/js": "^9.39.5",
     "@tailwindcss/vite": "^4.3.3",
     "@types/html2canvas": "^1.0.0",
-    "@types/node": "^22.20.4",
+    "@types/node": "^22.20.5",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^5.2.0",
@@ -50,8 +50,11 @@
     "nitro": "3.0.260603-beta",
     "prettier": "^3.9.9",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.70.1",
+    "typescript-eslint": "^8.71.1",
     "vite": "8.1.5",
     "vite-tsconfig-paths": "^6.1.1"
+  },
+  "overrides": {
+    "source-map-js": "^1.2.2"
   }
 }
