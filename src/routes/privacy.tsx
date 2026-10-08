@@ -4,7 +4,7 @@ import { siteConfig } from "@/lib/site-config";
 import { pageHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/privacy")({
-  head: () => pageHead({ path: "/privacy", title: `Privacy — ${siteConfig.name}`, description: "What PDFamaze does and doesn't do with your files: local processing, no uploads, no accounts, and what is stored in your browser." }),
+  head: () => pageHead({ path: "/privacy", title: `Privacy — ${siteConfig.name}`, description: "What PDFamaze does and doesn't do with your files, on the web and in the iOS and Android app: local processing, no uploads, no accounts, and what is stored on your device." }),
   component: PrivacyPage,
 });
 
@@ -13,7 +13,7 @@ function PrivacyPage() {
     <DocPage
       kicker="Privacy"
       title="What happens to your files"
-      intro="Short version: the PDF tools on this site run in your browser, so the documents you open are not sent to us or to anyone else. The longer version is below, including the parts we can't control."
+      intro="Short version: the PDF tools on this site run in your browser, and the PDFamaze app runs on your phone, so the documents you open are not sent to us or to anyone else. The longer version is below, including the parts we can't control."
     >
       <Section heading="Your documents">
         <p>
@@ -88,12 +88,52 @@ function PrivacyPage() {
         </p>
       </Section>
 
+      <Section heading="The PDFamaze mobile app">
+        <p>
+          The iOS and Android app follows the same rule as the site: <strong>your documents are processed on your
+          phone and never uploaded</strong>. The app has no servers to send them to. On Android, the store version
+          doesn&apos;t even request permission to use the internet, so the operating system itself blocks any upload.
+        </p>
+        <p>The app asks for these permissions, and only uses them for what you choose to do:</p>
+        <ul className="list-disc space-y-1 pl-5">
+          <li>
+            <strong>Camera</strong>: only when you take a photo in Scan or Photos to PDF. Photos stay on your phone.
+          </li>
+          <li>
+            <strong>Photos</strong>: only the pictures you pick. The app can&apos;t browse your library.
+          </li>
+          <li>
+            <strong>Notifications</strong> (optional): a &ldquo;your file is ready&rdquo; message when a job finishes,
+            and an occasional reminder after a week without opening the app, which you can turn off in Help. Both are
+            scheduled on the phone itself; there is no push service, account or token.
+          </li>
+        </ul>
+        <p>What the app keeps on your phone, in its private storage:</p>
+        <ul className="list-disc space-y-1 pl-5">
+          <li>Your theme choice and whether you&apos;ve seen the welcome screens.</li>
+          <li>Your signature, only if you tick &ldquo;Remember my signature&rdquo;.</li>
+          <li>
+            Your personal usage stats on the Stats tab: which tool you used and when, how many files and how much
+            data, but never file names or contents. Tap &ldquo;Clear my stats&rdquo; to delete them.
+          </li>
+          <li>
+            Finished files, in a temporary folder, until you save or share them. The app clears this folder every
+            time it starts.
+          </li>
+        </ul>
+        <p>
+          The app has no analytics, no crash reporting, no ads and no account. Deleting the app removes everything
+          above. Apple and Google may collect information about downloads under their own privacy policies; we
+          don&apos;t receive any of it beyond the aggregate download numbers the stores show every developer.
+        </p>
+      </Section>
+
       <Section heading="Claims we don't make">
         <p>
           We won't say "100% private", because your own environment matters too: browser
           extensions, managed devices, and operating-system features can all see what a web page
-          does. What we can honestly say is that this site does not upload your documents, and the
-          code that proves it is open source and runs on your machine.
+          does. What we can honestly say is that neither this site nor the app uploads your documents, and
+          the code that proves it is open source and runs on your device.
         </p>
       </Section>
 
