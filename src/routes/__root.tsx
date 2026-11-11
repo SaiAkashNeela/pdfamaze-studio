@@ -52,6 +52,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "alternate icon", href: "/favicon.ico", type: "image/x-icon" },
       { rel: "manifest", href: "/site.webmanifest" },
     ],
+    scripts: [
+      // PilotFox analytics: classic deferred script, loaded with the page (not lazily).
+      { src: "https://pilotfox.app/api/s.js", defer: true, "data-site": "kr004s0qo42zevtg" },
+    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,
