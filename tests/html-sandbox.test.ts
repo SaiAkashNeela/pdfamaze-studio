@@ -21,6 +21,18 @@ function fakeDocument() {
   return { doc: doc as unknown as Document, iframe, events };
 }
 
+/** Runs the helper against the fake document installed as the global `document`. */
+function render(doc: Document) {
+  const g = globalThis as { document?: Document };
+  const previous = g.document;
+  g.document = doc;
+  try {
+    createHtmlRenderFrame();
+  } finally {
+    g.document = previous;
+  }
+}
+
 describe("HTML to PDF render frame (SEC-001)", () => {
   test("sandbox never allows scripts", () => {
     const tokens = HTML_RENDER_SANDBOX.split(/\s+/);
@@ -32,14 +44,14 @@ describe("HTML to PDF render frame (SEC-001)", () => {
 
   test("sandbox is applied before the frame is attached", () => {
     const { doc, iframe, events } = fakeDocument();
-    createHtmlRenderFrame(doc);
+    render(doc);
     expect(iframe.attrs["sandbox"]).toBe(HTML_RENDER_SANDBOX);
     expect(events.indexOf("attr:sandbox")).toBeLessThan(events.indexOf("append"));
   });
 
   test("frame stays out of view and out of the tab order", () => {
     const { doc, iframe } = fakeDocument();
-    createHtmlRenderFrame(doc);
+    render(doc);
     expect(iframe.style["visibility"]).toBe("hidden");
     expect(iframe.tabIndex).toBe(-1);
     expect(iframe.attrs["aria-hidden"]).toBe("true");

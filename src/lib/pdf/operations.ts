@@ -392,7 +392,7 @@ export async function htmlToPdf(
 
   progress("Rendering HTML content in sandbox", 0.3);
 
-  const iframe = createHtmlRenderFrame(document);
+  const iframe = createHtmlRenderFrame();
 
   const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
   if (!iframeDoc) {

@@ -9,8 +9,8 @@
  */
 export const HTML_RENDER_SANDBOX = "allow-same-origin";
 
-export function createHtmlRenderFrame(doc: Document): HTMLIFrameElement {
-  const iframe = doc.createElement("iframe");
+export function createHtmlRenderFrame(): HTMLIFrameElement {
+  const iframe = document.createElement("iframe");
   // Must be set before the frame is attached, or the first document loads unsandboxed.
   iframe.setAttribute("sandbox", HTML_RENDER_SANDBOX);
   iframe.setAttribute("aria-hidden", "true");
@@ -25,6 +25,6 @@ export function createHtmlRenderFrame(doc: Document): HTMLIFrameElement {
     visibility: "hidden",
     pointerEvents: "none",
   });
-  doc.body.appendChild(iframe);
+  document.body.appendChild(iframe);
   return iframe;
 }
