@@ -5,7 +5,8 @@ import type { Tool } from "@/lib/tools";
 
 function pickLabel(tool: Tool): string {
   const images = tool.accept.startsWith("image/");
-  const noun = tool.accept === "*" ? "files" : images ? "images" : tool.multiple ? "PDF files" : "PDF file";
+  const noun =
+    tool.accept === "*" ? "files" : images ? "images" : tool.multiple ? "PDF files" : "PDF file";
   return `Select ${noun}`;
 }
 
@@ -28,7 +29,11 @@ export function UploadStage({
   const take = (list: FileList | null) => {
     const all = Array.from(list ?? []);
     const good = all.filter((f) => acceptsFile(tool.accept, f));
-    setRejected(all.length > good.length ? `Some files were skipped — this tool takes ${tool.acceptLabel.toLowerCase()}.` : null);
+    setRejected(
+      all.length > good.length
+        ? `Some files were skipped — this tool takes ${tool.acceptLabel.toLowerCase()}.`
+        : null,
+    );
     if (good.length) onFiles(tool.multiple ? good : good.slice(0, 1));
   };
 
@@ -75,7 +80,11 @@ export function UploadStage({
         {tool.minFiles > 1 ? ` · at least ${tool.minFiles}` : ""}
       </p>
       {onSkip ? (
-        <button type="button" onClick={onSkip} className="text-foreground mt-4 text-[13.5px] underline underline-offset-4">
+        <button
+          type="button"
+          onClick={onSkip}
+          className="text-foreground mt-4 text-[13.5px] underline underline-offset-4"
+        >
           Continue without a file
         </button>
       ) : null}
@@ -85,7 +94,8 @@ export function UploadStage({
         </p>
       ) : null}
       <p className="text-muted-foreground mt-6 inline-flex items-center gap-1.5 text-[12.5px]">
-        <ShieldCheck className="text-success h-4 w-4" /> Files stay on your device — nothing is uploaded.
+        <ShieldCheck className="text-success h-4 w-4" /> Files stay on your device — nothing is
+        uploaded.
       </p>
     </div>
   );

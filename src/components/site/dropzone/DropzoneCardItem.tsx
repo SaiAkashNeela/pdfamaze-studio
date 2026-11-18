@@ -66,21 +66,14 @@ export function DropzoneCardItem({
       </div>
 
       {/* Canvas / Image Thumbnail */}
-      <FileThumbnail
-        file={file}
-        grayscale={grayscale}
-        rotation={rotation}
-        className="mb-2"
-      />
+      <FileThumbnail file={file} grayscale={grayscale} rotation={rotation} className="mb-2" />
 
       {/* Filename & Size */}
       <div className="min-w-0">
         <p className="truncate text-[12.5px] font-medium text-foreground" title={file.name}>
           {file.name}
         </p>
-        <p className="text-muted-foreground font-mono text-[11px]">
-          {formatBytes(file.size)}
-        </p>
+        <p className="text-muted-foreground font-mono text-[11px]">{formatBytes(file.size)}</p>
       </div>
 
       {/* Card Actions */}

@@ -18,7 +18,10 @@ function readImage(file: File): Promise<string> {
 }
 
 /** Renders the first page small. `isActive` lets a stale render stop early. */
-async function renderPdfThumb(file: File, isActive: () => boolean): Promise<{ url: string | null; pageCount: number } | null> {
+async function renderPdfThumb(
+  file: File,
+  isActive: () => boolean,
+): Promise<{ url: string | null; pageCount: number } | null> {
   const [pdfjs, bytes] = await Promise.all([loadPdfjs(), readBytes(file)]);
   if (!isActive()) return null;
   const doc = await pdfjs.getDocument({ data: bytes }).promise;
@@ -40,7 +43,12 @@ async function renderPdfThumb(file: File, isActive: () => boolean): Promise<{ ur
 }
 
 function useThumbnail(file: File): Thumb {
-  const [thumb, setThumb] = useState<Thumb>({ url: null, loading: true, pageCount: null, error: false });
+  const [thumb, setThumb] = useState<Thumb>({
+    url: null,
+    loading: true,
+    pageCount: null,
+    error: false,
+  });
 
   useEffect(() => {
     let active = true;
@@ -50,7 +58,10 @@ function useThumbnail(file: File): Thumb {
       if (active) setThumb((t) => ({ ...t, loading: false, ...patch }));
     };
     if (isImageFile(file)) {
-      readImage(file).then((url) => done({ url }), () => done({ error: true }));
+      readImage(file).then(
+        (url) => done({ url }),
+        () => done({ error: true }),
+      );
     } else if (isPdfFile(file)) {
       renderPdfThumb(file, isActive).then(
         (r) => r && done({ url: r.url, pageCount: r.pageCount }),
@@ -67,7 +78,17 @@ function useThumbnail(file: File): Thumb {
   return thumb;
 }
 
-function Preview({ file, thumb, grayscale, rotation }: { file: File; thumb: Thumb; grayscale: boolean; rotation: number }) {
+function Preview({
+  file,
+  thumb,
+  grayscale,
+  rotation,
+}: {
+  file: File;
+  thumb: Thumb;
+  grayscale: boolean;
+  rotation: number;
+}) {
   return (
     <div className="relative flex h-full w-full items-center justify-center p-1">
       <img
@@ -115,7 +136,9 @@ export function FileThumbnail({
     body = (
       <div className="text-muted-foreground flex flex-col items-center gap-1 p-2 text-center">
         <FileText className="h-7 w-7 stroke-[1.5]" />
-        <span className="max-w-full truncate font-mono text-[11px]">{file.name.split(".").pop()}</span>
+        <span className="max-w-full truncate font-mono text-[11px]">
+          {file.name.split(".").pop()}
+        </span>
       </div>
     );
   }

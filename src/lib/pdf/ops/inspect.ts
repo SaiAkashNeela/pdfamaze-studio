@@ -55,7 +55,10 @@ const STANDARD_SIZES: [string, number, number][] = [
 
 function standardName(w: number, h: number) {
   const [a, b] = [Math.min(w, h), Math.max(w, h)];
-  return STANDARD_SIZES.find(([, sw, sh]) => Math.abs(a - sw) <= 1.5 && Math.abs(b - sh) <= 1.5)?.[0] ?? "Custom";
+  return (
+    STANDARD_SIZES.find(([, sw, sh]) => Math.abs(a - sw) <= 1.5 && Math.abs(b - sh) <= 1.5)?.[0] ??
+    "Custom"
+  );
 }
 
 const r2 = (n: number) => Math.round(n * 100) / 100;
@@ -81,14 +84,18 @@ function pageResources(lib: PdfLib, doc: PDFDocument, index: number) {
       if (!(obj instanceof lib.PDFStream)) continue;
       const sub = obj.dict.get(lib.PDFName.of("Subtype"));
       if (sub === lib.PDFName.of("Image")) images++;
-      else if (sub === lib.PDFName.of("Form")) scan(obj.dict.lookupMaybe(lib.PDFName.of("Resources"), lib.PDFDict));
+      else if (sub === lib.PDFName.of("Form"))
+        scan(obj.dict.lookupMaybe(lib.PDFName.of("Resources"), lib.PDFDict));
     }
   };
   scan(res);
   return { fonts: [...fonts].sort(), images };
 }
 
-function boxOf(page: ReturnType<PDFDocument["getPage"]>, get: "getMediaBox" | "getCropBox" | "getTrimBox" | "getBleedBox" | "getArtBox") {
+function boxOf(
+  page: ReturnType<PDFDocument["getPage"]>,
+  get: "getMediaBox" | "getCropBox" | "getTrimBox" | "getBleedBox" | "getArtBox",
+) {
   const b = page[get]();
   return [r2(b.x), r2(b.y), r2(b.x + b.width), r2(b.y + b.height)];
 }
@@ -140,7 +147,10 @@ const PERMISSIONS: [string, number][] = [
 ];
 
 function flattenTitles(items: Bookmark[], depth = 0): string[] {
-  return items.flatMap((b) => [`${"  ".repeat(depth)}${b.title} (page ${b.page})`, ...flattenTitles(b.children, depth + 1)]);
+  return items.flatMap((b) => [
+    `${"  ".repeat(depth)}${b.title} (page ${b.page})`,
+    ...flattenTitles(b.children, depth + 1),
+  ]);
 }
 
 function formFields(doc: PDFDocument, lib: PdfLib) {
@@ -150,7 +160,8 @@ function formFields(doc: PDFDocument, lib: PdfLib) {
       let value = "";
       if (f instanceof lib.PDFTextField) value = f.getText() ?? "";
       else if (f instanceof lib.PDFCheckBox) value = f.isChecked() ? "checked" : "unchecked";
-      else if (f instanceof lib.PDFDropdown || f instanceof lib.PDFOptionList) value = f.getSelected().join(", ");
+      else if (f instanceof lib.PDFDropdown || f instanceof lib.PDFOptionList)
+        value = f.getSelected().join(", ");
       else if (f instanceof lib.PDFRadioGroup) value = f.getSelected() ?? "";
       else if (f instanceof lib.PDFSignature) value = "(signature field)";
       out[f.getName()] = value;
@@ -165,7 +176,11 @@ function formFields(doc: PDFDocument, lib: PdfLib) {
 export async function pdfInfo(files: File[], progress: ProgressFn): Promise<OutputFile[]> {
   const file = requireFile(files);
   const bytes = await readBytes(file);
-  const [lib, doc, src] = await Promise.all([loadPdfLib(), openDocument(file, { updateMetadata: false }), openPdfjsDocument(bytes)]);
+  const [lib, doc, src] = await Promise.all([
+    loadPdfLib(),
+    openDocument(file, { updateMetadata: false }),
+    openPdfjsDocument(bytes),
+  ]);
   const [{ info, metadata }, permissions, attachments, bookmarks, jsActions] = await Promise.all([
     src.getMetadata(),
     src.getPermissions(),
@@ -175,7 +190,10 @@ export async function pdfInfo(files: File[], progress: ProgressFn): Promise<Outp
   ]);
   const pages = await inSequence(pageNumbers(src.numPages), async (num) => {
     progress(`Reading page ${num} of ${src.numPages}`, num / src.numPages);
-    const [info, items] = await Promise.all([perPageInfo(lib, doc, src, num - 1), src.getPage(num).then(pageText)]);
+    const [info, items] = await Promise.all([
+      perPageInfo(lib, doc, src, num - 1),
+      src.getPage(num).then(pageText),
+    ]);
     return { info, text: items.map((i) => i.str).join(" ") };
   });
   const perPage = Object.fromEntries(pages.map((p, n) => [`Page ${n + 1}`, p.info]));
@@ -201,13 +219,18 @@ export async function pdfInfo(files: File[], progress: ProgressFn): Promise<Outp
       FileSizeInBytes: file.size,
       WordCount: fullText.split(/\s+/).filter(Boolean).length,
       CharacterCount: fullText.replace(/\s/g, "").length,
-      Language: lang instanceof lib.PDFString || lang instanceof lib.PDFHexString ? lang.decodeText() : null,
+      Language:
+        lang instanceof lib.PDFString || lang instanceof lib.PDFHexString
+          ? lang.decodeText()
+          : null,
       "Number of pages": src.numPages,
       TotalImages: totalImages,
     },
     DocumentInfo: {
       "PDF version": i["PDFFormatVersion"] ?? null,
-      Trapped: i["Trapped"] ? String((i["Trapped"] as { name?: string }).name ?? i["Trapped"]) : null,
+      Trapped: i["Trapped"]
+        ? String((i["Trapped"] as { name?: string }).name ?? i["Trapped"])
+        : null,
       "Page Mode": pageMode instanceof lib.PDFName ? pageMode.decodeText() : "Unknown",
       IsLinearized: Boolean(i["IsLinearized"]),
       IsAcroFormPresent: Boolean(i["IsAcroFormPresent"]),
@@ -217,11 +240,17 @@ export async function pdfInfo(files: File[], progress: ProgressFn): Promise<Outp
     },
     Encryption: { IsEncrypted: doc.isEncrypted },
     Permissions: Object.fromEntries(
-      PERMISSIONS.map(([label, bit]) => [label, !permissions || permissions.has(bit) ? "Allowed" : "Not Allowed"]),
+      PERMISSIONS.map(([label, bit]) => [
+        label,
+        !permissions || permissions.has(bit) ? "Allowed" : "Not Allowed",
+      ]),
     ),
     FormFields: formFields(doc, lib),
     Other: {
-      EmbeddedFiles: [...(attachments?.values() ?? [])].map((a) => ({ Name: a.filename, Description: a.description || null })),
+      EmbeddedFiles: [...(attachments?.values() ?? [])].map((a) => ({
+        Name: a.filename,
+        Description: a.description || null,
+      })),
       JavaScript: jsActions ? Object.keys(Object.fromEntries(jsActions)).length : 0,
       "Bookmarks/Outline/TOC": flattenTitles(bookmarks.items),
       XMPMetadata: metadata ? metadata.getRaw() : null,
@@ -234,7 +263,13 @@ export async function pdfInfo(files: File[], progress: ProgressFn): Promise<Outp
 
 /* ---------------------------------------------------------- extract images */
 
-type PdfjsImage = { width: number; height: number; kind?: number; data?: Uint8ClampedArray; bitmap?: ImageBitmap };
+type PdfjsImage = {
+  width: number;
+  height: number;
+  kind?: number;
+  data?: Uint8ClampedArray;
+  bitmap?: ImageBitmap;
+};
 
 function getObject(page: PDFPageProxy, id: string): Promise<PdfjsImage | null> {
   const store = id.startsWith("g_") ? page.commonObjs : page.objs;
@@ -315,25 +350,36 @@ export async function extractImages(
       if (!canvas) continue;
       const blob = await canvasToBlob(canvas, type, 0.92);
       canvas.width = 0;
-      out.push({ name: `${name}-p${String(n).padStart(2, "0")}-img${String(out.length + 1).padStart(3, "0")}.${opts.format === "jpeg" ? "jpg" : "png"}`, blob });
+      out.push({
+        name: `${name}-p${String(n).padStart(2, "0")}-img${String(out.length + 1).padStart(3, "0")}.${opts.format === "jpeg" ? "jpg" : "png"}`,
+        blob,
+      });
     }
     page.cleanup();
   }
   void src.loadingTask.destroy();
-  if (!out.length) fail("No embedded images were found (images drawn inline or as vector art can't be extracted).");
+  if (!out.length)
+    fail(
+      "No embedded images were found (images drawn inline or as vector art can't be extracted).",
+    );
   return out;
 }
 
 /* ----------------------------------------------------- extract attachments */
 
-export async function extractAttachments(files: File[], progress: ProgressFn): Promise<OutputFile[]> {
+export async function extractAttachments(
+  files: File[],
+  progress: ProgressFn,
+): Promise<OutputFile[]> {
   const file = requireFile(files);
   const src = await openPdfjsDocument(await readBytes(file));
   const attachments = await src.getAttachments();
   if (!attachments?.size) fail("This PDF has no attached files.");
   progress(`Extracting ${attachments.size} file${attachments.size > 1 ? "s" : ""}`, 0.5);
   const entries = [...attachments];
-  const contents = await Promise.all(entries.map(([id, a]) => a.content ?? src.getAttachmentContent(id)));
+  const contents = await Promise.all(
+    entries.map(([id, a]) => a.content ?? src.getAttachmentContent(id)),
+  );
   void src.loadingTask.destroy();
   const out: OutputFile[] = [];
   const used = new Map<string, number>();
@@ -388,7 +434,10 @@ export async function suggestTitle(src: PDFDocumentProxy): Promise<string | null
   const body = [...weight.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? 0;
   const best = [...merged].sort((a, b) => b.size - a.size)[0];
   if (!best || best.size <= body) return null;
-  const title = best.text.replace(/[/\\?%*:|"<>]/g, "").replace(/\s+/g, " ").trim();
+  const title = best.text
+    .replace(/[/\\?%*:|"<>]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
   return title ? title.slice(0, 100).trim() : null;
 }
 
@@ -400,10 +449,19 @@ export async function autoRename(files: File[], progress: ProgressFn): Promise<O
     const heading = await suggestTitle(src);
     const meta = heading ? null : ((await src.getMetadata()).info as { Title?: unknown }).Title;
     void src.loadingTask.destroy();
-    const fromMeta = typeof meta === "string" ? meta.replace(/[/\\?%*:|"<>]/g, "").trim().slice(0, 100) : "";
+    const fromMeta =
+      typeof meta === "string"
+        ? meta
+            .replace(/[/\\?%*:|"<>]/g, "")
+            .trim()
+            .slice(0, 100)
+        : "";
     const title = heading || fromMeta;
     // The file itself is untouched; only its name changes.
-    out.push({ name: `${title || baseName(file.name)}.pdf`, blob: file.slice(0, file.size, "application/pdf") });
+    out.push({
+      name: `${title || baseName(file.name)}.pdf`,
+      blob: file.slice(0, file.size, "application/pdf"),
+    });
   }
   return out;
 }
@@ -415,7 +473,11 @@ export async function autoRename(files: File[], progress: ProgressFn): Promise<O
  * lenient re-save with pdf-lib (rebuilding the cross-reference table), and fall back to
  * rebuilding every page from pdf.js renders, which copes with badly damaged structure.
  */
-export async function repairPdf(files: File[], opts: { mode: string }, progress: ProgressFn): Promise<OutputFile[]> {
+export async function repairPdf(
+  files: File[],
+  opts: { mode: string },
+  progress: ProgressFn,
+): Promise<OutputFile[]> {
   const file = requireFile(files);
   const bytes = await readBytes(file);
   const name = `${baseName(file.name)}-repaired.pdf`;
@@ -423,19 +485,31 @@ export async function repairPdf(files: File[], opts: { mode: string }, progress:
     progress("Rebuilding document structure", 0.4);
     try {
       const { PDFDocument } = await loadPdfLib();
-      const doc = await PDFDocument.load(bytes, { ignoreEncryption: true, throwOnInvalidObject: false, updateMetadata: false });
+      const doc = await PDFDocument.load(bytes, {
+        ignoreEncryption: true,
+        throwOnInvalidObject: false,
+        updateMetadata: false,
+      });
       if (doc.isEncrypted) fail("This PDF is encrypted. Unlock it first, then repair it.");
-      if (doc.getPageCount() > 0) return [{ name, blob: pdfBlob(await doc.save({ useObjectStreams: false })) }];
+      if (doc.getPageCount() > 0)
+        return [{ name, blob: pdfBlob(await doc.save({ useObjectStreams: false })) }];
     } catch (e) {
       // In automatic mode, fall through to the render-based rebuild below.
       if (opts.mode === "structure") {
         if (e instanceof PdfError) throw e;
-        fail("The structure couldn't be rebuilt. Choose “Automatic” or “Re-render pages” to recover the pages instead.");
+        fail(
+          "The structure couldn't be rebuilt. Choose “Automatic” or “Re-render pages” to recover the pages instead.",
+        );
       }
     }
   }
   const src = await openPdfjsDocument(bytes);
-  const rebuilt = await rebuildFromPixels(src, { scale: 2, quality: 0.9, label: "Re-rendering" }, null, progress);
+  const rebuilt = await rebuildFromPixels(
+    src,
+    { scale: 2, quality: 0.9, label: "Re-rendering" },
+    null,
+    progress,
+  );
   return [{ name, blob: pdfBlob(rebuilt) }];
 }
 
@@ -468,7 +542,12 @@ export function diffTokens(a: string[], b: string[], maxD = 6000): Op[] | null {
   let pre = 0;
   while (pre < a.length && pre < b.length && a[pre] === b[pre]) pre++;
   let suf = 0;
-  while (suf < a.length - pre && suf < b.length - pre && a[a.length - 1 - suf] === b[b.length - 1 - suf]) suf++;
+  while (
+    suf < a.length - pre &&
+    suf < b.length - pre &&
+    a[a.length - 1 - suf] === b[b.length - 1 - suf]
+  )
+    suf++;
   const same = (list: string[]) => list.map((text): Op => ({ type: "same", text }));
   const mid = myers(a.slice(pre, a.length - suf), b.slice(pre, b.length - suf), maxD);
   return mid && [...same(a.slice(0, pre)), ...mid, ...same(a.slice(a.length - suf))];
@@ -506,14 +585,20 @@ function backtrack(trace: Int32Array[], a: string[], b: string[]): Op[] {
     const at = (k: number) => trace[d]![k + d]!;
     const k = x - y;
     if (d === 0) {
-      while (x > 0 && y > 0) ops.push({ type: "same", text: a[--x]! }), y--;
+      while (x > 0 && y > 0) {
+        ops.push({ type: "same", text: a[--x]! });
+        y--;
+      }
       break;
     }
     const down = k === -d || (k !== d && at(k - 1) < at(k + 1));
     const prevK = down ? k + 1 : k - 1;
     const prevX = at(prevK);
     const prevY = prevX - prevK;
-    while (x > prevX && y > prevY) ops.push({ type: "same", text: a[--x]! }), y--;
+    while (x > prevX && y > prevY) {
+      ops.push({ type: "same", text: a[--x]! });
+      y--;
+    }
     if (down) ops.push({ type: "added", text: b[prevY]! });
     else ops.push({ type: "removed", text: a[prevX]! });
     x = prevX;
@@ -534,7 +619,11 @@ async function docTokens(file: File) {
   return tokens;
 }
 
-const escapeHtml = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
+const escapeHtml = (s: string) =>
+  s.replace(
+    /[&<>"']/g,
+    (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!,
+  );
 
 function reportHtml(a: File, b: File, ops: Op[]) {
   const added = ops.filter((o) => o.type === "added").length;
@@ -544,7 +633,9 @@ function reportHtml(a: File, b: File, ops: Op[]) {
       // Keep the separating space outside the highlight.
       const lead = o.text.startsWith(" ") ? " " : "";
       const t = escapeHtml(o.text.trimStart());
-      return lead + (o.type === "same" ? t : o.type === "added" ? `<ins>${t}</ins>` : `<del>${t}</del>`);
+      return (
+        lead + (o.type === "same" ? t : o.type === "added" ? `<ins>${t}</ins>` : `<del>${t}</del>`)
+      );
     })
     .join("")
     .replace(/<\/ins>( ?)<ins>/g, "$1")
@@ -562,13 +653,20 @@ ${added} word${added === 1 ? "" : "s"} added · ${removed} word${removed === 1 ?
 }
 
 export async function comparePdfs(files: File[], progress: ProgressFn): Promise<OutputFile[]> {
-  if (files.length !== 2) fail("Add exactly two PDFs: the original first, then the changed version.");
+  if (files.length !== 2)
+    fail("Add exactly two PDFs: the original first, then the changed version.");
   const [a, b] = files as [File, File];
   progress("Reading both documents", 0.3);
   const [ta, tb] = await Promise.all([docTokens(a), docTokens(b)]);
-  if (!ta.length && !tb.length) fail("Neither PDF contains selectable text. Scanned documents need OCR first.");
+  if (!ta.length && !tb.length)
+    fail("Neither PDF contains selectable text. Scanned documents need OCR first.");
   progress("Comparing text", 0.7);
   const ops = diffTokens(ta, tb);
   if (!ops) fail("These documents are too different to compare word by word.");
-  return [{ name: `compare-${baseName(a.name)}-vs-${baseName(b.name)}.html`, blob: htmlBlob(reportHtml(a, b, ops)) }];
+  return [
+    {
+      name: `compare-${baseName(a.name)}-vs-${baseName(b.name)}.html`,
+      blob: htmlBlob(reportHtml(a, b, ops)),
+    },
+  ];
 }

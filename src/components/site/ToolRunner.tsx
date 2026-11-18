@@ -43,7 +43,10 @@ type RunnerAction =
 
 function initialState(tool: Tool): RunnerState {
   return {
-    files: typeof window === "undefined" ? [] : takeHandoff((f) => acceptsFile(tool.accept, f)).slice(0, tool.multiple ? undefined : 1),
+    files:
+      typeof window === "undefined"
+        ? []
+        : takeHandoff((f) => acceptsFile(tool.accept, f)).slice(0, tool.multiple ? undefined : 1),
     skipped: false,
     values: defaultValues(tool),
     status: "idle",
@@ -64,7 +67,14 @@ function runnerReducer(state: RunnerState, action: RunnerAction): RunnerState {
     case "SET_VALUE":
       return { ...state, values: { ...state.values, [action.name]: action.value } };
     case "START_RUN":
-      return { ...state, status: "working", error: "", results: [], step: { label: "Preparing" }, optionsOpen: false };
+      return {
+        ...state,
+        status: "working",
+        error: "",
+        results: [],
+        step: { label: "Preparing" },
+        optionsOpen: false,
+      };
     case "UPDATE_STEP":
       return { ...state, step: { label: action.label, ratio: action.ratio } };
     case "RUN_SUCCESS":
@@ -110,7 +120,9 @@ function OptionFields({
         />
       ))}
       {tool.caveat ? (
-        <p className="border-border text-muted-foreground border-l-2 pl-3 text-[12.5px] leading-relaxed">{tool.caveat}</p>
+        <p className="border-border text-muted-foreground border-l-2 pl-3 text-[12.5px] leading-relaxed">
+          {tool.caveat}
+        </p>
       ) : null}
     </div>
   );
@@ -121,7 +133,8 @@ function filesHint(tool: Tool, count: number): string | null {
     const more = tool.minFiles - count;
     return `Add ${more} more file${more > 1 ? "s" : ""} to continue — this tool needs at least ${tool.minFiles}.`;
   }
-  if (tool.multiple && count > 1) return "Order matters: drag the cards or use the arrows to rearrange.";
+  if (tool.multiple && count > 1)
+    return "Order matters: drag the cards or use the arrows to rearrange.";
   return null;
 }
 
@@ -141,7 +154,9 @@ export function ToolRunner({ tool }: { tool: Tool }) {
   async function run() {
     dispatch({ type: "START_RUN" });
     try {
-      const out = await tool.run(files, state.values, (label, ratio) => dispatch({ type: "UPDATE_STEP", label, ratio }));
+      const out = await tool.run(files, state.values, (label, ratio) =>
+        dispatch({ type: "UPDATE_STEP", label, ratio }),
+      );
       dispatch({ type: "RUN_SUCCESS", results: out });
     } catch (e) {
       const msg =
@@ -181,7 +196,9 @@ export function ToolRunner({ tool }: { tool: Tool }) {
             tool={tool}
             results={state.results}
             sourceName={files[0]?.name}
-            previewPassword={tool.slug === "protect-pdf" ? String(state.values["password"] ?? "") : undefined}
+            previewPassword={
+              tool.slug === "protect-pdf" ? String(state.values["password"] ?? "") : undefined
+            }
             onStartOver={reset}
             onBack={() => dispatch({ type: "BACK_TO_EDIT" })}
           />
@@ -189,7 +206,17 @@ export function ToolRunner({ tool }: { tool: Tool }) {
       </div>
     );
   }
-  return <Workspace tool={tool} state={state} dispatch={dispatch} visible={visible} ready={ready} run={run} reset={reset} />;
+  return (
+    <Workspace
+      tool={tool}
+      state={state}
+      dispatch={dispatch}
+      visible={visible}
+      ready={ready}
+      run={run}
+      reset={reset}
+    />
+  );
 }
 
 function Workspace({
@@ -212,7 +239,8 @@ function Workspace({
   const { files } = state;
   const hint = filesHint(tool, files.length);
   // First tap on phones shows the options, so nothing runs with settings nobody has seen.
-  const mobileAction = visible.length && !state.optionsSeen ? () => dispatch({ type: "OPTIONS", open: true }) : run;
+  const mobileAction =
+    visible.length && !state.optionsSeen ? () => dispatch({ type: "OPTIONS", open: true }) : run;
 
   return (
     <div className="pb-28 lg:pb-0">

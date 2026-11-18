@@ -9,7 +9,17 @@ export function ActionBar({ children }: { children: ReactNode }) {
   );
 }
 
-export function PrimaryButton({ children, disabled, onClick, className = "" }: { children: ReactNode; disabled?: boolean; onClick: () => void; className?: string }) {
+export function PrimaryButton({
+  children,
+  disabled,
+  onClick,
+  className = "",
+}: {
+  children: ReactNode;
+  disabled?: boolean;
+  onClick: () => void;
+  className?: string;
+}) {
   return (
     <button
       type="button"
@@ -22,7 +32,15 @@ export function PrimaryButton({ children, disabled, onClick, className = "" }: {
   );
 }
 
-export function SecondaryButton({ children, onClick, disabled }: { children: ReactNode; onClick: () => void; disabled?: boolean }) {
+export function SecondaryButton({
+  children,
+  onClick,
+  disabled,
+}: {
+  children: ReactNode;
+  onClick: () => void;
+  disabled?: boolean;
+}) {
   return (
     <button
       type="button"

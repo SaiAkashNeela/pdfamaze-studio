@@ -62,11 +62,13 @@ function stripJavaScript(lib: PdfLib, doc: PDFDocument) {
   names?.delete(lib.PDFName.of("JavaScript"));
   forEachDict(lib, doc, (dict) => {
     for (const key of ["A", "OpenAction", "Next"]) {
-      if (actionType(lib, doc, dict.get(lib.PDFName.of(key))) === "JavaScript") dict.delete(lib.PDFName.of(key));
+      if (actionType(lib, doc, dict.get(lib.PDFName.of(key))) === "JavaScript")
+        dict.delete(lib.PDFName.of(key));
     }
     const aa = dict.lookupMaybe(lib.PDFName.of("AA"), lib.PDFDict);
     if (!aa) return;
-    for (const [key, value] of aa.entries()) if (actionType(lib, doc, value) === "JavaScript") aa.delete(key);
+    for (const [key, value] of aa.entries())
+      if (actionType(lib, doc, value) === "JavaScript") aa.delete(key);
     if (!aa.keys().length) dict.delete(lib.PDFName.of("AA"));
   });
 }
@@ -88,7 +90,9 @@ function subtypeOf(lib: PdfLib, dict: PDFDict) {
 }
 
 function stripEmbeddedFiles(lib: PdfLib, doc: PDFDocument) {
-  doc.catalog.lookupMaybe(lib.PDFName.of("Names"), lib.PDFDict)?.delete(lib.PDFName.of("EmbeddedFiles"));
+  doc.catalog
+    .lookupMaybe(lib.PDFName.of("Names"), lib.PDFDict)
+    ?.delete(lib.PDFName.of("EmbeddedFiles"));
   doc.catalog.delete(lib.PDFName.of("Collection"));
   stripAnnots(lib, doc, (a) => subtypeOf(lib, a) === "FileAttachment");
 }
@@ -96,7 +100,8 @@ function stripEmbeddedFiles(lib: PdfLib, doc: PDFDocument) {
 function stripLinks(lib: PdfLib, doc: PDFDocument) {
   forEachDict(lib, doc, (dict) => {
     const type = actionType(lib, doc, dict.get(lib.PDFName.of("A")));
-    if (type === "URI" || type === "Launch" || type === "SubmitForm" || type === "ImportData") dict.delete(lib.PDFName.of("A"));
+    if (type === "URI" || type === "Launch" || type === "SubmitForm" || type === "ImportData")
+      dict.delete(lib.PDFName.of("A"));
   });
 }
 
@@ -106,12 +111,22 @@ function stripFonts(lib: PdfLib, doc: PDFDocument) {
 
 export async function sanitizePdf(
   files: File[],
-  opts: { javascript: boolean; embedded: boolean; xmp: boolean; metadata: boolean; links: boolean; fonts: boolean },
+  opts: {
+    javascript: boolean;
+    embedded: boolean;
+    xmp: boolean;
+    metadata: boolean;
+    links: boolean;
+    fonts: boolean;
+  },
   progress: ProgressFn,
 ): Promise<OutputFile[]> {
   const file = requireFile(files);
   if (!Object.values(opts).some(Boolean)) fail("Pick at least one thing to remove.");
-  const [lib, doc] = await Promise.all([loadPdfLib(), openEditableDocument(file, { updateMetadata: !opts.metadata })]);
+  const [lib, doc] = await Promise.all([
+    loadPdfLib(),
+    openEditableDocument(file, { updateMetadata: !opts.metadata }),
+  ]);
   progress("Removing active and hidden content", 0.5);
   if (opts.javascript) stripJavaScript(lib, doc);
   if (opts.embedded) stripEmbeddedFiles(lib, doc);
@@ -137,14 +152,23 @@ export type PermissionBlocks = {
 };
 
 /** Stirling's Change Permissions: each switch blocks one action; the file opens without a password. */
-export async function changePermissions(files: File[], opts: PermissionBlocks, progress: ProgressFn): Promise<OutputFile[]> {
+export async function changePermissions(
+  files: File[],
+  opts: PermissionBlocks,
+  progress: ProgressFn,
+): Promise<OutputFile[]> {
   const file = requireFile(files);
   const { ownerPassword, ...blocks } = opts;
   if (!Object.values(blocks).some(Boolean)) fail("Switch on at least one restriction to apply.");
   await openEditableDocument(file); // rejects already-encrypted files with a clear message
-  const [bytes, { encryptPDF }] = await Promise.all([readBytes(file), import("@pdfsmaller/pdf-encrypt-lite")]);
+  const [bytes, { encryptPDF }] = await Promise.all([
+    readBytes(file),
+    import("@pdfsmaller/pdf-encrypt-lite"),
+  ]);
   // Without an owner password anyone could lift the restrictions, so make an unguessable one.
-  const random = Array.from(crypto.getRandomValues(new Uint8Array(24)), (b) => b.toString(16).padStart(2, "0")).join("");
+  const random = Array.from(crypto.getRandomValues(new Uint8Array(24)), (b) =>
+    b.toString(16).padStart(2, "0"),
+  ).join("");
   progress("Applying permissions", 0.5);
   const out = await encryptPDF(bytes, "", {
     ownerPassword: ownerPassword.trim() || random,
@@ -156,7 +180,9 @@ export async function changePermissions(files: File[], opts: PermissionBlocks, p
     allowAnnotating: !opts.preventModifyAnnotations,
     allowFillingForms: !opts.preventFillInForm,
     allowAssembly: !opts.preventAssembly,
-  }).catch((e: unknown) => fail(`Permissions couldn't be applied: ${e instanceof Error ? e.message : String(e)}`));
+  }).catch((e: unknown) =>
+    fail(`Permissions couldn't be applied: ${e instanceof Error ? e.message : String(e)}`),
+  );
   return [{ name: `${baseName(file.name)}-restricted.pdf`, blob: pdfBlob(out) }];
 }
 
@@ -224,28 +250,54 @@ function itemBox(item: TextItem, from: number, to: number): Hit {
   ].map(([u, v]) => [e! + u! * cos - v! * sin, f! + u! * sin + v! * cos] as const);
   const xs = pts.map((p) => p[0]);
   const ys = pts.map((p) => p[1]);
-  return { x: Math.min(...xs), y: Math.min(...ys), w: Math.max(...xs) - Math.min(...xs), h: Math.max(...ys) - Math.min(...ys) };
+  return {
+    x: Math.min(...xs),
+    y: Math.min(...ys),
+    w: Math.max(...xs) - Math.min(...xs),
+    h: Math.max(...ys) - Math.min(...ys),
+  };
 }
 
 export async function autoRedact(
   files: File[],
-  opts: { terms: string; regex: boolean; wholeWord: boolean; color: string; padding: number; pages: string; toImage: boolean },
+  opts: {
+    terms: string;
+    regex: boolean;
+    wholeWord: boolean;
+    color: string;
+    padding: number;
+    pages: string;
+    toImage: boolean;
+  },
   progress: ProgressFn,
 ): Promise<OutputFile[]> {
   const file = requireFile(files);
-  const terms = opts.terms.split(/\r?\n/).map((t) => t.trim()).filter((t) => t && t.length <= 4096);
+  const terms = opts.terms
+    .split(/\r?\n/)
+    .map((t) => t.trim())
+    .filter((t) => t && t.length <= 4096);
   const fullPages = opts.pages.trim();
-  if (!terms.length && !fullPages) fail("Enter the words or patterns to black out, or pages to redact completely.");
+  if (!terms.length && !fullPages)
+    fail("Enter the words or patterns to black out, or pages to redact completely.");
   const patterns = terms.map((t) => buildPattern(t, opts.regex, opts.wholeWord));
   const bytes = await readBytes(file);
-  const [lib, doc, src] = await Promise.all([loadPdfLib(), openEditableDocument(file), openPdfjsDocument(bytes)]);
+  const [lib, doc, src] = await Promise.all([
+    loadPdfLib(),
+    openEditableDocument(file),
+    openPdfjsDocument(bytes),
+  ]);
   const pages = doc.getPages();
   const whole = new Set(fullPages ? parsePageRanges(fullPages, pages.length) : []);
   const { r, g, b } = parseHexColor(opts.color);
-  const contents = await Promise.all(pages.map((_, n) => src.getPage(n + 1).then((p) => p.getTextContent())));
+  const contents = await Promise.all(
+    pages.map((_, n) => src.getPage(n + 1).then((p) => p.getTextContent())),
+  );
   let total = 0;
   for (let n = 0; n < pages.length; n++) {
-    progress(`Searching page ${n + 1} of ${pages.length}`, (n + 1) / pages.length / (opts.toImage ? 2 : 1));
+    progress(
+      `Searching page ${n + 1} of ${pages.length}`,
+      (n + 1) / pages.length / (opts.toImage ? 2 : 1),
+    );
     const page = pages[n]!;
     const content = contents[n]!;
     const items = content.items.filter((i): i is TextItem => "str" in i);
@@ -259,12 +311,19 @@ export async function autoRedact(
     }
     for (const h of hits) {
       const p = opts.padding;
-      page.drawRectangle({ x: h.x - p, y: h.y - p, width: h.w + 2 * p, height: h.h + 2 * p, ...fill });
+      page.drawRectangle({
+        x: h.x - p,
+        y: h.y - p,
+        width: h.w + 2 * p,
+        height: h.h + 2 * p,
+        ...fill,
+      });
     }
     total += hits.length + (whole.has(n) ? 1 : 0);
   }
   void src.loadingTask.destroy();
-  if (!total) fail("None of those terms were found in the document's text. Scanned pages need OCR first.");
+  if (!total)
+    fail("None of those terms were found in the document's text. Scanned pages need OCR first.");
   // As Stirling does, scrub identifying metadata along with the content.
   doc.setAuthor("");
   doc.setSubject("");
@@ -276,8 +335,11 @@ export async function autoRedact(
   const boxed = new Uint8Array(await boxedBlob.arrayBuffer());
   // Rasterising is what actually destroys the text under the boxes.
   const rendered = await openPdfjsDocument(boxed);
-  const flat = await rebuildFromPixels(rendered, { scale: 300 / 72, quality: 0.9, label: "Flattening" }, null, (l, ratio) =>
-    progress(l, 0.5 + (ratio ?? 0) / 2),
+  const flat = await rebuildFromPixels(
+    rendered,
+    { scale: 300 / 72, quality: 0.9, label: "Flattening" },
+    null,
+    (l, ratio) => progress(l, 0.5 + (ratio ?? 0) / 2),
   );
   return [{ name, blob: pdfBlob(flat) }];
 }
@@ -304,11 +366,15 @@ function nameTreeLeaves(lib: PdfLib, node: PDFDict | undefined, out: [string, PD
   const names = node.lookupMaybe(lib.PDFName.of("Names"), lib.PDFArray);
   for (let i = 0; names && i + 1 < names.size(); i += 2) {
     const key = names.lookup(i);
-    const label = key instanceof lib.PDFString || key instanceof lib.PDFHexString ? key.decodeText() : `#${i / 2}`;
+    const label =
+      key instanceof lib.PDFString || key instanceof lib.PDFHexString
+        ? key.decodeText()
+        : `#${i / 2}`;
     out.push([label, names.get(i + 1)]);
   }
   const kids = node.lookupMaybe(lib.PDFName.of("Kids"), lib.PDFArray) as PDFArray | undefined;
-  for (let i = 0; kids && i < kids.size(); i++) nameTreeLeaves(lib, kids.lookupMaybe(i, lib.PDFDict), out);
+  for (let i = 0; kids && i < kids.size(); i++)
+    nameTreeLeaves(lib, kids.lookupMaybe(i, lib.PDFDict), out);
   return out;
 }
 
@@ -321,13 +387,20 @@ export async function showJavaScript(files: File[], progress: ProgressFn): Promi
   const add = (where: string, code: string | null) => {
     if (code?.trim()) found.push(`// ${where}\n${code.trim()}\n`);
   };
-  const tree = doc.catalog.lookupMaybe(lib.PDFName.of("Names"), lib.PDFDict)?.lookupMaybe(lib.PDFName.of("JavaScript"), lib.PDFDict);
-  for (const [name, action] of nameTreeLeaves(lib, tree)) add(`Document script: ${name}`, jsSource(lib, doc, action));
-  add("Runs when the document opens", jsSource(lib, doc, doc.catalog.get(lib.PDFName.of("OpenAction"))));
+  const tree = doc.catalog
+    .lookupMaybe(lib.PDFName.of("Names"), lib.PDFDict)
+    ?.lookupMaybe(lib.PDFName.of("JavaScript"), lib.PDFDict);
+  for (const [name, action] of nameTreeLeaves(lib, tree))
+    add(`Document script: ${name}`, jsSource(lib, doc, action));
+  add(
+    "Runs when the document opens",
+    jsSource(lib, doc, doc.catalog.get(lib.PDFName.of("OpenAction"))),
+  );
   const describe = (dict: PDFDict, where: string) => {
     add(`${where} (click)`, jsSource(lib, doc, dict.get(lib.PDFName.of("A"))));
     const aa = dict.lookupMaybe(lib.PDFName.of("AA"), lib.PDFDict);
-    for (const [key, value] of aa?.entries() ?? []) add(`${where} (trigger ${key.decodeText()})`, jsSource(lib, doc, value));
+    for (const [key, value] of aa?.entries() ?? [])
+      add(`${where} (trigger ${key.decodeText()})`, jsSource(lib, doc, value));
   };
   describe(doc.catalog, "Document event");
   doc.getPages().forEach((page, i) => {
@@ -337,7 +410,10 @@ export async function showJavaScript(files: File[], progress: ProgressFn): Promi
       const a = annots.lookup(n);
       if (!(a instanceof lib.PDFDict)) continue;
       const t = a.lookup(lib.PDFName.of("T"));
-      const label = t instanceof lib.PDFString || t instanceof lib.PDFHexString ? `field "${t.decodeText()}"` : subtypeOf(lib, a) || "annotation";
+      const label =
+        t instanceof lib.PDFString || t instanceof lib.PDFHexString
+          ? `field "${t.decodeText()}"`
+          : subtypeOf(lib, a) || "annotation";
       describe(a, `Page ${i + 1}, ${label}`);
     }
   });

@@ -19,8 +19,7 @@
   --radius-3xl: calc(var(--radius) + 10px);
   --radius-4xl: calc(var(--radius) + 14px);
 
-  --font-sans:
-    "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
   --color-background: var(--background);

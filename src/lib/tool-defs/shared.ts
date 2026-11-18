@@ -17,7 +17,12 @@ export const editorOnly = async (): Promise<never> => {
   throw new Error("This tool runs from its editor.");
 };
 
-export const PDF = { accept: "application/pdf", acceptLabel: "One PDF", multiple: false, minFiles: 1 } as const;
+export const PDF = {
+  accept: "application/pdf",
+  acceptLabel: "One PDF",
+  multiple: false,
+  minFiles: 1,
+} as const;
 
 export const pagesField = (label = "Pages", hint = "Blank means every page."): Field => ({
   name: "pages",
@@ -29,7 +34,9 @@ export const pagesField = (label = "Pages", hint = "Blank means every page."): F
 });
 
 export const toggle = (name: string, label: string, value: boolean, hint?: string): Field =>
-  hint ? { name, label, type: "switch", default: value, hint } : { name, label, type: "switch", default: value };
+  hint
+    ? { name, label, type: "switch", default: value, hint }
+    : { name, label, type: "switch", default: value };
 
 export const GRID_POSITIONS = [
   { value: "1", label: "Top left" },

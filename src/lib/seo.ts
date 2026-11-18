@@ -59,14 +59,18 @@ export function toolFaq(tool: Tool): FaqItem[] {
       : `No. ${tool.name} reads your file inside the browser tab and writes the result straight to your downloads. There is no upload step and nothing is stored on a server.`;
   const items: FaqItem[] = [
     { q: `How do I use ${tool.name}?`, a: howToSteps(tool).join(" ") },
-    { q: `Is ${tool.name} free?`, a: `Yes. ${tool.name} on ${siteConfig.name} is free, needs no account, and adds no watermark or branding to your file.` },
+    {
+      q: `Is ${tool.name} free?`,
+      a: `Yes. ${tool.name} on ${siteConfig.name} is free, needs no account, and adds no watermark or branding to your file.`,
+    },
     { q: `Are my files uploaded when I use ${tool.name}?`, a: uploads },
     {
       q: `Does ${tool.name} work on Mac, Windows, Linux, iPhone and Android?`,
       a: "Yes. It runs in any modern browser — Chrome, Edge, Firefox or Safari — on desktop or mobile, with nothing to install.",
     },
   ];
-  if (tool.caveat) items.push({ q: `Is there anything to know before using ${tool.name}?`, a: tool.caveat });
+  if (tool.caveat)
+    items.push({ q: `Is there anything to know before using ${tool.name}?`, a: tool.caveat });
   return items;
 }
 
@@ -80,7 +84,12 @@ export function howToSteps(tool: Tool): string[] {
         : tool.fields.length
           ? "Choose your options (on phones, tap “Options”)."
           : "There's nothing to configure.";
-  return [`1. ${add}`, `2. ${configure}`, `3. Press “${tool.action}”.`, "4. Download the result — it's created on your device."];
+  return [
+    `1. ${add}`,
+    `2. ${configure}`,
+    `3. Press “${tool.action}”.`,
+    "4. Download the result — it's created on your device.",
+  ];
 }
 
 export function toolHead(tool: Tool) {
@@ -105,19 +114,31 @@ export function toolHead(tool: Tool) {
         browserRequirements: "Requires a modern browser with JavaScript enabled",
         isAccessibleForFree: true,
         offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
-        featureList: [tool.summary, "Runs locally in your browser", "No upload, no account, no watermark"],
+        featureList: [
+          tool.summary,
+          "Runs locally in your browser",
+          "No upload, no account, no watermark",
+        ],
         publisher,
       },
       {
         "@context": "https://schema.org",
         "@type": "HowTo",
         name: `How to use ${tool.name}`,
-        step: howToSteps(tool).map((text, i) => ({ "@type": "HowToStep", position: i + 1, text: text.replace(/^\d\.\s*/, "") })),
+        step: howToSteps(tool).map((text, i) => ({
+          "@type": "HowToStep",
+          position: i + 1,
+          text: text.replace(/^\d\.\s*/, ""),
+        })),
       },
       {
         "@context": "https://schema.org",
         "@type": "FAQPage",
-        mainEntity: faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+        mainEntity: faq.map((f) => ({
+          "@type": "Question",
+          name: f.q,
+          acceptedAnswer: { "@type": "Answer", text: f.a },
+        })),
       },
       {
         "@context": "https://schema.org",
@@ -137,6 +158,11 @@ export function toolListJsonLd(list: Tool[]): JsonLd {
     "@type": "ItemList",
     name: `${siteConfig.name} PDF tools`,
     numberOfItems: list.length,
-    itemListElement: list.map((t, i) => ({ "@type": "ListItem", position: i + 1, name: t.name, url: absoluteUrl(`/tools/${t.slug}`) })),
+    itemListElement: list.map((t, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name: t.name,
+      url: absoluteUrl(`/tools/${t.slug}`),
+    })),
   };
 }

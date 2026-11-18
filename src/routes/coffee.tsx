@@ -5,7 +5,13 @@ import { siteConfig } from "@/lib/site-config";
 import { pageHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/coffee")({
-  head: () => pageHead({ path: "/coffee", title: `Support the project — ${siteConfig.name}`, description: "PDFamaze is free and runs entirely in your browser. If it saved you time, you can optionally support its development." }),
+  head: () =>
+    pageHead({
+      path: "/coffee",
+      title: `Support the project — ${siteConfig.name}`,
+      description:
+        "PDFamaze is free and runs entirely in your browser. If it saved you time, you can optionally support its development.",
+    }),
   component: CoffeePage,
 });
 
@@ -18,15 +24,20 @@ function CoffeePage() {
     >
       <Section heading="Where the money goes">
         <p>
-          Domain registration, infrastructure maintenance, and time spent refining edge features and fixing
-          edge cases in complex PDF layouts. Support is a friendly thank-you: all tools remain 100% free and unrestricted.
+          Domain registration, infrastructure maintenance, and time spent refining edge features and
+          fixing edge cases in complex PDF layouts. Support is a friendly thank-you: all tools
+          remain 100% free and unrestricted.
         </p>
       </Section>
 
       <Section heading="If you'd rather help another way">
         <p>
           Reporting a PDF that fails or sharing feedback is genuinely just as valuable as a coffee.
-          Reach out via <a href={`mailto:${siteConfig.contactEmail}`} className="underline underline-offset-4">{siteConfig.contactEmail}</a> or open an issue on{" "}
+          Reach out via{" "}
+          <a href={`mailto:${siteConfig.contactEmail}`} className="underline underline-offset-4">
+            {siteConfig.contactEmail}
+          </a>{" "}
+          or open an issue on{" "}
           <a
             href={siteConfig.githubUrl || "https://github.com/SaiAkashNeela/pdfamaze-studio"}
             target="_blank"
@@ -45,9 +56,12 @@ function CoffeePage() {
             <Coffee className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-[15px] font-semibold text-foreground">Support {siteConfig.author}</h3>
+            <h3 className="text-[15px] font-semibold text-foreground">
+              Support {siteConfig.author}
+            </h3>
             <p className="text-muted-foreground mt-1 text-[13.5px] leading-relaxed">
-              Opens BuyMeACoffee in a secure external tab. Your documents and local processing stay completely isolated on your device.
+              Opens BuyMeACoffee in a secure external tab. Your documents and local processing stay
+              completely isolated on your device.
             </p>
             <div className="mt-4 flex items-center gap-3">
               <a

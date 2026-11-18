@@ -3,7 +3,9 @@ import { Search } from "lucide-react";
 
 // A failed preload (offline, or a navigation cutting it short) is harmless: opening retries it.
 const loadDialog = () => import("./ToolSearchDialog").catch(() => null);
-const ToolSearchDialog = lazy(() => import("./ToolSearchDialog").then((m) => ({ default: m.ToolSearchDialog })));
+const ToolSearchDialog = lazy(() =>
+  import("./ToolSearchDialog").then((m) => ({ default: m.ToolSearchDialog })),
+);
 
 function isTyping(target: EventTarget | null): boolean {
   const el = target as HTMLElement | null;
@@ -42,7 +44,13 @@ export function SearchButton() {
         openRef.current = true;
         setLoaded(true);
         setOpen(true);
-      } else if (openRef.current && !ready.current && e.key.length === 1 && !e.metaKey && !e.ctrlKey) {
+      } else if (
+        openRef.current &&
+        !ready.current &&
+        e.key.length === 1 &&
+        !e.metaKey &&
+        !e.ctrlKey
+      ) {
         buffer.current += e.key;
       }
     };
@@ -67,7 +75,9 @@ export function SearchButton() {
       >
         <Search className="h-4 w-4 shrink-0" />
         <span className="hidden flex-1 text-left sm:inline">Search tools…</span>
-        <kbd className="bg-secondary hidden rounded px-1.5 py-0.5 font-mono text-[10.5px] sm:inline">{mod}</kbd>
+        <kbd className="bg-secondary hidden rounded px-1.5 py-0.5 font-mono text-[10.5px] sm:inline">
+          {mod}
+        </kbd>
       </button>
       {loaded ? (
         <Suspense fallback={null}>

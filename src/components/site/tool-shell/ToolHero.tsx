@@ -3,13 +3,23 @@ import { ToolIcon } from "../ToolIcon";
 import type { Tool } from "@/lib/tools";
 
 /** Big centred title before a file is chosen; a slim bar with "Start over" afterwards. */
-export function ToolHero({ tool, compact = false, onStartOver }: { tool: Tool; compact?: boolean; onStartOver?: () => void }) {
+export function ToolHero({
+  tool,
+  compact = false,
+  onStartOver,
+}: {
+  tool: Tool;
+  compact?: boolean;
+  onStartOver?: () => void;
+}) {
   if (compact) {
     return (
       <div className="border-border flex items-center justify-between gap-3 border-b pb-4">
         <div className="flex min-w-0 items-center gap-3">
           <ToolIcon tool={tool} compact />
-          <h1 className="truncate text-[18px] font-semibold tracking-[-0.02em] sm:text-[20px]">{tool.name}</h1>
+          <h1 className="truncate text-[18px] font-semibold tracking-[-0.02em] sm:text-[20px]">
+            {tool.name}
+          </h1>
         </div>
         {onStartOver ? (
           <button
@@ -29,7 +39,9 @@ export function ToolHero({ tool, compact = false, onStartOver }: { tool: Tool; c
       <h1 className="mt-4 text-[clamp(1.75rem,4.4vw,2.6rem)] leading-[1.08] font-semibold tracking-[-0.03em] text-balance">
         {tool.name}
       </h1>
-      <p className="text-muted-foreground mt-3 text-[15px] leading-relaxed sm:text-[16px]">{tool.summary}</p>
+      <p className="text-muted-foreground mt-3 text-[15px] leading-relaxed sm:text-[16px]">
+        {tool.summary}
+      </p>
     </header>
   );
 }

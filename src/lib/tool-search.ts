@@ -58,21 +58,65 @@ const SYNONYMS: Record<string, string[]> = {
   "show-javascript": ["script", "javascript", "safe", "virus"],
 };
 
-const STOP_WORDS = new Set(["how", "to", "do", "i", "a", "an", "the", "my", "of", "in", "on", "for", "with", "from", "into", "can", "want", "need", "please", "online", "free", "file", "files", "document", "documents", "tool", "and", "or", "me", "is", "it", "this"]);
+const STOP_WORDS = new Set([
+  "how",
+  "to",
+  "do",
+  "i",
+  "a",
+  "an",
+  "the",
+  "my",
+  "of",
+  "in",
+  "on",
+  "for",
+  "with",
+  "from",
+  "into",
+  "can",
+  "want",
+  "need",
+  "please",
+  "online",
+  "free",
+  "file",
+  "files",
+  "document",
+  "documents",
+  "tool",
+  "and",
+  "or",
+  "me",
+  "is",
+  "it",
+  "this",
+]);
 const GENERIC = new Set(["pdf", "pdfs"]);
 
 type Indexed = { tool: Tool; name: string; strong: string[]; weak: string };
 
-const normalize = (s: string) => s.toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9&]+/g, " ").trim();
+const normalize = (s: string) =>
+  s
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9&]+/g, " ")
+    .trim();
 
 let index: Indexed[] | null = null;
 
 function buildIndex(): Indexed[] {
-  const categoryOf = (t: Tool) => CATEGORIES.find((c) => t.tag && c.tags.includes(t.tag))?.heading ?? "";
+  const categoryOf = (t: Tool) =>
+    CATEGORIES.find((c) => t.tag && c.tags.includes(t.tag))?.heading ?? "";
   return tools.map((tool) => ({
     tool,
     name: normalize(tool.name),
-    strong: [...(TOOL_KEYWORDS[tool.slug] ?? []), ...(SYNONYMS[tool.slug] ?? []), tool.slug.replace(/-/g, " ")].map(normalize),
+    strong: [
+      ...(TOOL_KEYWORDS[tool.slug] ?? []),
+      ...(SYNONYMS[tool.slug] ?? []),
+      tool.slug.replace(/-/g, " "),
+    ].map(normalize),
     weak: normalize(`${tool.summary} ${tool.about} ${categoryOf(tool)} ${tool.action}`),
   }));
 }
@@ -115,7 +159,8 @@ function wordScore(word: string, entry: Indexed): number {
 }
 
 function phraseBonus(phrase: string, entry: Indexed, weight: number): number {
-  if (phrase.trim().split(" ").length < 2) return ` ${entry.name} `.includes(phrase) ? weight / 2 : 0;
+  if (phrase.trim().split(" ").length < 2)
+    return ` ${entry.name} `.includes(phrase) ? weight / 2 : 0;
   if (` ${entry.name} `.includes(phrase)) return weight;
   return entry.strong.some((k) => ` ${k} `.includes(phrase)) ? weight - 2 : 0;
 }
@@ -128,7 +173,9 @@ export function searchTools(query: string, limit = 60): Tool[] {
   const all = q.split(" ").filter(Boolean);
   const meaningful = all.filter((w) => !STOP_WORDS.has(w));
   // "pdf" alone is a fine query; next to other words it says nothing, since every tool is for PDFs.
-  const words = (meaningful.length ? meaningful : all).filter((w, _i, list) => list.length === 1 || !GENERIC.has(w));
+  const words = (meaningful.length ? meaningful : all).filter(
+    (w, _i, list) => list.length === 1 || !GENERIC.has(w),
+  );
   const scored: { tool: Tool; score: number }[] = [];
   for (const entry of index) {
     let total = 0;
@@ -150,5 +197,8 @@ export function searchTools(query: string, limit = 60): Tool[] {
   scored.sort((a, b) => b.score - a.score);
   // Drop long-tail hits (a word buried in some other tool's description) once there are strong ones.
   const floor = (scored[0]?.score ?? 0) * 0.35;
-  return scored.filter((r) => r.score >= floor).slice(0, limit).map((r) => r.tool);
+  return scored
+    .filter((r) => r.score >= floor)
+    .slice(0, limit)
+    .map((r) => r.tool);
 }

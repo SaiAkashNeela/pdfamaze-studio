@@ -27,7 +27,9 @@ export function SavedSignatureList({
               aria-pressed={activeUrl === item.dataUrl}
               className={cn(
                 "grid h-16 w-full place-items-center rounded-[4px] border bg-white p-1.5 transition-colors",
-                activeUrl === item.dataUrl ? "border-accent ring-accent/30 ring-2" : "border-border hover:border-border-strong",
+                activeUrl === item.dataUrl
+                  ? "border-accent ring-accent/30 ring-2"
+                  : "border-border hover:border-border-strong",
               )}
             >
               <img src={item.dataUrl} alt="" className="max-h-full max-w-full object-contain" />

@@ -1,4 +1,13 @@
-import { useCallback, useId, useMemo, useRef, useState, type ComponentProps, type DragEvent, type ReactNode } from "react";
+import {
+  useCallback,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type ComponentProps,
+  type DragEvent,
+  type ReactNode,
+} from "react";
 import { LayoutGrid, List } from "lucide-react";
 import { DropzoneUploadBox } from "./dropzone/DropzoneUploadBox";
 import { acceptsFile } from "@/lib/pdf/core";
@@ -125,7 +134,12 @@ export function Dropzone({
 
       {!empty ? (
         <div className="space-y-3">
-          <FileListHeader count={files.length} multiple={multiple} viewMode={viewMode} onViewMode={setViewMode} />
+          <FileListHeader
+            count={files.length}
+            multiple={multiple}
+            viewMode={viewMode}
+            onViewMode={setViewMode}
+          />
           <FileItems
             entries={fileEntries}
             viewMode={viewMode}
@@ -154,14 +168,26 @@ export function Dropzone({
   );
 }
 
-function ViewButton({ active, label, onClick, children }: { active: boolean; label: string; onClick: () => void; children: ReactNode }) {
+function ViewButton({
+  active,
+  label,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  label: string;
+  onClick: () => void;
+  children: ReactNode;
+}) {
   return (
     <button
       type="button"
       aria-label={label}
       onClick={onClick}
       className={`inline-flex h-7 w-7 items-center justify-center rounded-md text-[12px] transition-colors ${
-        active ? "bg-secondary text-foreground font-medium" : "text-muted-foreground hover:text-foreground"
+        active
+          ? "bg-secondary text-foreground font-medium"
+          : "text-muted-foreground hover:text-foreground"
       }`}
     >
       {children}
@@ -184,15 +210,29 @@ function FileListHeader({
   return (
     <div className="border-border flex items-center justify-between border-b pb-2">
       <div className="flex items-center gap-2">
-        <span className="text-foreground text-[13.5px] font-semibold">Uploaded Files ({count})</span>
-        {sortable ? <span className="text-muted-foreground text-[12px]">· Drag cards or use arrows to rearrange</span> : null}
+        <span className="text-foreground text-[13.5px] font-semibold">
+          Uploaded Files ({count})
+        </span>
+        {sortable ? (
+          <span className="text-muted-foreground text-[12px]">
+            · Drag cards or use arrows to rearrange
+          </span>
+        ) : null}
       </div>
       {sortable ? (
         <div className="flex items-center gap-1">
-          <ViewButton active={viewMode === "grid"} label="Grid view" onClick={() => onViewMode("grid")}>
+          <ViewButton
+            active={viewMode === "grid"}
+            label="Grid view"
+            onClick={() => onViewMode("grid")}
+          >
             <LayoutGrid className="h-3.5 w-3.5" />
           </ViewButton>
-          <ViewButton active={viewMode === "list"} label="List view" onClick={() => onViewMode("list")}>
+          <ViewButton
+            active={viewMode === "list"}
+            label="List view"
+            onClick={() => onViewMode("list")}
+          >
             <List className="h-3.5 w-3.5" />
           </ViewButton>
         </div>

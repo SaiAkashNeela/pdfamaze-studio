@@ -21,7 +21,13 @@ import {
   type OutputFile,
   type ProgressFn,
 } from "../core";
-import { displaySize, displayToPdf, isolatePageContent, pageRotation, uprightPlacement } from "../layout";
+import {
+  displaySize,
+  displayToPdf,
+  isolatePageContent,
+  pageRotation,
+  uprightPlacement,
+} from "../layout";
 
 type PdfLib = Awaited<ReturnType<typeof loadPdfLib>>;
 
@@ -34,13 +40,24 @@ function requireFile(files: File[]): File {
 /* ------------------------------------------------------------------ stamps */
 
 /** Stirling's margin presets, as a fraction of the page's average side. */
-const MARGINS: Record<string, number> = { small: 0.02, medium: 0.035, large: 0.05, "x-large": 0.075 };
+const MARGINS: Record<string, number> = {
+  small: 0.02,
+  medium: 0.035,
+  large: 0.05,
+  "x-large": 0.075,
+};
 
 /**
  * Anchor of a `w`×`h` block (display points) on a 3×3 grid: 1–3 top row, 4–6 middle,
  * 7–9 bottom, left to right. Returns the block's top-left corner in display space.
  */
-function gridAnchor(position: number, page: { width: number; height: number }, w: number, h: number, margin: number) {
+function gridAnchor(
+  position: number,
+  page: { width: number; height: number },
+  w: number,
+  h: number,
+  margin: number,
+) {
   const col = (position - 1) % 3;
   const row = Math.floor((position - 1) / 3);
   const x = col === 0 ? margin : col === 1 ? (page.width - w) / 2 : page.width - w - margin;
@@ -53,7 +70,14 @@ const pad2 = (n: number) => String(n).padStart(2, "0");
 /** Stirling's @-tokens. `@@` is a literal @. */
 export function expandStampTokens(
   text: string,
-  ctx: { page: number; total: number; fileName: string; title?: string | undefined; author?: string | undefined; subject?: string | undefined },
+  ctx: {
+    page: number;
+    total: number;
+    fileName: string;
+    title?: string | undefined;
+    author?: string | undefined;
+    subject?: string | undefined;
+  },
 ): string {
   const now = new Date();
   const date = `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
@@ -74,9 +98,10 @@ export function expandStampTokens(
     [/@title/g, ctx.title ?? ""],
     [/@subject/g, ctx.subject ?? ""],
   ];
-  let out = text.replace(/@@/g, "\u0000");
+  // U+E000 (private use) holds escaped "@@" while tokens are substituted.
+  let out = text.replace(/@@/g, "\uE000");
   for (const [re, value] of tokens) out = out.replace(re, value);
-  return out.replace(/\u0000/g, "@").replace(/\\n/g, "\n");
+  return out.replace(/\uE000/g, "@").replace(/\\n/g, "\n");
 }
 
 function encodable(font: PDFFont, text: string) {
@@ -93,7 +118,14 @@ function drawTextBlock(
   page: PDFPage,
   font: PDFFont,
   lines: string[],
-  opts: { size: number; position: number; margin: number; rotation: number; color: string; opacity: number },
+  opts: {
+    size: number;
+    position: number;
+    margin: number;
+    rotation: number;
+    color: string;
+    opacity: number;
+  },
 ) {
   const size = displaySize(page);
   const lineHeight = font.heightAtSize(opts.size);
@@ -138,7 +170,10 @@ export async function addStamp(
   const file = requireFile(files);
   if (!opts.text.trim()) fail("Type the text you want to stamp.");
   const [lib, doc] = await Promise.all([loadPdfLib(), openEditableDocument(file)]);
-  const fontName = { times: lib.StandardFonts.TimesRomanBold, courier: lib.StandardFonts.CourierBold }[opts.font] ?? lib.StandardFonts.HelveticaBold;
+  const fontName =
+    { times: lib.StandardFonts.TimesRomanBold, courier: lib.StandardFonts.CourierBold }[
+      opts.font
+    ] ?? lib.StandardFonts.HelveticaBold;
   const font = await doc.embedFont(fontName);
   const pages = doc.getPages();
   const targets = parsePageRanges(opts.pages, pages.length);
@@ -146,9 +181,17 @@ export async function addStamp(
   for (const [n, index] of targets.entries()) {
     progress(`Stamping page ${index + 1}`, (n + 1) / targets.length);
     const page = pages[index]!;
-    const text = expandStampTokens(opts.text, { ...meta, page: index + 1, total: pages.length, fileName: file.name });
+    const text = expandStampTokens(opts.text, {
+      ...meta,
+      page: index + 1,
+      total: pages.length,
+      fileName: file.name,
+    });
     const lines = text.split(/\r?\n/).filter((l, i, all) => l || all.length === 1);
-    if (!encodable(font, lines.join(""))) fail("Stamps support Latin characters only (standard PDF fonts). Remove other characters and try again.");
+    if (!encodable(font, lines.join("")))
+      fail(
+        "Stamps support Latin characters only (standard PDF fonts). Remove other characters and try again.",
+      );
     isolatePageContent(lib, doc, page);
     drawTextBlock(lib, page, font, lines, {
       size: opts.size,
@@ -172,9 +215,15 @@ export async function addImage(
   const pdf = files.find(isPdfFile);
   const img = files.find(isImageFile);
   if (!pdf || !img) fail("Add one PDF and one PNG or JPEG image.");
-  const [lib, doc, imgBytes] = await Promise.all([loadPdfLib(), openEditableDocument(pdf), readBytes(img)]);
+  const [lib, doc, imgBytes] = await Promise.all([
+    loadPdfLib(),
+    openEditableDocument(pdf),
+    readBytes(img),
+  ]);
   const png = /png$/i.test(img.type) || /\.png$/i.test(img.name);
-  const image = await (png ? doc.embedPng(imgBytes) : doc.embedJpg(imgBytes)).catch(() => fail("That image couldn't be read. Try re-saving it as PNG or JPEG."));
+  const image = await (png ? doc.embedPng(imgBytes) : doc.embedJpg(imgBytes)).catch(() =>
+    fail("That image couldn't be read. Try re-saving it as PNG or JPEG."),
+  );
   const pages = doc.getPages();
   const targets = parsePageRanges(opts.pages, pages.length);
   for (const [n, index] of targets.entries()) {
@@ -185,9 +234,18 @@ export async function addImage(
     const h = (w * image.height) / image.width;
     const margin = (MARGINS[opts.margin] ?? 0.035) * ((size.width + size.height) / 2);
     const at = gridAnchor(Number(opts.position) || 5, size, w, h, margin);
-    const placed = uprightPlacement(page, { x: at.x / size.width, y: at.y / size.height, w: w / size.width, h: h / size.height });
+    const placed = uprightPlacement(page, {
+      x: at.x / size.width,
+      y: at.y / size.height,
+      w: w / size.width,
+      h: h / size.height,
+    });
     isolatePageContent(lib, doc, page);
-    page.drawImage(image, { ...placed, rotate: lib.degrees(placed.rotation), opacity: opts.opacity / 100 });
+    page.drawImage(image, {
+      ...placed,
+      rotate: lib.degrees(placed.rotation),
+      opacity: opts.opacity / 100,
+    });
   }
   return [{ name: `${baseName(pdf.name)}-with-image.pdf`, blob: pdfBlob(await doc.save()) }];
 }
@@ -198,7 +256,11 @@ export async function addAttachments(files: File[], progress: ProgressFn): Promi
   const [pdf, ...rest] = files;
   if (!pdf || !isPdfFile(pdf)) fail("Put the PDF first in the list, then the files to attach.");
   if (!rest.length) fail("Add at least one file to attach after the PDF.");
-  const [lib, doc, contents] = await Promise.all([loadPdfLib(), openEditableDocument(pdf), Promise.all(rest.map(readBytes))]);
+  const [lib, doc, contents] = await Promise.all([
+    loadPdfLib(),
+    openEditableDocument(pdf),
+    Promise.all(rest.map(readBytes)),
+  ]);
   progress(`Attaching ${rest.length} file${rest.length > 1 ? "s" : ""}`, 0.6);
   await Promise.all(
     rest.map((f, n) =>
@@ -241,7 +303,10 @@ export async function changeMetadata(
   progress: ProgressFn,
 ): Promise<OutputFile[]> {
   const file = requireFile(files);
-  const [lib, doc] = await Promise.all([loadPdfLib(), openEditableDocument(file, { updateMetadata: false })]);
+  const [lib, doc] = await Promise.all([
+    loadPdfLib(),
+    openEditableDocument(file, { updateMetadata: false }),
+  ]);
   progress("Writing document properties", 0.5);
   const name = `${baseName(file.name)}-metadata.pdf`;
   if (opts.deleteAll) {
@@ -254,13 +319,21 @@ export async function changeMetadata(
   if (opts.title.trim()) doc.setTitle(opts.title.trim());
   if (opts.author.trim()) doc.setAuthor(opts.author.trim());
   if (opts.subject.trim()) doc.setSubject(opts.subject.trim());
-  if (opts.keywords.trim()) doc.setKeywords(opts.keywords.split(",").map((k) => k.trim()).filter(Boolean));
+  if (opts.keywords.trim())
+    doc.setKeywords(
+      opts.keywords
+        .split(",")
+        .map((k) => k.trim())
+        .filter(Boolean),
+    );
   if (opts.creator.trim()) doc.setCreator(opts.creator.trim());
   if (opts.producer.trim()) doc.setProducer(opts.producer.trim());
   doc.setModificationDate(new Date());
   const info = doc.context.lookup(doc.context.trailerInfo.Info, lib.PDFDict);
-  if (opts.trapped !== "unchanged") info.set(lib.PDFName.of("Trapped"), lib.PDFName.of(opts.trapped));
-  for (const [key, value] of parseCustom(opts.custom)) info.set(lib.PDFName.of(key), lib.PDFHexString.fromText(value));
+  if (opts.trapped !== "unchanged")
+    info.set(lib.PDFName.of("Trapped"), lib.PDFName.of(opts.trapped));
+  for (const [key, value] of parseCustom(opts.custom))
+    info.set(lib.PDFName.of(key), lib.PDFHexString.fromText(value));
   return [{ name, blob: await saveClean(doc) }];
 }
 
@@ -277,7 +350,11 @@ export function parseBookmarkText(text: string, pageCount: number): Bookmark[] {
     const m = /^((?:-|\s{2}|\t)*)\s*(.+?)\s*\|\s*(\d+)\s*$/.exec(raw);
     if (!m) fail(`Line ${n + 1} should look like "Chapter title | 3".`);
     const depth = (m[1]!.match(/-|\s{2}|\t/g) ?? []).length;
-    const item: Bookmark = { title: m[2]!, page: Math.min(Math.max(1, Number(m[3])), pageCount), children: [] };
+    const item: Bookmark = {
+      title: m[2]!,
+      page: Math.min(Math.max(1, Number(m[3])), pageCount),
+      children: [],
+    };
     while (stack.length > 1 && stack[stack.length - 1]!.depth >= depth) stack.pop();
     stack[stack.length - 1]!.list.push(item);
     stack.push({ depth, list: item.children });
@@ -287,7 +364,10 @@ export function parseBookmarkText(text: string, pageCount: number): Bookmark[] {
 
 function formatBookmarks(items: Bookmark[], depth = 0): string {
   return items
-    .map((b) => `${"-".repeat(depth)}${depth ? " " : ""}${b.title} | ${b.page}\n${formatBookmarks(b.children, depth + 1)}`)
+    .map(
+      (b) =>
+        `${"-".repeat(depth)}${depth ? " " : ""}${b.title} | ${b.page}\n${formatBookmarks(b.children, depth + 1)}`,
+    )
     .join("");
 }
 
@@ -322,14 +402,21 @@ function writeOutline(lib: PdfLib, doc: PDFDocument, items: Bookmark[]) {
   const top = build(items, rootRef);
   doc.context.assign(
     rootRef,
-    doc.context.obj({ Type: "Outlines", First: top[0]!, Last: top[top.length - 1]!, Count: lib.PDFNumber.of(countAll(items)) }),
+    doc.context.obj({
+      Type: "Outlines",
+      First: top[0]!,
+      Last: top[top.length - 1]!,
+      Count: lib.PDFNumber.of(countAll(items)),
+    }),
   );
   doc.catalog.set(lib.PDFName.of("Outlines"), rootRef);
   doc.catalog.set(lib.PDFName.of("PageMode"), lib.PDFName.of("UseOutlines"));
 }
 
 /** Reads bookmarks with pdf.js, which resolves named and indirect destinations reliably. */
-export async function readBookmarks(bytes: Uint8Array): Promise<{ items: Bookmark[]; pageCount: number }> {
+export async function readBookmarks(
+  bytes: Uint8Array,
+): Promise<{ items: Bookmark[]; pageCount: number }> {
   const src = await openPdfjsDocument(bytes);
   const outline = (await src.getOutline()) ?? [];
   type Node = (typeof outline)[number];
@@ -344,7 +431,13 @@ export async function readBookmarks(bytes: Uint8Array): Promise<{ items: Bookmar
     }
   };
   const walk = async (nodes: Node[]): Promise<Bookmark[]> =>
-    Promise.all(nodes.map(async (n) => ({ title: n.title.trim() || "Untitled", page: await pageOf(n), children: await walk(n.items ?? []) })));
+    Promise.all(
+      nodes.map(async (n) => ({
+        title: n.title.trim() || "Untitled",
+        page: await pageOf(n),
+        children: await walk(n.items ?? []),
+      })),
+    );
   const items = await walk(outline);
   const pageCount = src.numPages;
   void src.loadingTask.destroy();
@@ -375,10 +468,18 @@ export async function editBookmarks(
 }
 
 /** Stirling's split-by-chapters: one file per bookmark at the chosen depth. */
-export async function splitByBookmarks(files: File[], opts: { level: number }, progress: ProgressFn): Promise<OutputFile[]> {
+export async function splitByBookmarks(
+  files: File[],
+  opts: { level: number },
+  progress: ProgressFn,
+): Promise<OutputFile[]> {
   const file = requireFile(files);
   const bytes = await readBytes(file);
-  const [{ items, pageCount }, lib, src] = await Promise.all([readBookmarks(bytes), loadPdfLib(), openEditableDocument(file)]);
+  const [{ items, pageCount }, lib, src] = await Promise.all([
+    readBookmarks(bytes),
+    loadPdfLib(),
+    openEditableDocument(file),
+  ]);
   const flat: Bookmark[] = [];
   const walk = (list: Bookmark[], depth: number) =>
     list.forEach((b) => {
@@ -386,7 +487,9 @@ export async function splitByBookmarks(files: File[], opts: { level: number }, p
       if (depth < opts.level) walk(b.children, depth + 1);
     });
   walk(items, 1);
-  const starts = flat.sort((a, b) => a.page - b.page).filter((b, i, all) => i === 0 || b.page !== all[i - 1]!.page);
+  const starts = flat
+    .sort((a, b) => a.page - b.page)
+    .filter((b, i, all) => i === 0 || b.page !== all[i - 1]!.page);
   if (starts.length < 1) fail("This PDF has no bookmarks to split by.");
   if (starts[0]!.page > 1) starts.unshift({ title: "Front matter", page: 1, children: [] });
   const digits = String(starts.length).length;
@@ -397,8 +500,15 @@ export async function splitByBookmarks(files: File[], opts: { level: number }, p
       const out = await lib.PDFDocument.create();
       const indices = Array.from({ length: end - b.page + 1 }, (_, i) => b.page - 1 + i);
       (await out.copyPages(src, indices)).forEach((p) => out.addPage(p));
-      const safe = b.title.replace(/[/\\?%*:|"<>]/g, "").slice(0, 80).trim() || "chapter";
-      return { name: `${String(n + 1).padStart(digits, "0")} ${safe}.pdf`, blob: pdfBlob(await out.save()) };
+      const safe =
+        b.title
+          .replace(/[/\\?%*:|"<>]/g, "")
+          .slice(0, 80)
+          .trim() || "chapter";
+      return {
+        name: `${String(n + 1).padStart(digits, "0")} ${safe}.pdf`,
+        blob: pdfBlob(await out.save()),
+      };
     }),
   );
 }

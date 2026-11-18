@@ -47,8 +47,17 @@ export function displayToPdf(page: PDFPage, dx: number, dy: number): [number, nu
 export function displayRectToPdfBox(page: PDFPage, rect: DisplayRect): Box {
   const size = displaySize(page);
   const [ax, ay] = displayToPdf(page, rect.x * size.width, rect.y * size.height);
-  const [bx, by] = displayToPdf(page, (rect.x + rect.w) * size.width, (rect.y + rect.h) * size.height);
-  return { x: Math.min(ax, bx), y: Math.min(ay, by), width: Math.abs(bx - ax), height: Math.abs(by - ay) };
+  const [bx, by] = displayToPdf(
+    page,
+    (rect.x + rect.w) * size.width,
+    (rect.y + rect.h) * size.height,
+  );
+  return {
+    x: Math.min(ax, bx),
+    y: Math.min(ay, by),
+    width: Math.abs(bx - ax),
+    height: Math.abs(by - ay),
+  };
 }
 
 /**
@@ -60,7 +69,11 @@ export function uprightPlacement(page: PDFPage, rect: DisplayRect) {
   const width = rect.w * size.width;
   const height = rect.h * size.height;
   const [ax, ay] = displayToPdf(page, rect.x * size.width, rect.y * size.height);
-  const [bx, by] = displayToPdf(page, (rect.x + rect.w) * size.width, (rect.y + rect.h) * size.height);
+  const [bx, by] = displayToPdf(
+    page,
+    (rect.x + rect.w) * size.width,
+    (rect.y + rect.h) * size.height,
+  );
   const minX = Math.min(ax, bx);
   const maxX = Math.max(ax, bx);
   const minY = Math.min(ay, by);
@@ -105,7 +118,10 @@ export async function embedVisiblePages(target: PDFDocument, pages: PDFPage[]) {
   for (const page of pages) {
     // pdf-lib refuses to embed a page with no content stream (a truly blank page).
     if (!page.node.Contents()) {
-      page.node.set(lib.PDFName.of("Contents"), page.doc.context.register(page.doc.context.contentStream([])));
+      page.node.set(
+        lib.PDFName.of("Contents"),
+        page.doc.context.register(page.doc.context.contentStream([])),
+      );
     }
   }
   const boxes = pages.map((p) => {
@@ -140,10 +156,7 @@ export function drawUpright(
 }
 
 /** Largest box with the source's aspect ratio that fits inside `cell`, centred. */
-export function fitInside(
-  source: { width: number; height: number },
-  cell: Box,
-): Box {
+export function fitInside(source: { width: number; height: number }, cell: Box): Box {
   const scale = Math.min(cell.width / source.width, cell.height / source.height);
   const width = source.width * scale;
   const height = source.height * scale;

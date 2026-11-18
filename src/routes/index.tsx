@@ -18,11 +18,24 @@ export const Route = createFileRoute("/")({
 });
 
 /** Headline tools shown first, so real tools are visible on first load. */
-const POPULAR = ["sign", "merge", "compress", "split", "fill-form", "ocr", "images-to-pdf", "protect-pdf"]
+const POPULAR = [
+  "sign",
+  "merge",
+  "compress",
+  "split",
+  "fill-form",
+  "ocr",
+  "images-to-pdf",
+  "protect-pdf",
+]
   .map((slug) => tools.find((t) => t.slug === slug))
   .filter((t): t is (typeof tools)[number] => Boolean(t));
 
-const categoryId = (heading: string) => heading.toLowerCase().replace(/[^a-z]+/g, "-").replace(/-$/, "");
+const categoryId = (heading: string) =>
+  heading
+    .toLowerCase()
+    .replace(/[^a-z]+/g, "-")
+    .replace(/-$/, "");
 
 function Home() {
   const [query, setQuery] = useState("");
@@ -30,7 +43,10 @@ function Home() {
   return (
     <>
       <section className="relative overflow-hidden">
-        <div aria-hidden className="rule-grid pointer-events-none absolute inset-0 [mask-image:linear-gradient(to_bottom,black,transparent)]" />
+        <div
+          aria-hidden
+          className="rule-grid pointer-events-none absolute inset-0 [mask-image:linear-gradient(to_bottom,black,transparent)]"
+        />
         <div className="relative mx-auto flex max-w-[860px] flex-col items-center px-4 pt-8 text-center sm:px-6 sm:pt-12 lg:pt-14">
           <p className="label-xs">Local PDF workbench · {tools.length} tools</p>
           <h1 className="mt-3 max-w-[22ch] text-[clamp(1.9rem,4.8vw,3.1rem)] leading-[1.05] font-semibold tracking-[-0.035em] text-balance">
@@ -57,7 +73,11 @@ function Home() {
         </div>
       </section>
 
-      <section id="all-tools" aria-label="All tools" className="relative mx-auto mt-5 max-w-[1320px] scroll-mt-20 px-4 pb-4 sm:px-6 lg:px-8">
+      <section
+        id="all-tools"
+        aria-label="All tools"
+        className="relative mx-auto mt-5 max-w-[1320px] scroll-mt-20 px-4 pb-4 sm:px-6 lg:px-8"
+      >
         <ToolFinder query={query} onQuery={setQuery}>
           {/* One scrollable row on phones; wraps and centres from `sm` up. */}
           <nav
@@ -91,7 +111,9 @@ function Home() {
               <div key={c.heading} id={categoryId(c.heading)} className="scroll-mt-20 pt-9">
                 <div className="border-border flex items-baseline justify-between gap-3 border-t pt-5">
                   <h2 className="text-[17px] font-semibold tracking-[-0.02em]">{c.heading}</h2>
-                  <span className="text-muted-foreground font-mono text-[12px]">{list.length} tools</span>
+                  <span className="text-muted-foreground font-mono text-[12px]">
+                    {list.length} tools
+                  </span>
                 </div>
                 <div className="mt-4 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                   {list.map((tool) => (
@@ -112,8 +134,8 @@ function Home() {
               The file never goes anywhere
             </h2>
             <p className="text-muted-foreground mt-3 max-w-[52ch] text-[14.5px] leading-relaxed">
-              Everything here is static HTML and JavaScript. When you pick a file, the browser
-              hands it to code running on your machine; the result is written straight back to your
+              Everything here is static HTML and JavaScript. When you pick a file, the browser hands
+              it to code running on your machine; the result is written straight back to your
               downloads folder. You can check this — open your network tab, or disconnect from the
               internet after the page loads. The tools keep working (OCR needs to download its
               engine once first).

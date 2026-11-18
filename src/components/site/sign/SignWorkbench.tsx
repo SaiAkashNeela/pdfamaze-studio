@@ -15,7 +15,12 @@ import { initialSignState, signReducer, type SignAction, type SignState } from "
 import { acceptsFile, PdfError } from "@/lib/pdf/core";
 import { takeHandoff } from "@/lib/handoff";
 import { imageAspect } from "@/lib/signature-image";
-import { loadSignatures, newSignatureId, storeSignatures, type SavedSignature } from "@/lib/signatures";
+import {
+  loadSignatures,
+  newSignatureId,
+  storeSignatures,
+  type SavedSignature,
+} from "@/lib/signatures";
 import type { PDFDocumentProxy } from "pdfjs-dist";
 import type { Tool } from "@/lib/tools";
 
@@ -32,7 +37,15 @@ function useSavedSignatures() {
 
   const add = (dataUrl: string) => {
     if (items.some((s) => s.dataUrl === dataUrl)) return;
-    commit([{ id: newSignatureId(), label: `Signature ${items.length + 1}`, dataUrl, createdAt: Date.now() }, ...items]);
+    commit([
+      {
+        id: newSignatureId(),
+        label: `Signature ${items.length + 1}`,
+        dataUrl,
+        createdAt: Date.now(),
+      },
+      ...items,
+    ]);
   };
 
   const remove = (id: string) => commit(items.filter((s) => s.id !== id));
@@ -40,7 +53,15 @@ function useSavedSignatures() {
   return { items, add, remove, storageError };
 }
 
-function PageNav({ page, count, dispatch }: { page: number; count: number; dispatch: (a: SignAction) => void }) {
+function PageNav({
+  page,
+  count,
+  dispatch,
+}: {
+  page: number;
+  count: number;
+  dispatch: (a: SignAction) => void;
+}) {
   return (
     <div className="flex items-center justify-between gap-3">
       <button
@@ -80,12 +101,23 @@ function PlacementHint({ state }: { state: SignState }) {
   return (
     <p className="bg-secondary text-foreground rounded-lg px-3 py-2 text-[13px]">
       <MousePointerClick className="text-accent mr-1.5 inline h-4 w-4 align-[-3px]" />
-      <strong className="font-semibold">Step 2:</strong> tap the page where it goes. Drag to move; pull the corner to resize.
+      <strong className="font-semibold">Step 2:</strong> tap the page where it goes. Drag to move;
+      pull the corner to resize.
     </p>
   );
 }
 
-function PageEditor({ doc, state, busy, dispatch }: { doc: PDFDocumentProxy; state: SignState; busy: boolean; dispatch: (a: SignAction) => void }) {
+function PageEditor({
+  doc,
+  state,
+  busy,
+  dispatch,
+}: {
+  doc: PDFDocumentProxy;
+  state: SignState;
+  busy: boolean;
+  dispatch: (a: SignAction) => void;
+}) {
   return (
     <div className="space-y-3">
       <PlacementHint state={state} />
@@ -105,14 +137,28 @@ function PageEditor({ doc, state, busy, dispatch }: { doc: PDFDocumentProxy; sta
   );
 }
 
-function PlacementTools({ state, pageCount, dispatch }: { state: SignState; pageCount: number; dispatch: (a: SignAction) => void }) {
+function PlacementTools({
+  state,
+  pageCount,
+  dispatch,
+}: {
+  state: SignState;
+  pageCount: number;
+  dispatch: (a: SignAction) => void;
+}) {
   const selected = state.placements.some((p) => p.id === state.selectedId);
   return (
     <>
       {state.active ? (
         <div className="border-border flex items-center gap-3 rounded-[4px] border p-2">
-          <img src={state.active.dataUrl} alt="Active signature" className="h-10 max-w-[140px] rounded-[2px] bg-white object-contain p-1" />
-          <span className="text-muted-foreground text-[12px] leading-snug">Ready to place. Click anywhere on the page.</span>
+          <img
+            src={state.active.dataUrl}
+            alt="Active signature"
+            className="h-10 max-w-[140px] rounded-[2px] bg-white object-contain p-1"
+          />
+          <span className="text-muted-foreground text-[12px] leading-snug">
+            Ready to place. Click anywhere on the page.
+          </span>
         </div>
       ) : null}
       {selected && pageCount > 1 ? (
@@ -128,7 +174,14 @@ function PlacementTools({ state, pageCount, dispatch }: { state: SignState; page
   );
 }
 
-function SignaturePanel({ state, saved, pageCount, dispatch, onCreate, onPick }: {
+function SignaturePanel({
+  state,
+  saved,
+  pageCount,
+  dispatch,
+  onCreate,
+  onPick,
+}: {
   state: SignState;
   saved: ReturnType<typeof useSavedSignatures>;
   pageCount: number;
@@ -141,10 +194,18 @@ function SignaturePanel({ state, saved, pageCount, dispatch, onCreate, onPick }:
       <section>
         <SignatureCreator onCreate={onCreate} />
         {saved.storageError ? (
-          <p className="text-muted-foreground mt-2 text-[12px]">This browser blocked local storage, so the signature can be used now but won't be remembered.</p>
+          <p className="text-muted-foreground mt-2 text-[12px]">
+            This browser blocked local storage, so the signature can be used now but won't be
+            remembered.
+          </p>
         ) : null}
       </section>
-      <SavedSignatureList items={saved.items} activeUrl={state.active?.dataUrl ?? null} onPick={(item) => onPick(item.dataUrl)} onDelete={saved.remove} />
+      <SavedSignatureList
+        items={saved.items}
+        activeUrl={state.active?.dataUrl ?? null}
+        onPick={(item) => onPick(item.dataUrl)}
+        onDelete={saved.remove}
+      />
       <PlacementTools state={state} pageCount={pageCount} dispatch={dispatch} />
     </div>
   );
@@ -157,7 +218,10 @@ function actionLabel(tool: Tool, count: number) {
 export function SignWorkbench({ tool }: { tool: Tool }) {
   const [state, dispatch] = useReducer(signReducer, tool, (t) => ({
     ...initialSignState,
-    file: typeof window === "undefined" ? null : (takeHandoff((f) => acceptsFile(t.accept, f))[0] ?? null),
+    file:
+      typeof window === "undefined"
+        ? null
+        : (takeHandoff((f) => acceptsFile(t.accept, f))[0] ?? null),
   }));
   const saved = useSavedSignatures();
   const { doc, error: previewError } = usePdfDocument(state.file);
@@ -175,10 +239,18 @@ export function SignWorkbench({ tool }: { tool: Tool }) {
     dispatch({ type: "START" });
     try {
       const { signPdf } = await import("@/lib/pdf/ops/sign");
-      const results = await signPdf(state.file, state.placements, (label, ratio) => dispatch({ type: "STEP", label, ratio }));
+      const results = await signPdf(state.file, state.placements, (label, ratio) =>
+        dispatch({ type: "STEP", label, ratio }),
+      );
       dispatch({ type: "SUCCESS", results });
     } catch (e) {
-      dispatch({ type: "FAIL", error: e instanceof PdfError ? e.message : "The signature couldn't be applied to this file. It may be damaged or unsupported." });
+      dispatch({
+        type: "FAIL",
+        error:
+          e instanceof PdfError
+            ? e.message
+            : "The signature couldn't be applied to this file. It may be damaged or unsupported.",
+      });
     }
   };
   const reset = () => dispatch({ type: "RESET" });
@@ -187,7 +259,10 @@ export function SignWorkbench({ tool }: { tool: Tool }) {
     return (
       <div>
         <ToolHero tool={tool} />
-        <UploadStage tool={tool} onFiles={(f) => dispatch({ type: "SET_FILE", file: f[0] ?? null })} />
+        <UploadStage
+          tool={tool}
+          onFiles={(f) => dispatch({ type: "SET_FILE", file: f[0] ?? null })}
+        />
       </div>
     );
   }
@@ -204,13 +279,27 @@ export function SignWorkbench({ tool }: { tool: Tool }) {
       <div>
         <ToolHero tool={tool} compact onStartOver={reset} />
         <div className="py-8">
-          <ResultStage tool={tool} results={state.results} onStartOver={reset} onBack={() => dispatch({ type: "BACK" })} />
+          <ResultStage
+            tool={tool}
+            results={state.results}
+            onStartOver={reset}
+            onBack={() => dispatch({ type: "BACK" })}
+          />
         </div>
       </div>
     );
   }
 
-  const panel = <SignaturePanel state={state} saved={saved} pageCount={pageCount} dispatch={dispatch} onCreate={handleCreate} onPick={(d) => void activate(d)} />;
+  const panel = (
+    <SignaturePanel
+      state={state}
+      saved={saved}
+      pageCount={pageCount}
+      dispatch={dispatch}
+      onCreate={handleCreate}
+      onPick={(d) => void activate(d)}
+    />
+  );
   const count = state.placements.length;
 
   return (
@@ -242,7 +331,11 @@ export function SignWorkbench({ tool }: { tool: Tool }) {
           {actionLabel(tool, count)}
         </PrimaryButton>
       </ActionBar>
-      <Sheet open={state.sheetOpen} title="Your signature" onClose={() => dispatch({ type: "SHEET", open: false })}>
+      <Sheet
+        open={state.sheetOpen}
+        title="Your signature"
+        onClose={() => dispatch({ type: "SHEET", open: false })}
+      >
         {panel}
       </Sheet>
     </div>

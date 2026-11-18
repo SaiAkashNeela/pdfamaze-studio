@@ -16,7 +16,9 @@ const SignWorkbench = lazy(() =>
 );
 
 const FormFillWorkbench = lazy(() =>
-  import("@/components/site/form-fill/FormFillWorkbench").then((m) => ({ default: m.FormFillWorkbench })),
+  import("@/components/site/form-fill/FormFillWorkbench").then((m) => ({
+    default: m.FormFillWorkbench,
+  })),
 );
 
 const editorFallback = <p className="text-muted-foreground text-[13px]">Loading editor…</p>;
@@ -49,7 +51,10 @@ export const Route = createFileRoute("/tools/$slug")({
     const tool = getTool(params.slug);
     if (!tool) {
       return {
-        meta: [{ title: `Tool not found — ${siteConfig.name}` }, { name: "robots", content: "noindex" }],
+        meta: [
+          { title: `Tool not found — ${siteConfig.name}` },
+          { name: "robots", content: "noindex" },
+        ],
       };
     }
     const head = toolHead(tool);

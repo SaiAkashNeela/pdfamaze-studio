@@ -35,7 +35,16 @@ type Action =
   | { type: "BACK" }
   | { type: "RESET" };
 
-const initial: State = { file: null, fields: null, values: {}, flatten: false, status: "idle", step: { label: "" }, results: [], error: "" };
+const initial: State = {
+  file: null,
+  fields: null,
+  values: {},
+  flatten: false,
+  status: "idle",
+  step: { label: "" },
+  results: [],
+  error: "",
+};
 
 function initialValues(fields: FormFieldInfo[]): FormValues {
   const values: FormValues = {};
@@ -48,9 +57,18 @@ function reducer(state: State, action: Action): State {
     case "FILE":
       return { ...initial, file: action.file, status: action.file ? "loading" : "idle" };
     case "FIELDS":
-      return { ...state, fields: action.fields, values: initialValues(action.fields), status: "idle" };
+      return {
+        ...state,
+        fields: action.fields,
+        values: initialValues(action.fields),
+        status: "idle",
+      };
     case "VALUE":
-      return { ...state, values: { ...state.values, [action.name]: action.value }, status: state.status === "done" ? "idle" : state.status };
+      return {
+        ...state,
+        values: { ...state.values, [action.name]: action.value },
+        status: state.status === "done" ? "idle" : state.status,
+      };
     case "FLATTEN":
       return { ...state, flatten: action.on };
     case "START":
@@ -79,7 +97,11 @@ function useFieldLoader(file: File | null, dispatch: (a: Action) => void) {
     import("@/lib/pdf/ops/forms")
       .then((m) => m.readFormFields(file))
       .then((fields) => active && dispatch({ type: "FIELDS", fields }))
-      .catch((e: unknown) => active && dispatch({ type: "FAIL", error: message(e, "This PDF's form couldn't be read.") }));
+      .catch(
+        (e: unknown) =>
+          active &&
+          dispatch({ type: "FAIL", error: message(e, "This PDF's form couldn't be read.") }),
+      );
     return () => {
       active = false;
     };
@@ -90,7 +112,11 @@ function FieldList({ state, dispatch }: { state: State; dispatch: (a: Action) =>
   const fields = state.fields ?? [];
   const editable = fields.filter((f) => f.kind !== "signature" && f.kind !== "button");
   if (!editable.length) {
-    return <p className="text-muted-foreground text-[13.5px]">This PDF has no fillable fields. Try Sign PDF or Add Stamp to write onto the page instead.</p>;
+    return (
+      <p className="text-muted-foreground text-[13.5px]">
+        This PDF has no fillable fields. Try Sign PDF or Add Stamp to write onto the page instead.
+      </p>
+    );
   }
   return (
     <div className="border-border divide-border divide-y rounded-[6px] border">
@@ -112,15 +138,25 @@ function FlattenToggle({ state, dispatch }: { state: State; dispatch: (a: Action
     <div>
       <label className="flex cursor-pointer items-center justify-between gap-4 text-[13.5px]">
         Flatten after filling
-        <input type="checkbox" checked={state.flatten} onChange={(e) => dispatch({ type: "FLATTEN", on: e.target.checked })} className="accent-accent h-4 w-4" />
+        <input
+          type="checkbox"
+          checked={state.flatten}
+          onChange={(e) => dispatch({ type: "FLATTEN", on: e.target.checked })}
+          className="accent-accent h-4 w-4"
+        />
       </label>
-      <p className="text-muted-foreground mt-1 text-[12px] leading-snug">Locks the answers into the page so they can't be edited.</p>
+      <p className="text-muted-foreground mt-1 text-[12px] leading-snug">
+        Locks the answers into the page so they can't be edited.
+      </p>
     </div>
   );
 }
 
 function initialFormState(tool: Tool): State {
-  const file = typeof window === "undefined" ? null : (takeHandoff((f) => acceptsFile(tool.accept, f))[0] ?? null);
+  const file =
+    typeof window === "undefined"
+      ? null
+      : (takeHandoff((f) => acceptsFile(tool.accept, f))[0] ?? null);
   return file ? { ...initial, file, status: "loading" } : initial;
 }
 
@@ -133,10 +169,18 @@ export function FormFillWorkbench({ tool }: { tool: Tool }) {
     dispatch({ type: "START" });
     try {
       const { fillForm } = await import("@/lib/pdf/ops/forms");
-      const results = await fillForm(state.file, state.values, { flatten: state.flatten }, (label, ratio) => dispatch({ type: "STEP", label, ratio }));
+      const results = await fillForm(
+        state.file,
+        state.values,
+        { flatten: state.flatten },
+        (label, ratio) => dispatch({ type: "STEP", label, ratio }),
+      );
       dispatch({ type: "DONE", results });
     } catch (e) {
-      dispatch({ type: "FAIL", error: message(e, "The form couldn't be filled. The file may be damaged or unsupported.") });
+      dispatch({
+        type: "FAIL",
+        error: message(e, "The form couldn't be filled. The file may be damaged or unsupported."),
+      });
     }
   };
   const reset = () => dispatch({ type: "RESET" });
@@ -162,7 +206,12 @@ export function FormFillWorkbench({ tool }: { tool: Tool }) {
       <div>
         <ToolHero tool={tool} compact onStartOver={reset} />
         <div className="py-8">
-          <ResultStage tool={tool} results={state.results} onStartOver={reset} onBack={() => dispatch({ type: "BACK" })} />
+          <ResultStage
+            tool={tool}
+            results={state.results}
+            onStartOver={reset}
+            onBack={() => dispatch({ type: "BACK" })}
+          />
         </div>
       </div>
     );
@@ -177,12 +226,18 @@ export function FormFillWorkbench({ tool }: { tool: Tool }) {
           <p className="text-muted-foreground flex items-center gap-2 text-[13px]">
             <FileText className="text-accent h-4 w-4 shrink-0" />
             <span className="text-foreground truncate font-medium">{state.file.name}</span>
-            {state.fields ? <span className="shrink-0">· {state.fields.length} field{state.fields.length === 1 ? "" : "s"}</span> : null}
+            {state.fields ? (
+              <span className="shrink-0">
+                · {state.fields.length} field{state.fields.length === 1 ? "" : "s"}
+              </span>
+            ) : null}
           </p>
           {state.status === "error" ? <ToolRunnerError error={state.error} /> : null}
           {state.status === "loading" ? <ProcessingStage label="Reading form fields" /> : null}
           {state.fields ? <FieldList state={state} dispatch={dispatch} /> : null}
-          <div className="lg:hidden">{canFill ? <FlattenToggle state={state} dispatch={dispatch} /> : null}</div>
+          <div className="lg:hidden">
+            {canFill ? <FlattenToggle state={state} dispatch={dispatch} /> : null}
+          </div>
         </div>
         <aside className="hidden lg:block">
           <div className="border-border bg-card sticky top-20 space-y-5 rounded-2xl border p-5">

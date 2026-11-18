@@ -10,12 +10,11 @@ export function Footer() {
         <div className="max-w-sm">
           <div className="text-foreground flex items-center gap-2">
             <LogoMark className="h-[18px] w-[18px]" />
-            <span className="text-[14px] font-semibold tracking-[-0.02em]">
-              {siteConfig.name}
-            </span>
+            <span className="text-[14px] font-semibold tracking-[-0.02em]">{siteConfig.name}</span>
           </div>
           <p className="text-muted-foreground mt-3 text-[13.5px] leading-relaxed">
-            Fast, private PDF tools that run entirely inside your browser tab. Your files never leave your device.
+            Fast, private PDF tools that run entirely inside your browser tab. Your files never
+            leave your device.
           </p>
           <div className="text-muted-foreground mt-4 flex items-center gap-1.5 text-[13px]">
             <span>Built with</span>
@@ -82,8 +81,8 @@ export function Footer() {
                 rel="noreferrer noopener"
                 className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
               >
-                <Github className="h-3.5 w-3.5" aria-hidden />
-                @{siteConfig.authorGithub.split("/").pop()}
+                <Github className="h-3.5 w-3.5" aria-hidden />@
+                {siteConfig.authorGithub.split("/").pop()}
               </a>
             </li>
             <li>

@@ -111,7 +111,10 @@ export async function watermarkPdf(
   const file = requireFile(files);
   const text = opts.text.trim();
   if (!text) fail("Type the watermark text you want stamped on each page.");
-  const [{ StandardFonts, degrees, rgb }, doc] = await Promise.all([loadPdfLib(), openEditableDocument(file)]);
+  const [{ StandardFonts, degrees, rgb }, doc] = await Promise.all([
+    loadPdfLib(),
+    openEditableDocument(file),
+  ]);
   const font = await doc.embedFont(StandardFonts.HelveticaBold);
   const pages = doc.getPages();
   pages.forEach((page, i) => {
@@ -163,9 +166,9 @@ export async function compressPdf(
   ]);
 
   const [src, out] = await Promise.all([
-    pdfjs.getDocument({ data: bytes }).promise.catch(() =>
-      fail("This PDF couldn't be read for rendering."),
-    ),
+    pdfjs
+      .getDocument({ data: bytes })
+      .promise.catch(() => fail("This PDF couldn't be read for rendering.")),
     PDFDocument.create(),
   ]);
 
@@ -291,14 +294,12 @@ export async function decryptPdf(
   progress("Unlocking document", 0.2);
 
   const [src, out] = await Promise.all([
-    pdfjs
-      .getDocument({ data: bytes, password: opts.password })
-      .promise.catch((e: unknown) => {
-        const nameOf = (e as { name?: string })?.name;
-        if (nameOf === "PasswordException")
-          fail("That password didn't unlock this PDF. Check it and try again.");
-        fail("This PDF couldn't be opened. It may be damaged or unsupported.");
-      }),
+    pdfjs.getDocument({ data: bytes, password: opts.password }).promise.catch((e: unknown) => {
+      const nameOf = (e as { name?: string })?.name;
+      if (nameOf === "PasswordException")
+        fail("That password didn't unlock this PDF. Check it and try again.");
+      fail("This PDF couldn't be opened. It may be damaged or unsupported.");
+    }),
     PDFDocument.create(),
   ]);
 
@@ -433,10 +434,7 @@ export async function htmlToPdf(
     await new Promise((resolve) => setTimeout(resolve, 400));
     progress("Capturing formatted layout", 0.6);
 
-    const [html2canvasMod, { jsPDF }] = await Promise.all([
-      import("html2canvas"),
-      import("jspdf"),
-    ]);
+    const [html2canvasMod, { jsPDF }] = await Promise.all([import("html2canvas"), import("jspdf")]);
     const html2canvas = html2canvasMod.default;
 
     const canvas = await html2canvas(iframeDoc.body, {
@@ -484,7 +482,16 @@ export async function htmlToPdf(
           ctx.drawImage(canvas, 0, sourceY, canvas.width, sourceH, 0, 0, canvas.width, sourceH);
         }
         const sliceData = pageCanvas.toDataURL("image/png", 0.95);
-        pdf.addImage(sliceData, "PNG", 0, 0, pageWidth, Math.min(pageHeight, imgHeight - p * pageHeight), undefined, "FAST");
+        pdf.addImage(
+          sliceData,
+          "PNG",
+          0,
+          0,
+          pageWidth,
+          Math.min(pageHeight, imgHeight - p * pageHeight),
+          undefined,
+          "FAST",
+        );
       }
     }
 
@@ -521,9 +528,7 @@ export async function addPageNumbers(
     progress(`Numbering page ${index + 1} of ${total}`, (index + 1) / total);
     const { width, height } = page.getSize();
     const currentNum = startNum + index;
-    let label = opts.format
-      .replace("{n}", String(currentNum))
-      .replace("{total}", String(total));
+    let label = opts.format.replace("{n}", String(currentNum)).replace("{total}", String(total));
 
     if (!label) label = `${currentNum}`;
 
@@ -593,9 +598,7 @@ export async function extractText(
   let fullText = "";
   textContents.forEach((textContent, n) => {
     const pageIndex = indices[n]!;
-    const pageStrings = textContent.items
-      .map((item: any) => item.str || "")
-      .join(" ");
+    const pageStrings = textContent.items.map((item) => ("str" in item ? item.str : "")).join(" ");
 
     if (opts.includePageHeaders) {
       fullText += `=== Page ${pageIndex + 1} ===\n\n${pageStrings.trim()}\n\n`;
@@ -605,7 +608,9 @@ export async function extractText(
   });
 
   if (!fullText.trim()) {
-    fail("No text could be found in the selected pages. The document might be scanned/image-based.");
+    fail(
+      "No text could be found in the selected pages. The document might be scanned/image-based.",
+    );
   }
 
   return [{ name: `${baseName(file.name)}-extracted.txt`, blob: textBlob(fullText.trim()) }];

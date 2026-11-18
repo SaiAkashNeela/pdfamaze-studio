@@ -25,7 +25,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "author", content: siteConfig.author },
       { name: "creator", content: siteConfig.author },
       { name: "publisher", content: siteConfig.name },
-      { name: "robots", content: "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" },
+      {
+        name: "robots",
+        content: "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
+      },
       { property: "og:site_name", content: siteConfig.name },
       { property: "og:title", content: `${siteConfig.name} — Local-First PDF Workbench` },
       { property: "og:description", content: siteConfig.description },
@@ -33,7 +36,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:image", content: `${siteConfig.url}/og.png` },
       { property: "og:image:width", content: "1200" },
       { property: "og:image:height", content: "630" },
-      { property: "og:image:alt", content: `${siteConfig.name} — free PDF tools that run in your browser` },
+      {
+        property: "og:image:alt",
+        content: `${siteConfig.name} — free PDF tools that run in your browser`,
+      },
       { name: "twitter:image", content: `${siteConfig.url}/og.png` },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: `${siteConfig.name} — Local-First PDF Workbench` },
