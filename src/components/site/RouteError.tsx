@@ -1,6 +1,6 @@
-import { useRouter, Link } from "@tanstack/react-router";
+import { useRouter, Link, type ErrorComponentProps } from "@tanstack/react-router";
 
-export function RouteError({ error, reset }: { error: Error; reset: () => void }) {
+export function RouteError({ error, reset }: ErrorComponentProps) {
   console.error("Root route error:", error);
   const router = useRouter();
 
