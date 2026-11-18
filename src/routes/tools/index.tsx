@@ -12,7 +12,7 @@ export const Route = createFileRoute("/tools/")({
     pageHead({
       path: "/tools",
       title: `All ${tools.length} PDF tools — ${siteConfig.name}`,
-      description: `Every PDF tool on ${siteConfig.name}: sign, fill forms, OCR, redact, merge, split, compress, protect, organize, convert and more — all free and in your browser, with no upload.`,
+      description: `Every PDF tool on ${siteConfig.name}: sign, fill forms, OCR, redact, merge, split, compress, protect, convert and more — free, in your browser, no upload.`,
       jsonLd: [toolListJsonLd(tools)],
     }),
   component: ToolsIndex,
