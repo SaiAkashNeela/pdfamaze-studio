@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { ThemeContext, type Theme } from "@/lib/theme-context";
-import { THEME_STORAGE_KEY as STORAGE_KEY } from "@/lib/theme-script";
+import { THEME_STORAGE_KEY as STORAGE_KEY, readStoredTheme } from "@/lib/theme-script";
 
 function systemPrefersDark() {
   return typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches;
@@ -13,10 +13,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   // Read the stored preference after hydration so SSR markup stays stable.
   useEffect(() => {
-    const stored = window.localStorage.getItem(STORAGE_KEY) as Theme | null;
-    if (stored === "light" || stored === "dark" || stored === "system") {
-      setThemeState(stored);
-    }
+    const stored = readStoredTheme();
+    if (stored) setThemeState(stored);
   }, []);
 
   useEffect(() => {
