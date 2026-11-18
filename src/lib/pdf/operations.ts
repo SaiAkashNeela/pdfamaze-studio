@@ -16,6 +16,7 @@ import {
   type OutputFile,
   type ProgressFn,
 } from "./core";
+import { createHtmlRenderFrame } from "./html-sandbox";
 
 function requireFile(files: File[]): File {
   const file = files[0];
@@ -391,16 +392,7 @@ export async function htmlToPdf(
 
   progress("Rendering HTML content in sandbox", 0.3);
 
-  const iframe = document.createElement("iframe");
-  iframe.style.position = "fixed";
-  iframe.style.left = "-9999px";
-  iframe.style.top = "0";
-  iframe.style.width = "1px";
-  iframe.style.height = "1px";
-  iframe.style.border = "none";
-  iframe.style.visibility = "hidden";
-  iframe.style.pointerEvents = "none";
-  document.body.appendChild(iframe);
+  const iframe = createHtmlRenderFrame(document);
 
   const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
   if (!iframeDoc) {

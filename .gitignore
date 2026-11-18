@@ -31,3 +31,5 @@ dist-ssr
 *.sln
 *.sw?
 Stirling-PDF/
+# Ironclad raw scanner output (findings.json and the report are committed)
+.security-audit/scanner-output/
