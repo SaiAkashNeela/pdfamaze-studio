@@ -112,7 +112,7 @@ Limitations: no git-history secret scan (gitleaks missing), no third-party SAST,
 
 **Remediation:** `createHtmlRenderFrame()` sets `sandbox="allow-same-origin"` before the frame is attached. html2canvas can still read the DOM, but scripts, handlers, forms, popups and top navigation are blocked. html2canvas's clone frame inherits the sandbox.
 
-**Verification:** `tests/html-sandbox.test.ts` fails if the sandbox allows scripts or is applied after attachment. In Chromium, the payload set `window.top.__pwned = 21` and wrote to site localStorage before the fix. After the fix it does nothing ("Blocked script execution … sandboxed") and the output PDF is identical. Commit `631b754`.
+**Verification:** `tests/html-sandbox.test.ts` fails if the sandbox allows scripts or is applied after attachment. In Chromium, the payload set `window.top.__pwned = 21` and wrote to site localStorage before the fix. After the fix it does nothing ("Blocked script execution … sandboxed") and the output PDF is identical. Commits `631b754`, `d2d5dcc`.
 
 ### SEC-004 — Undisclosed third-party analytics script on every page
 
@@ -282,7 +282,7 @@ All build, test, lint, type, React Doctor, dependency, docs, SEO and social chec
 | ----------- | ------------------------------------ | -------------------- | ----------------------------- | -------------------------------- |
 | SEC-002     | Vulnerable dependencies              | `4aaad1f`            | `bun audit` in gate           | 14 → 0 advisories (prod)         |
 | REL-002     | Lint gate broken                     | `4aaad1f`, `1960c3b` | `bun run lint` in gate        |                                  |
-| SEC-001     | Sandbox the HTML to PDF render frame | `631b754`            | `tests/html-sandbox.test.ts`  | Exploit reproduced, then blocked |
+| SEC-001     | Sandbox the HTML to PDF render frame | `631b754`, `d2d5dcc` | `tests/html-sandbox.test.ts`  | Exploit reproduced, then blocked |
 | SEC-003     | Security headers                     | `78951ea`, `f515c3e` | Manual curl + Playwright      |                                  |
 | REL-001     | Storage-blocked crash                | `98e6d9a`            | `tests/theme-storage.test.ts` |                                  |
 | SEO-001     | /tools description length            | `d512bd0`            | `check_seo.py`                |                                  |

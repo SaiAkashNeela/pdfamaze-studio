@@ -41,7 +41,7 @@
     {
       "cwe": "CWE-79",
       "owasp": "A03:2021",
-      "fix_commit": "631b754",
+      "fix_commit": "631b754, d2d5dcc",
       "test": "tests/html-sandbox.test.ts",
       "requires_human_action": false,
       "accepted_reason": null,

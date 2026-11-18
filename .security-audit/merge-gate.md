@@ -1,6 +1,6 @@
 ## Ironclad merge gate: ❌ NOT READY — 1 failing check(s)
 
-Base: `main` · Commit: `61e842e` · 2026-11-18T17:32Z
+Base: `main` · Commit: `d2d5dcc` · 2026-11-18T17:38Z
 
 | Check | Result | Details |
 |---|---|---|
@@ -10,7 +10,7 @@ Base: `main` · Commit: `61e842e` · 2026-11-18T17:32Z
 | bun run lint | ✅ pass | `bun run lint` |
 | bun run test | ✅ pass | `bun run test` |
 | bun run build | ✅ pass | `bun run build` |
-| bun x react-doctor src --yes | ✅ pass | `bun x react-doctor src --yes` |
+| bun x react-doctor src --yes --blocking  | ✅ pass | `bun x react-doctor src --yes --blocking warning` |
 | bun audit --production --audit-level=mod | ✅ pass | `bun audit --production --audit-level=moderate` |
 | No new skips/suppressions | ✅ pass |  |
 | No secrets in branch | ⚠️ warn | pattern check only — gitleaks not installed |
