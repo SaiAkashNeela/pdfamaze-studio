@@ -1,0 +1,7 @@
+# Ironclad merge gate commands for this repo (one per line; replaces auto-detection).
+bun x tsc --noEmit
+bun run lint
+bun run test
+bun run build
+bun x react-doctor src --yes
+bun audit --production --audit-level=moderate
