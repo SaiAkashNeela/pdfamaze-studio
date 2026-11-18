@@ -11,10 +11,17 @@ PDFamaze is a local-first, privacy-respecting PDF workbench that processes PDF d
 
 ## Standards & Quality Gates
 
-- **React Doctor**: Maintain a 100/100 code quality score via `bun x react-doctor src --yes`.
+Every change must pass all of these before it merges. Fix failures; never skip, delete or silence tests or lint rules to get green.
+
 - **TypeScript**: Strict type checking with zero errors via `bun x tsc --noEmit`.
-- **Build**: Production builds generated via `bun run build`.
+- **Lint & format**: `bun run lint` (ESLint + Prettier) with zero errors; `bun run format` applies Prettier.
+- **Tests**: `bun run test` (Bun's built-in runner over `./tests`). Every security or reliability fix gets a regression test there.
+- **Build**: Production builds generated via `bun run build`; `bun run preview` runs the build in wrangler.
+- **React Doctor**: Maintain a 100/100 code quality score via `bun x react-doctor src --yes`.
+- **Dependencies**: `bun audit --production` reports no critical, high or moderate advisories.
 - **Licensing**: Open source software under the MIT License.
+
+`mobile-app/` is a separate Expo project with its own `AGENTS.md`, tooling and lockfile; the root lint and tests ignore it.
 
 ## Security Conventions
 
