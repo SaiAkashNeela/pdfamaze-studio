@@ -55,7 +55,11 @@ function fontCss(font: string): string {
 }
 
 /** Renders a typed name at high resolution so it stays crisp when scaled up on the page. */
-export async function renderTextSignature(text: string, font: string, color: string): Promise<string | null> {
+export async function renderTextSignature(
+  text: string,
+  font: string,
+  color: string,
+): Promise<string | null> {
   const value = text.trim();
   if (!value) return null;
   const size = 120;
@@ -94,7 +98,10 @@ function loadImage(src: string): Promise<HTMLImageElement> {
  * Normalises an uploaded image to PNG. With `removeBackground`, near-white pixels become
  * transparent so a photo or scan of a signature on paper sits cleanly on the page.
  */
-export async function imageFileToSignature(file: File, removeBackground: boolean): Promise<string | null> {
+export async function imageFileToSignature(
+  file: File,
+  removeBackground: boolean,
+): Promise<string | null> {
   const url = URL.createObjectURL(file);
   try {
     const img = await loadImage(url);

@@ -54,7 +54,11 @@ async function save(doc: PDFDocument) {
 
 /* ------------------------------------------------------------ remove pages */
 
-export async function removePages(files: File[], opts: { pages: string }, progress: ProgressFn): Promise<OutputFile[]> {
+export async function removePages(
+  files: File[],
+  opts: { pages: string },
+  progress: ProgressFn,
+): Promise<OutputFile[]> {
   const file = requireFile(files);
   if (!opts.pages.trim()) fail("List the pages you want to remove, for example 2, 5-7.");
   const [lib, src] = await Promise.all([loadPdfLib(), openEditableDocument(file)]);
@@ -63,12 +67,18 @@ export async function removePages(files: File[], opts: { pages: string }, progre
   const keep = src.getPageIndices().filter((i) => !drop.has(i));
   if (!keep.length) fail("That would remove every page. Keep at least one.");
   progress(`Removing ${drop.size} page${drop.size > 1 ? "s" : ""}`, 0.6);
-  return [{ name: `${baseName(file.name)}-removed-pages.pdf`, blob: await save(await copyIndices(lib, src, keep)) }];
+  return [
+    {
+      name: `${baseName(file.name)}-removed-pages.pdf`,
+      blob: await save(await copyIndices(lib, src, keep)),
+    },
+  ];
 }
 
 /* ------------------------------------------------------- rearrange / sort */
 
-const range = (from: number, to: number) => Array.from({ length: Math.max(0, to - from) }, (_, i) => from + i);
+const range = (from: number, to: number) =>
+  Array.from({ length: Math.max(0, to - from) }, (_, i) => from + i);
 
 /** Index formulas from Stirling-PDF's RearrangePagesPDFController (0-based, n = page count). */
 export function rearrangeOrder(mode: string, n: number, order: string, copies: number): number[] {
@@ -84,7 +94,9 @@ export function rearrangeOrder(mode: string, n: number, order: string, copies: n
       // Stirling drops the middle page of odd documents; keep it.
       return range(0, Math.ceil(n / 2)).flatMap((i) => (i === n - 1 - i ? [i] : [i, n - 1 - i]));
     case "side-stitch":
-      return range(0, Math.ceil(n / 4)).flatMap((i) => [3, 0, 1, 2].map((k) => Math.min(4 * i + k, n - 1)));
+      return range(0, Math.ceil(n / 4)).flatMap((i) =>
+        [3, 0, 1, 2].map((k) => Math.min(4 * i + k, n - 1)),
+      );
     case "odd-even":
       return [...range(0, n).filter((i) => i % 2 === 0), ...range(0, n).filter((i) => i % 2 === 1)];
     case "remove-first":
@@ -110,17 +122,30 @@ export async function rearrangePages(
   const file = requireFile(files);
   const [lib, src] = await Promise.all([loadPdfLib(), openEditableDocument(file)]);
   const indices = rearrangeOrder(opts.mode, src.getPageCount(), opts.order, opts.copies);
-  if (!indices.length) fail("This leaves no pages. Pick a different option or add pages to the list.");
+  if (!indices.length)
+    fail("This leaves no pages. Pick a different option or add pages to the list.");
   progress(`Rebuilding ${indices.length} page${indices.length > 1 ? "s" : ""}`, 0.5);
-  return [{ name: `${baseName(file.name)}-organized.pdf`, blob: await save(await copyIndices(lib, src, indices)) }];
+  return [
+    {
+      name: `${baseName(file.name)}-organized.pdf`,
+      blob: await save(await copyIndices(lib, src, indices)),
+    },
+  ];
 }
 
 /* ------------------------------------------------------------ interleave */
 
 /** Alternates pages from two PDFs: 1st of A, 1st of B, 2nd of A… Useful for double-sided scans. */
-export async function interleavePdfs(files: File[], opts: { reverseSecond: boolean }, progress: ProgressFn): Promise<OutputFile[]> {
+export async function interleavePdfs(
+  files: File[],
+  opts: { reverseSecond: boolean },
+  progress: ProgressFn,
+): Promise<OutputFile[]> {
   if (files.length !== 2) fail("Add exactly two PDFs: fronts first, then backs.");
-  const [lib, [a, b]] = await Promise.all([loadPdfLib(), Promise.all(files.map((f) => openEditableDocument(f)))]);
+  const [lib, [a, b]] = await Promise.all([
+    loadPdfLib(),
+    Promise.all(files.map((f) => openEditableDocument(f))),
+  ]);
   const out = await lib.PDFDocument.create();
   const pa = await out.copyPages(a!, a!.getPageIndices());
   const bIdx = b!.getPageIndices();
@@ -135,12 +160,20 @@ export async function interleavePdfs(files: File[], opts: { reverseSecond: boole
 
 /* ------------------------------------------------------- multi-page layout */
 
-type Embedded = { embedded: Awaited<ReturnType<typeof embedVisiblePages>>[number]; rotation: 0 | 90 | 180 | 270; size: { width: number; height: number } };
+type Embedded = {
+  embedded: Awaited<ReturnType<typeof embedVisiblePages>>[number];
+  rotation: 0 | 90 | 180 | 270;
+  size: { width: number; height: number };
+};
 
 async function embedAll(out: PDFDocument, src: PDFDocument): Promise<Embedded[]> {
   const pages = src.getPages();
   const embedded = await embedVisiblePages(out, pages);
-  return pages.map((p, i) => ({ embedded: embedded[i]!, rotation: pageRotation(p), size: displaySize(p) }));
+  return pages.map((p, i) => ({
+    embedded: embedded[i]!,
+    rotation: pageRotation(p),
+    size: displaySize(p),
+  }));
 }
 
 function drawInto(lib: PdfLib, target: PDFPage, item: Embedded, cell: Box, border: boolean) {
@@ -151,7 +184,13 @@ function drawInto(lib: PdfLib, target: PDFPage, item: Embedded, cell: Box, borde
 
 export async function multiPageLayout(
   files: File[],
-  opts: { perSheet: string; orientation: string; arrangement: string; margin: number; border: boolean },
+  opts: {
+    perSheet: string;
+    orientation: string;
+    arrangement: string;
+    margin: number;
+    border: boolean;
+  },
   progress: ProgressFn,
 ): Promise<OutputFile[]> {
   const file = requireFile(files);
@@ -175,7 +214,12 @@ export async function multiPageLayout(
       const byRows = opts.arrangement !== "columns";
       const row = byRows ? Math.floor(k / cols) : k % rows;
       const col = byRows ? k % cols : Math.floor(k / rows);
-      const cell = { x: m + col * cellW + 4, y: H - m - (row + 1) * cellH + 4, width: cellW - 8, height: cellH - 8 };
+      const cell = {
+        x: m + col * cellW + 4,
+        y: H - m - (row + 1) * cellH + 4,
+        width: cellW - 8,
+        height: cellH - 8,
+      };
       drawInto(lib, sheet, item, cell, opts.border);
     });
   }
@@ -223,7 +267,8 @@ export async function bookletPdf(
     pair.forEach((index, c) => {
       const item = index >= 0 ? items[index] : undefined;
       if (item) drawInto(lib, sheet, item, cells[c]!, false);
-      if (opts.border) sheet.drawRectangle({ ...cells[c]!, borderColor: lib.rgb(0, 0, 0), borderWidth: 1.5 });
+      if (opts.border)
+        sheet.drawRectangle({ ...cells[c]!, borderColor: lib.rgb(0, 0, 0), borderWidth: 1.5 });
     });
   });
   return [{ name: `${baseName(file.name)}-booklet.pdf`, blob: await save(out) }];
@@ -238,7 +283,10 @@ export async function toSinglePage(files: File[], progress: ProgressFn): Promise
   const items = await embedAll(out, src);
   const W = Math.max(...items.map((i) => i.size.width));
   const H = items.reduce((sum, i) => sum + i.size.height, 0);
-  if (H > 14400) fail("The combined page would be taller than 200 inches, the largest size PDF viewers support. Split the file first.");
+  if (H > 14400)
+    fail(
+      "The combined page would be taller than 200 inches, the largest size PDF viewers support. Split the file first.",
+    );
   const page = out.addPage([W, H]);
   let top = H;
   items.forEach((item, n) => {
@@ -264,13 +312,20 @@ export async function scalePages(
   items.forEach((item, n) => {
     progress(`Scaling page ${n + 1} of ${items.length}`, (n + 1) / items.length);
     let [w, h] = PAPER_SIZES[opts.size] ?? [item.size.width, item.size.height];
-    const landscape = opts.orientation === "landscape" || (opts.orientation === "auto" && item.size.width > item.size.height);
+    const landscape =
+      opts.orientation === "landscape" ||
+      (opts.orientation === "auto" && item.size.width > item.size.height);
     if (landscape !== w > h) [w, h] = [h, w];
     const page = out.addPage([w, h]);
     const fit = fitInside(item.size, { x: 0, y: 0, width: w, height: h });
     const width = fit.width * factor;
     const height = fit.height * factor;
-    drawUpright(lib, page, item.embedded, item.rotation, { x: (w - width) / 2, y: (h - height) / 2, width, height });
+    drawUpright(lib, page, item.embedded, item.rotation, {
+      x: (w - width) / 2,
+      y: (h - height) / 2,
+      width,
+      height,
+    });
   });
   return [{ name: `${baseName(file.name)}-scaled.pdf`, blob: await save(out) }];
 }
@@ -301,7 +356,12 @@ export async function splitSections(
     for (let row = 0; row < rows; row++) {
       for (let col = 0; col < cols; col++) {
         const piece = out.addPage([pw, ph]);
-        drawUpright(lib, piece, item.embedded, item.rotation, { x: -col * pw, y: -(rows - 1 - row) * ph, width: W, height: H });
+        drawUpright(lib, piece, item.embedded, item.rotation, {
+          x: -col * pw,
+          y: -(rows - 1 - row) * ph,
+          width: W,
+          height: H,
+        });
       }
     }
   });
@@ -385,7 +445,10 @@ async function contentBounds(bytes: Uint8Array, index: number): Promise<DisplayR
   const canvas = await renderPageToCanvas(page, 150 / 72);
   const { width: w, height: h } = canvas;
   const data = canvas.getContext("2d")!.getImageData(0, 0, w, h).data;
-  let top = h, bottom = -1, left = w, right = -1;
+  let top = h,
+    bottom = -1,
+    left = w,
+    right = -1;
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
       const i = (y * w + x) * 4;
@@ -400,8 +463,10 @@ async function contentBounds(bytes: Uint8Array, index: number): Promise<DisplayR
   void doc.loadingTask.destroy();
   if (bottom < 0) return null;
   const pad = 4;
-  const x0 = Math.max(0, left - pad), y0 = Math.max(0, top - pad);
-  const x1 = Math.min(w, right + pad + 1), y1 = Math.min(h, bottom + pad + 1);
+  const x0 = Math.max(0, left - pad),
+    y0 = Math.max(0, top - pad);
+  const x1 = Math.min(w, right + pad + 1),
+    y1 = Math.min(h, bottom + pad + 1);
   return { x: x0 / w, y: y0 / h, w: (x1 - x0) / w, h: (y1 - y0) / h };
 }
 
@@ -421,13 +486,20 @@ export async function cropPdf(
   const [bytes, doc] = await Promise.all([readBytes(file), openEditableDocument(file)]);
   const pages = doc.getPages();
   const targets = parsePageRanges(opts.pages, pages.length);
-  const t = opts.top / 100, r = opts.right / 100, b = opts.bottom / 100, l = opts.left / 100;
-  if (opts.mode !== "auto" && (t + b >= 0.95 || l + r >= 0.95)) fail("Those margins leave almost nothing of the page. Use smaller values.");
+  const t = opts.top / 100,
+    r = opts.right / 100,
+    b = opts.bottom / 100,
+    l = opts.left / 100;
+  if (opts.mode !== "auto" && (t + b >= 0.95 || l + r >= 0.95))
+    fail("Those margins leave almost nothing of the page. Use smaller values.");
   // Auto-crop renders each page; do them one by one to keep memory flat.
   await inSequence(targets, async (index, n) => {
     progress(`Cropping page ${index + 1}`, (n + 1) / targets.length);
     const page = pages[index]!;
-    const rect = opts.mode === "auto" ? await contentBounds(bytes, index) : { x: l, y: t, w: 1 - l - r, h: 1 - t - b };
+    const rect =
+      opts.mode === "auto"
+        ? await contentBounds(bytes, index)
+        : { x: l, y: t, w: 1 - l - r, h: 1 - t - b };
     if (rect) setVisibleBox(page, displayRectToPdfBox(page, rect));
   });
   return [{ name: `${baseName(file.name)}-cropped.pdf`, blob: pdfBlob(await doc.save()) }];
@@ -446,8 +518,12 @@ export async function overlayPdfs(
   opts: { mode: string; position: string },
   progress: ProgressFn,
 ): Promise<OutputFile[]> {
-  if (files.length < 2 || !files.every(isPdfFile)) fail("Add the base PDF first, then one or more PDFs to lay over it.");
-  const [lib, [base, ...overlays]] = await Promise.all([loadPdfLib(), Promise.all(files.map((f) => openEditableDocument(f)))]);
+  if (files.length < 2 || !files.every(isPdfFile))
+    fail("Add the base PDF first, then one or more PDFs to lay over it.");
+  const [lib, [base, ...overlays]] = await Promise.all([
+    loadPdfLib(),
+    Promise.all(files.map((f) => openEditableDocument(f))),
+  ]);
   const sources = await Promise.all(overlays.map((o) => embedAll(base!, o!)));
   const sequence = opts.mode === "interleaved" ? sources.map((s) => s[0]!) : sources.flat();
   const pages = base!.getPages();
@@ -460,8 +536,14 @@ export async function overlayPdfs(
     const sideways = pageRotation(page) % 180 !== 0;
     const w = sideways ? item.size.height : item.size.width;
     const h = sideways ? item.size.width : item.size.height;
-    const box = { x: crop.x + (crop.width - w) / 2, y: crop.y + (crop.height - h) / 2, width: w, height: h };
-    const relative = ((item.rotation - pageRotation(page)) % 360 + 360) % 360 as 0 | 90 | 180 | 270;
+    const box = {
+      x: crop.x + (crop.width - w) / 2,
+      y: crop.y + (crop.height - h) / 2,
+      width: w,
+      height: h,
+    };
+    const relative = ((((item.rotation - pageRotation(page)) % 360) + 360) % 360) as
+      0 | 90 | 180 | 270;
     drawUpright(lib, page, item.embedded, relative, box);
     if (opts.position === "background") sendDrawingToBack(lib, page);
   });

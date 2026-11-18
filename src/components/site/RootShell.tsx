@@ -1,6 +1,6 @@
 import { HeadContent, Scripts } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { themeInitScript } from "@/lib/theme";
+import { themeInitScript } from "@/lib/theme-script";
 import { siteConfig } from "@/lib/site-config";
 import { tools } from "@/lib/tools";
 
@@ -10,43 +10,46 @@ const jsonLdSchema = {
     {
       "@type": "WebSite",
       "@id": "https://pdfamaze.com/#website",
-      "url": "https://pdfamaze.com",
-      "name": "PDFamaze",
-      "description": siteConfig.description,
-      "inLanguage": "en-US",
-      "publisher": {
+      url: "https://pdfamaze.com",
+      name: "PDFamaze",
+      description: siteConfig.description,
+      inLanguage: "en-US",
+      publisher: {
         "@id": "https://pdfamaze.com/#author",
       },
-      "potentialAction": {
+      potentialAction: {
         "@type": "SearchAction",
-        "target": { "@type": "EntryPoint", "urlTemplate": "https://pdfamaze.com/tools?q={search_term_string}" },
+        target: {
+          "@type": "EntryPoint",
+          urlTemplate: "https://pdfamaze.com/tools?q={search_term_string}",
+        },
         "query-input": "required name=search_term_string",
       },
     },
     {
       "@type": "WebApplication",
       "@id": "https://pdfamaze.com/#app",
-      "name": "PDFamaze Studio",
-      "url": "https://pdfamaze.com",
-      "applicationCategory": "UtilitiesApplication",
-      "operatingSystem": "All (Web Browser)",
-      "browserRequirements": "Requires JavaScript and HTML5 Canvas support",
-      "offers": {
+      name: "PDFamaze Studio",
+      url: "https://pdfamaze.com",
+      applicationCategory: "UtilitiesApplication",
+      operatingSystem: "All (Web Browser)",
+      browserRequirements: "Requires JavaScript and HTML5 Canvas support",
+      offers: {
         "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "USD",
+        price: "0",
+        priceCurrency: "USD",
       },
-      "featureList": tools.map((t) => `${t.name}: ${t.summary}`),
-      "author": {
+      featureList: tools.map((t) => `${t.name}: ${t.summary}`),
+      author: {
         "@id": "https://pdfamaze.com/#author",
       },
     },
     {
       "@type": "Person",
       "@id": "https://pdfamaze.com/#author",
-      "name": siteConfig.author,
-      "url": siteConfig.authorWebsite,
-      "sameAs": [siteConfig.authorGithub],
+      name: siteConfig.author,
+      url: siteConfig.authorWebsite,
+      sameAs: [siteConfig.authorGithub],
     },
   ],
 };

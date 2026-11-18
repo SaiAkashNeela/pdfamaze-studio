@@ -21,7 +21,10 @@ import {
   type ProgressFn,
 } from "../core";
 
-type PixelFn = (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => HTMLCanvasElement | void;
+type PixelFn = (
+  canvas: HTMLCanvasElement,
+  ctx: CanvasRenderingContext2D,
+) => HTMLCanvasElement | void;
 
 function requireFile(files: File[]): File {
   const file = files[0];
@@ -77,7 +80,11 @@ export async function rasterizeDocument(
   return pdfBlob(await rebuildFromPixels(src, { ...opts, label: "Rendering" }, null, progress));
 }
 
-function eachPixel(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, fn: (d: Uint8ClampedArray, i: number) => void) {
+function eachPixel(
+  ctx: CanvasRenderingContext2D,
+  canvas: HTMLCanvasElement,
+  fn: (d: Uint8ClampedArray, i: number) => void,
+) {
   const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
   const d = img.data;
   for (let i = 0; i < d.length; i += 4) fn(d, i);
@@ -108,7 +115,12 @@ function saturate(r: number, g: number, b: number, factor: number): [number, num
   if (max === min) return [l, l, l];
   const delta = max - min;
   let s = l > 0.5 ? delta / (2 - max - min) : delta / (max + min);
-  let h = max === r ? (g - b) / delta + (g < b ? 6 : 0) : max === g ? (b - r) / delta + 2 : (r - g) / delta + 4;
+  let h =
+    max === r
+      ? (g - b) / delta + (g < b ? 6 : 0)
+      : max === g
+        ? (b - r) / delta + 2
+        : (r - g) / delta + 4;
   h /= 6;
   s = Math.min(1, Math.max(0, s * factor));
   const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
@@ -122,12 +134,26 @@ function saturate(r: number, g: number, b: number, factor: number): [number, num
  */
 export async function adjustColors(
   files: File[],
-  opts: { contrast: number; brightness: number; saturation: number; red: number; green: number; blue: number },
+  opts: {
+    contrast: number;
+    brightness: number;
+    saturation: number;
+    red: number;
+    green: number;
+    blue: number;
+  },
   progress: ProgressFn,
 ): Promise<OutputFile[]> {
   const file = requireFile(files);
   const src = await openForRender(file);
-  const [c, br, sat, kr, kg, kb] = [opts.contrast, opts.brightness, opts.saturation, opts.red, opts.green, opts.blue].map((v) => v / 100) as [number, number, number, number, number, number];
+  const [c, br, sat, kr, kg, kb] = [
+    opts.contrast,
+    opts.brightness,
+    opts.saturation,
+    opts.red,
+    opts.green,
+    opts.blue,
+  ].map((v) => v / 100) as [number, number, number, number, number, number];
   const bytes = await rebuildFromPixels(
     src,
     { scale: 2, quality: 0.92, label: "Adjusting" },
@@ -175,7 +201,10 @@ export async function replaceColors(
       d[i + 2] = 255 - d[i + 2]!;
     };
   } else {
-    const [fgHex, bgHex] = opts.mode === "custom" ? [opts.textColor, opts.backgroundColor] : (HIGH_CONTRAST[opts.combination] ?? HIGH_CONTRAST["white-on-black"]!);
+    const [fgHex, bgHex] =
+      opts.mode === "custom"
+        ? [opts.textColor, opts.backgroundColor]
+        : (HIGH_CONTRAST[opts.combination] ?? HIGH_CONTRAST["white-on-black"]!);
     const fg = parseHexColor(fgHex);
     const bg = parseHexColor(bgHex);
     pixel = (d, i) => {
@@ -196,7 +225,10 @@ export async function replaceColors(
 
 /* --------------------------------------------------------- scanner effect */
 
-const SCAN_PRESETS: Record<string, { blur: number; noise: number; brightness: number; contrast: number; dpi: number }> = {
+const SCAN_PRESETS: Record<
+  string,
+  { blur: number; noise: number; brightness: number; contrast: number; dpi: number }
+> = {
   high: { blur: 0.1, noise: 1.0, brightness: 1.03, contrast: 1.06, dpi: 150 },
   medium: { blur: 0.1, noise: 1.0, brightness: 1.06, contrast: 1.12, dpi: 100 },
   low: { blur: 0.9, noise: 2.5, brightness: 1.08, contrast: 1.15, dpi: 75 },
@@ -217,11 +249,14 @@ function makeGradient(w: number, h: number) {
   const end = Math.round((0.6 + 0.3 * Math.random()) * 255);
   const size = vertical ? h : w;
   const lut = new Uint8ClampedArray(size);
-  for (let i = 0; i < size; i++) lut[i] = Math.round(start + (end - start) * (i / Math.max(1, size - 1)));
+  for (let i = 0; i < size; i++)
+    lut[i] = Math.round(start + (end - start) * (i / Math.max(1, size - 1)));
   return {
     at: (x: number, y: number) => lut[Math.min(size - 1, vertical ? y : x)]!,
     fill(ctx: CanvasRenderingContext2D, cw: number, ch: number) {
-      const g = vertical ? ctx.createLinearGradient(0, 0, 0, ch) : ctx.createLinearGradient(0, 0, cw, 0);
+      const g = vertical
+        ? ctx.createLinearGradient(0, 0, 0, ch)
+        : ctx.createLinearGradient(0, 0, cw, 0);
       g.addColorStop(0, `rgb(${start},${start},${start})`);
       g.addColorStop(1, `rgb(${end},${end},${end})`);
       ctx.fillStyle = g;
@@ -262,7 +297,14 @@ function scanPixels(
   W: number,
   H: number,
   gradient: ReturnType<typeof makeGradient>,
-  fx: { blur: number; noise: number; brightness: number; contrast: number; yellowish: boolean; grayscale: boolean },
+  fx: {
+    blur: number;
+    noise: number;
+    brightness: number;
+    contrast: number;
+    yellowish: boolean;
+    grayscale: boolean;
+  },
 ) {
   const img = ctx.getImageData(0, 0, W, H);
   const d = img.data;
@@ -278,7 +320,8 @@ function scanPixels(
       for (let c = 0; c < 3; c++) d[i + c] = Math.round(d[i + c]! * a + bg * (1 - a));
     }
   }
-  if (fx.blur > 0) boxBlur(d, W, H, Math.max(1, Math.ceil(((fx.blur * Math.min(W, H)) / 1000) * 2)));
+  if (fx.blur > 0)
+    boxBlur(d, W, H, Math.max(1, Math.ceil(((fx.blur * Math.min(W, H)) / 1000) * 2)));
   const offset = 128 - 128 * fx.contrast;
   const noiseStd = (fx.noise * Math.min(W, H)) / 1000;
   for (let i = 0; i < d.length; i += 4) {
@@ -305,7 +348,13 @@ function scanPixels(
 /** Port of Stirling-PDF's ScannerEffectController: border, skew, feathered edges, blur, tone and noise. */
 export async function scannerEffect(
   files: File[],
-  opts: { quality: string; rotation: string; colorspace: string; border: number; yellowish: boolean },
+  opts: {
+    quality: string;
+    rotation: string;
+    colorspace: string;
+    border: number;
+    yellowish: boolean;
+  },
   progress: ProgressFn,
 ): Promise<OutputFile[]> {
   const file = requireFile(files);
@@ -340,7 +389,13 @@ export async function scannerEffect(
       const fitted = document.createElement("canvas");
       fitted.width = page.width;
       fitted.height = page.height;
-      context(fitted).drawImage(out, (page.width - W * scale) / 2, (page.height - H * scale) / 2, W * scale, H * scale);
+      context(fitted).drawImage(
+        out,
+        (page.width - W * scale) / 2,
+        (page.height - H * scale) / 2,
+        W * scale,
+        H * scale,
+      );
       out.width = 0;
       return fitted;
     },
@@ -378,7 +433,11 @@ export async function removeBlankPages(
   progress: ProgressFn,
 ): Promise<OutputFile[]> {
   const file = requireFile(files);
-  const [{ PDFDocument }, src, doc] = await Promise.all([loadPdfLib(), openForRender(file), openDocument(file)]);
+  const [{ PDFDocument }, src, doc] = await Promise.all([
+    loadPdfLib(),
+    openForRender(file),
+    openDocument(file),
+  ]);
   const verdicts = await inSequence(pageNumbers(src.numPages), async (n) => {
     progress(`Checking page ${n} of ${src.numPages}`, n / src.numPages);
     const page = await src.getPage(n);
@@ -389,7 +448,8 @@ export async function removeBlankPages(
   const blank = verdicts.flatMap((b, i) => (b ? [i] : []));
   const kept = verdicts.flatMap((b, i) => (b ? [] : [i]));
   if (!blank.length) fail("No blank pages were found with these settings.");
-  if (!kept.length) fail("Every page looks blank with these settings. Lower the white percentage and try again.");
+  if (!kept.length)
+    fail("Every page looks blank with these settings. Lower the white percentage and try again.");
   const build = async (indices: number[]) => {
     const out = await PDFDocument.create();
     (await out.copyPages(doc, indices)).forEach((p) => out.addPage(p));

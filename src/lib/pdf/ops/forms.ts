@@ -34,7 +34,12 @@ function safeForm(doc: PDFDocument): PDFForm | null {
 }
 
 /** Page that owns a widget, via /P or by scanning every page's /Annots. */
-function widgetPage(doc: PDFDocument, lib: PdfLib, widgetDict: PDFDict, widgetRef: PDFRef | undefined): PDFPage | undefined {
+function widgetPage(
+  doc: PDFDocument,
+  lib: PdfLib,
+  widgetDict: PDFDict,
+  widgetRef: PDFRef | undefined,
+): PDFPage | undefined {
   const p = widgetDict.get(lib.PDFName.of("P"));
   const pages = doc.getPages();
   const byP = pages.find((page) => page.ref === p);
@@ -84,7 +89,9 @@ function appearanceRef(lib: PdfLib, field: PDFField, normal: unknown): PDFRef | 
   if (normal instanceof lib.PDFDict) {
     // Checkboxes and radios keep one appearance per state; use the selected one.
     const state = field.acroField.dict.get(lib.PDFName.of("V"));
-    const chosen = (state instanceof lib.PDFName ? normal.get(state) : undefined) ?? normal.get(lib.PDFName.of("Off"));
+    const chosen =
+      (state instanceof lib.PDFName ? normal.get(state) : undefined) ??
+      normal.get(lib.PDFName.of("Off"));
     return chosen instanceof lib.PDFRef ? chosen : null;
   }
   return null;
@@ -171,7 +178,10 @@ function unlockXfa(lib: PdfLib, doc: PDFDocument, form: PDFForm) {
     if (!(stream instanceof lib.PDFRawStream)) return ref;
     try {
       const xml = new TextDecoder().decode(lib.decodePDFRawStream(stream).decode());
-      const open = xml.replace(/access\s*=\s*"(readOnly|protected|nonInteractive)"/g, 'access="open"');
+      const open = xml.replace(
+        /access\s*=\s*"(readOnly|protected|nonInteractive)"/g,
+        'access="open"',
+      );
       return doc.context.register(doc.context.flateStream(open));
     } catch {
       return ref;
@@ -180,13 +190,19 @@ function unlockXfa(lib: PdfLib, doc: PDFDocument, form: PDFForm) {
   if (xfa instanceof lib.PDFArray) {
     for (let i = 1; i < xfa.size(); i += 2) xfa.set(i, rewrite(xfa.get(i)) as PDFRef);
   } else if (xfa) {
-    form.acroForm.dict.set(lib.PDFName.of("XFA"), rewrite(form.acroForm.dict.get(lib.PDFName.of("XFA"))) as PDFRef);
+    form.acroForm.dict.set(
+      lib.PDFName.of("XFA"),
+      rewrite(form.acroForm.dict.get(lib.PDFName.of("XFA"))) as PDFRef,
+    );
   }
 }
 
 /* ------------------------------------------------------ remove signatures */
 
-export async function removeDigitalSignatures(files: File[], progress: ProgressFn): Promise<OutputFile[]> {
+export async function removeDigitalSignatures(
+  files: File[],
+  progress: ProgressFn,
+): Promise<OutputFile[]> {
   const file = requireFile(files);
   const [lib, doc] = await Promise.all([loadPdfLib(), openEditableDocument(file)]);
   const form = safeForm(doc);
@@ -217,7 +233,8 @@ export async function removeAnnotations(
     if (!annots) return;
     for (let n = annots.size() - 1; n >= 0; n--) {
       const annot = annots.lookup(n);
-      const subtype = annot instanceof lib.PDFDict ? annot.get(lib.PDFName.of("Subtype")) : undefined;
+      const subtype =
+        annot instanceof lib.PDFDict ? annot.get(lib.PDFName.of("Subtype")) : undefined;
       const kind = subtype instanceof lib.PDFName ? subtype.decodeText() : "";
       if ((opts.keepLinks && kind === "Link") || (opts.keepForms && kind === "Widget")) continue;
       annots.remove(n);
@@ -233,9 +250,23 @@ export async function removeAnnotations(
 /* --------------------------------------------------------------- form fill */
 
 export type FormFieldInfo =
-  | { name: string; kind: "text"; value: string; multiline: boolean; readOnly: boolean; maxLength?: number | undefined }
+  | {
+      name: string;
+      kind: "text";
+      value: string;
+      multiline: boolean;
+      readOnly: boolean;
+      maxLength?: number | undefined;
+    }
   | { name: string; kind: "checkbox"; value: boolean; readOnly: boolean }
-  | { name: string; kind: "dropdown" | "list"; value: string[]; options: string[]; multi: boolean; readOnly: boolean }
+  | {
+      name: string;
+      kind: "dropdown" | "list";
+      value: string[];
+      options: string[];
+      multi: boolean;
+      readOnly: boolean;
+    }
   | { name: string; kind: "radio"; value: string; options: string[]; readOnly: boolean }
   | { name: string; kind: "signature" | "button"; readOnly: boolean };
 
@@ -247,20 +278,46 @@ export async function readFormFields(file: File): Promise<FormFieldInfo[]> {
   if (!form) return [];
   return form.getFields().map((f): FormFieldInfo => {
     const base = { name: f.getName(), readOnly: f.isReadOnly() };
-    if (f instanceof lib.PDFTextField) return { ...base, kind: "text", value: f.getText() ?? "", multiline: f.isMultiline(), maxLength: f.getMaxLength() };
+    if (f instanceof lib.PDFTextField)
+      return {
+        ...base,
+        kind: "text",
+        value: f.getText() ?? "",
+        multiline: f.isMultiline(),
+        maxLength: f.getMaxLength(),
+      };
     if (f instanceof lib.PDFCheckBox) return { ...base, kind: "checkbox", value: f.isChecked() };
-    if (f instanceof lib.PDFDropdown) return { ...base, kind: "dropdown", value: f.getSelected(), options: f.getOptions(), multi: f.isMultiselect() };
-    if (f instanceof lib.PDFOptionList) return { ...base, kind: "list", value: f.getSelected(), options: f.getOptions(), multi: f.isMultiselect() };
-    if (f instanceof lib.PDFRadioGroup) return { ...base, kind: "radio", value: f.getSelected() ?? "", options: f.getOptions() };
+    if (f instanceof lib.PDFDropdown)
+      return {
+        ...base,
+        kind: "dropdown",
+        value: f.getSelected(),
+        options: f.getOptions(),
+        multi: f.isMultiselect(),
+      };
+    if (f instanceof lib.PDFOptionList)
+      return {
+        ...base,
+        kind: "list",
+        value: f.getSelected(),
+        options: f.getOptions(),
+        multi: f.isMultiselect(),
+      };
+    if (f instanceof lib.PDFRadioGroup)
+      return { ...base, kind: "radio", value: f.getSelected() ?? "", options: f.getOptions() };
     return { ...base, kind: f instanceof lib.PDFSignature ? "signature" : "button" };
   });
 }
 
 function applyValue(lib: PdfLib, field: PDFField, value: string | boolean | string[]) {
   if (field instanceof lib.PDFTextField) field.setText(String(value) || undefined);
-  else if (field instanceof lib.PDFCheckBox) (value ? field.check() : field.uncheck());
-  else if (field instanceof lib.PDFRadioGroup) (value ? field.select(String(value)) : field.clear());
-  else if (field instanceof lib.PDFDropdown || field instanceof lib.PDFOptionList) {
+  else if (field instanceof lib.PDFCheckBox) {
+    if (value) field.check();
+    else field.uncheck();
+  } else if (field instanceof lib.PDFRadioGroup) {
+    if (value) field.select(String(value));
+    else field.clear();
+  } else if (field instanceof lib.PDFDropdown || field instanceof lib.PDFOptionList) {
     const list = (Array.isArray(value) ? value : [String(value)]).filter(Boolean);
     if (list.length) field.select(list);
     else field.clear();
@@ -296,7 +353,10 @@ export async function fillForm(
     form.acroForm.dict.set(lib.PDFName.of("NeedAppearances"), lib.PDFBool.True);
   }
   if (opts.flatten) {
-    if (!appearancesOk) fail("Some values use characters the standard PDF font can't draw, so the form can't be flattened. Untick flattening to keep it fillable.");
+    if (!appearancesOk)
+      fail(
+        "Some values use characters the standard PDF font can't draw, so the form can't be flattened. Untick flattening to keep it fillable.",
+      );
     flattenFields(lib, doc, form, form.getFields());
   }
   progress("Writing document", 1);

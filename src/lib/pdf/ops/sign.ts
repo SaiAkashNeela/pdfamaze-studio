@@ -1,4 +1,13 @@
-import { baseName, dataUrlToBytes, fail, loadPdfLib, openEditableDocument, pdfBlob, type OutputFile, type ProgressFn } from "../core";
+import {
+  baseName,
+  dataUrlToBytes,
+  fail,
+  loadPdfLib,
+  openEditableDocument,
+  pdfBlob,
+  type OutputFile,
+  type ProgressFn,
+} from "../core";
 import { isolatePageContent, uprightPlacement, type DisplayRect } from "../layout";
 
 export type SignaturePlacement = {

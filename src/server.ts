@@ -45,7 +45,10 @@ function isH3SwallowedErrorBody(body: string): boolean {
 }
 
 /** Sitemap and AI-crawler files, generated from the tool registry on request. */
-const SITE_FILES: Record<string, { type: string; build: "sitemapXml" | "llmsTxt" | "llmsFullTxt" }> = {
+const SITE_FILES: Record<
+  string,
+  { type: string; build: "sitemapXml" | "llmsTxt" | "llmsFullTxt" }
+> = {
   "/sitemap.xml": { type: "application/xml; charset=utf-8", build: "sitemapXml" },
   "/llms.txt": { type: "text/plain; charset=utf-8", build: "llmsTxt" },
   "/llm.txt": { type: "text/plain; charset=utf-8", build: "llmsTxt" },

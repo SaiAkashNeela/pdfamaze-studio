@@ -65,7 +65,12 @@ function PlacementBox({
         }}
         className="focus-visible:ring-accent block h-full w-full cursor-move border-0 bg-transparent p-0 outline-none focus-visible:ring-2"
       >
-        <img src={placement.dataUrl} alt="" draggable={false} className="pointer-events-none h-full w-full" />
+        <img
+          src={placement.dataUrl}
+          alt=""
+          draggable={false}
+          className="pointer-events-none h-full w-full"
+        />
       </button>
       {selected ? (
         <>
@@ -115,14 +120,22 @@ export function SignPageViewer({
   const dragRef = useRef<Drag | null>(null);
   const aspect = usePageCanvas(doc, pageIndex, canvasRef, boxRef);
 
-  const startDrag = (placement: SignaturePlacement) => (e: ReactPointerEvent<HTMLElement>, mode: Drag["mode"]) => {
-    e.stopPropagation();
-    const box = boxRef.current?.getBoundingClientRect();
-    if (!box) return;
-    onSelect(placement.id);
-    e.currentTarget.setPointerCapture(e.pointerId);
-    dragRef.current = { id: placement.id, mode, startX: e.clientX, startY: e.clientY, origin: placement.rect, box };
-  };
+  const startDrag =
+    (placement: SignaturePlacement) => (e: ReactPointerEvent<HTMLElement>, mode: Drag["mode"]) => {
+      e.stopPropagation();
+      const box = boxRef.current?.getBoundingClientRect();
+      if (!box) return;
+      onSelect(placement.id);
+      e.currentTarget.setPointerCapture(e.pointerId);
+      dragRef.current = {
+        id: placement.id,
+        mode,
+        startX: e.clientX,
+        startY: e.clientY,
+        origin: placement.rect,
+        box,
+      };
+    };
 
   const handleMove = (e: ReactPointerEvent<HTMLDivElement>) => {
     const drag = dragRef.current;
@@ -143,34 +156,34 @@ export function SignPageViewer({
 
   return (
     <div className="mx-auto w-full" style={{ maxWidth: `calc(78vh * ${aspect ?? 0.7071})` }}>
-    <div
-      ref={boxRef}
-      onPointerDown={handleSurfaceDown}
-      onPointerMove={handleMove}
-      onPointerUp={() => (dragRef.current = null)}
-      onPointerCancel={() => (dragRef.current = null)}
-      className={cn(
-        "border-border relative w-full overflow-hidden rounded-[4px] border bg-white shadow-sm",
-        armed ? "cursor-crosshair" : "cursor-default",
-      )}
-      style={{ aspectRatio: aspect ?? 0.7071 }}
-    >
-      <canvas ref={canvasRef} className="block h-full w-full" />
-      {!aspect ? (
-        <div className="text-muted-foreground absolute inset-0 grid place-items-center">
-          <Loader2 className="text-accent h-5 w-5 animate-spin" />
-        </div>
-      ) : null}
-      {onPage.map((p) => (
-        <PlacementBox
-          key={p.id}
-          placement={p}
-          selected={p.id === selectedId}
-          onPointerDown={startDrag(p)}
-          onRemove={() => onRemove(p.id)}
-        />
-      ))}
-    </div>
+      <div
+        ref={boxRef}
+        onPointerDown={handleSurfaceDown}
+        onPointerMove={handleMove}
+        onPointerUp={() => (dragRef.current = null)}
+        onPointerCancel={() => (dragRef.current = null)}
+        className={cn(
+          "border-border relative w-full overflow-hidden rounded-[4px] border bg-white shadow-sm",
+          armed ? "cursor-crosshair" : "cursor-default",
+        )}
+        style={{ aspectRatio: aspect ?? 0.7071 }}
+      >
+        <canvas ref={canvasRef} className="block h-full w-full" />
+        {!aspect ? (
+          <div className="text-muted-foreground absolute inset-0 grid place-items-center">
+            <Loader2 className="text-accent h-5 w-5 animate-spin" />
+          </div>
+        ) : null}
+        {onPage.map((p) => (
+          <PlacementBox
+            key={p.id}
+            placement={p}
+            selected={p.id === selectedId}
+            onPointerDown={startDrag(p)}
+            onRemove={() => onRemove(p.id)}
+          />
+        ))}
+      </div>
     </div>
   );
 }

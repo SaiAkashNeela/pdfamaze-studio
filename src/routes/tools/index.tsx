@@ -12,7 +12,7 @@ export const Route = createFileRoute("/tools/")({
     pageHead({
       path: "/tools",
       title: `All ${tools.length} PDF tools — ${siteConfig.name}`,
-      description: `Every PDF tool on ${siteConfig.name}: sign, fill forms, OCR, redact, merge, split, compress, protect, organize, convert and more — all free and in your browser, with no upload.`,
+      description: `Every PDF tool on ${siteConfig.name}: sign, fill forms, OCR, redact, merge, split, compress, protect, convert and more — free, in your browser, no upload.`,
       jsonLd: [toolListJsonLd(tools)],
     }),
   component: ToolsIndex,
@@ -22,7 +22,8 @@ function ToolsIndex() {
   const { q = "" } = Route.useSearch();
   const navigate = Route.useNavigate();
   // Keep the query in the URL (?q=) so a search can be shared or bookmarked.
-  const setQuery = (next: string) => void navigate({ search: next ? { q: next } : {}, replace: true });
+  const setQuery = (next: string) =>
+    void navigate({ search: next ? { q: next } : {}, replace: true });
 
   return (
     <div className="mx-auto max-w-[1320px] px-4 pt-12 pb-16 sm:px-6 lg:px-8 lg:pt-16">
@@ -45,8 +46,12 @@ function ToolsIndex() {
             return (
               <section key={section.heading} className="mt-10">
                 <div className="border-border flex items-baseline justify-between gap-3 border-t pt-5">
-                  <h2 className="text-[17px] font-semibold tracking-[-0.02em]">{section.heading}</h2>
-                  <span className="text-muted-foreground font-mono text-[12px]">{list.length} tools</span>
+                  <h2 className="text-[17px] font-semibold tracking-[-0.02em]">
+                    {section.heading}
+                  </h2>
+                  <span className="text-muted-foreground font-mono text-[12px]">
+                    {list.length} tools
+                  </span>
                 </div>
                 <div className="mt-4 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                   {list.map((tool) => (

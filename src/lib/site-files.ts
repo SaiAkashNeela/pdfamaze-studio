@@ -16,12 +16,20 @@ const PAGES = [
   { path: "/terms", priority: "0.3", changefreq: "yearly" },
 ];
 
-const escapeXml = (s: string) => s.replace(/[<>&'"]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", "'": "&apos;", '"': "&quot;" })[c]!);
+const escapeXml = (s: string) =>
+  s.replace(
+    /[<>&'"]/g,
+    (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", "'": "&apos;", '"': "&quot;" })[c]!,
+  );
 
 export function sitemapXml(): string {
   const entries = [
     ...PAGES,
-    ...tools.map((t) => ({ path: `/tools/${t.slug}`, priority: t.featured ? "0.9" : "0.8", changefreq: "monthly" })),
+    ...tools.map((t) => ({
+      path: `/tools/${t.slug}`,
+      priority: t.featured ? "0.9" : "0.8",
+      changefreq: "monthly",
+    })),
   ];
   const urls = entries
     .map(
@@ -45,7 +53,9 @@ const PRIVACY_NOTES = `## Privacy and how it works
 
 export function llmsTxt(): string {
   const sections = CATEGORIES.map(({ heading, tags }) => {
-    const lines = toolsIn(tags).map((t) => `- [${t.name}](${absoluteUrl(`/tools/${t.slug}`)}): ${t.summary}`);
+    const lines = toolsIn(tags).map(
+      (t) => `- [${t.name}](${absoluteUrl(`/tools/${t.slug}`)}): ${t.summary}`,
+    );
     return lines.length ? `## ${heading}\n\n${lines.join("\n")}` : "";
   }).filter(Boolean);
   return `# ${siteConfig.name}\n\n${intro()}\n\n${sections.join("\n\n")}\n\n${PRIVACY_NOTES}\n\n## Optional\n\n- [Full tool reference](${absoluteUrl("/llms-full.txt")}): every tool's description, steps and FAQ in one file.\n- [FAQ](${absoluteUrl("/faq")})\n- [Privacy](${absoluteUrl("/privacy")})\n`;

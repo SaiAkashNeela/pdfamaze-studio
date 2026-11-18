@@ -91,10 +91,18 @@ function RangeControl({ id, field, value, busy, onChange }: ControlProps<"range"
 }
 
 function Hint({ text }: { text: string | undefined }) {
-  return text ? <p className="text-muted-foreground mt-1.5 text-[12px] leading-snug">{text}</p> : null;
+  return text ? (
+    <p className="text-muted-foreground mt-1.5 text-[12px] leading-snug">{text}</p>
+  ) : null;
 }
 
-function Control(props: { id: string; field: Field; value: FieldValue; busy: boolean; onChange: (v: string | number | boolean) => void }) {
+function Control(props: {
+  id: string;
+  field: Field;
+  value: FieldValue;
+  busy: boolean;
+  onChange: (v: string | number | boolean) => void;
+}) {
   const { field } = props;
   switch (field.type) {
     case "select":
@@ -147,7 +155,10 @@ export function ToolRunnerField({
 
   return (
     <div>
-      <label htmlFor={id} className="mb-1.5 flex items-baseline justify-between gap-3 text-[13.5px]">
+      <label
+        htmlFor={id}
+        className="mb-1.5 flex items-baseline justify-between gap-3 text-[13.5px]"
+      >
         <span>{field.label}</span>
         {field.type === "range" ? (
           <span className="text-muted-foreground font-mono text-[11.5px] tabular-nums">

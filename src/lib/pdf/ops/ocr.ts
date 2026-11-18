@@ -41,18 +41,32 @@ function encodableText(font: PDFFont, text: string): string {
   return out;
 }
 
-function words(blocks: NonNullable<Awaited<ReturnType<import("tesseract.js").Worker["recognize"]>>["data"]["blocks"]>): Word[] {
+function words(
+  blocks: NonNullable<
+    Awaited<ReturnType<import("tesseract.js").Worker["recognize"]>>["data"]["blocks"]
+  >,
+): Word[] {
   return blocks.flatMap((b) => b.paragraphs.flatMap((p) => p.lines.flatMap((l) => l.words)));
 }
 
 /** Writes each recognised word as invisible text, stretched to the word's box on the page. */
-function writeTextLayer(lib: PdfLib, page: PDFPage, font: PDFFont, list: Word[], px: { w: number; h: number }) {
+function writeTextLayer(
+  lib: PdfLib,
+  page: PDFPage,
+  font: PDFFont,
+  list: Word[],
+  px: { w: number; h: number },
+) {
   const size = displaySize(page);
   const sx = size.width / px.w;
   const sy = size.height / px.h;
   const key = page.node.newFontDictionary("OcrText", font.ref);
   const rot = (pageRotation(page) * Math.PI) / 180;
-  const ops = [lib.pushGraphicsState(), lib.beginText(), lib.setTextRenderingMode(lib.TextRenderingMode.Invisible)];
+  const ops = [
+    lib.pushGraphicsState(),
+    lib.beginText(),
+    lib.setTextRenderingMode(lib.TextRenderingMode.Invisible),
+  ];
   for (const w of list) {
     const text = encodableText(font, w.text.trim());
     if (!text || w.confidence < 20) continue;
@@ -83,7 +97,8 @@ export async function ocrPdf(
 ): Promise<OutputFile[]> {
   const file = files[0];
   if (!file) fail("Choose a file to get started.");
-  if (!OCR_LANGUAGES.some((l) => l.value === opts.language)) fail("Pick one of the listed languages.");
+  if (!OCR_LANGUAGES.some((l) => l.value === opts.language))
+    fail("Pick one of the listed languages.");
   const bytes = await readBytes(file);
   const [lib, doc, src, tesseract] = await Promise.all([
     loadPdfLib(),
@@ -94,7 +109,9 @@ export async function ocrPdf(
   progress("Loading the OCR engine (first run downloads it, about 10 MB)", 0.02);
   const worker = await tesseract
     .createWorker(opts.language, tesseract.OEM.LSTM_ONLY)
-    .catch(() => fail("The OCR engine couldn't be downloaded. Check your connection and try again."));
+    .catch(() =>
+      fail("The OCR engine couldn't be downloaded. Check your connection and try again."),
+    );
   try {
     const font = await doc.embedFont(lib.StandardFonts.Helvetica);
     const pages = doc.getPages();
@@ -109,12 +126,18 @@ export async function ocrPdf(
       const canvas = await renderPageToCanvas(pjs, opts.dpi / 72);
       const { data } = await worker.recognize(canvas, {}, { blocks: true });
       isolatePageContent(lib, doc, page);
-      writeTextLayer(lib, page, font, words(data.blocks ?? []), { w: canvas.width, h: canvas.height });
+      writeTextLayer(lib, page, font, words(data.blocks ?? []), {
+        w: canvas.width,
+        h: canvas.height,
+      });
       canvas.width = 0;
       pjs.cleanup();
       return true;
     });
-    if (!handled.some(Boolean)) fail("Every page already has text, so there was nothing to OCR. Choose “Redo every page” to force it.");
+    if (!handled.some(Boolean))
+      fail(
+        "Every page already has text, so there was nothing to OCR. Choose “Redo every page” to force it.",
+      );
     progress("Writing searchable PDF", 1);
     return [{ name: `${baseName(file.name)}-ocr.pdf`, blob: pdfBlob(await doc.save()) }];
   } finally {

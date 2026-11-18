@@ -1,0 +1,386 @@
+{
+  "project": "pdfamaze-studio",
+  "audited_commit": "ab20bad",
+  "date": "2026-11-18",
+  "summary": {
+    "critical": 1,
+    "high": 1,
+    "medium": 1,
+    "low": 2,
+    "info": 1
+  },
+  "findings": [
+    {
+      "cwe": "CWE-1395",
+      "owasp": "A06:2021",
+      "fix_commit": "4aaad1f",
+      "test": "bun audit --production --audit-level=moderate (merge gate)",
+      "requires_human_action": false,
+      "accepted_reason": null,
+      "accepted_by": null,
+      "human_action": null,
+      "id": "SEC-002",
+      "category": "security",
+      "title": "Vulnerable dependencies: TanStack Start reflected XSS, seroval deserialization, DOMPurify, zod, picomatch, vite",
+      "severity": "critical",
+      "status": "fixed",
+      "locations": [
+        {
+          "file": "package.json",
+          "line": 18
+        },
+        {
+          "file": "bun.lock",
+          "line": 1
+        }
+      ],
+      "description": "bun audit --production reported 14 advisories (3 critical, 6 high, 2 moderate, 3 low); the full audit 26. Critical: GHSA-qx66-fv34-fjm8 unauthenticated reflected XSS in TanStack Start server-function responses (@tanstack/react-start 1.168.32, start-server-core 1.169.17) and a DOMPurify SAFE_FOR_TEMPLATES bypass via jspdf.",
+      "impact": "The XSS sits in the framework's request handler on pdfamaze.com, so it needs no app code to be reachable; script on this origin could read documents open in the tab.",
+      "remediation": "@tanstack/react-start 1.169.5, @tanstack/react-router 1.170.46, vite 8.3.8, nitro 3.0.261103-rc, bun update for everything else. bun audit (prod and full) now reports 0 advisories."
+    },
+    {
+      "cwe": "CWE-79",
+      "owasp": "A03:2021",
+      "fix_commit": "631b754, d2d5dcc",
+      "test": "tests/html-sandbox.test.ts",
+      "requires_human_action": false,
+      "accepted_reason": null,
+      "accepted_by": null,
+      "human_action": null,
+      "id": "SEC-001",
+      "category": "security",
+      "title": "HTML to PDF ran uploaded HTML as pdfamaze.com (unsandboxed same-origin iframe)",
+      "severity": "high",
+      "status": "fixed",
+      "locations": [
+        {
+          "file": "src/lib/pdf/operations.ts",
+          "line": 395
+        },
+        {
+          "file": "src/lib/pdf/html-sandbox.ts",
+          "line": 1
+        }
+      ],
+      "description": "htmlToPdf wrote user-supplied markup into a same-origin iframe with no sandbox attribute, so <script> and inline handlers in an uploaded .html file executed with the site's origin.",
+      "impact": "A malicious HTML file (invoice, export, email attachment) converted with the tool could read saved signatures from localStorage, read other files open in the tab via window.top, and send them anywhere, breaking the zero-upload promise. Reproduced in Chromium against the production build.",
+      "remediation": "createHtmlRenderFrame() sets sandbox=\"allow-same-origin\" before the frame is attached: html2canvas can still read the DOM, scripts/handlers/forms/popups/top navigation are blocked. Verified: payload no longer runs, PDF output unchanged."
+    },
+    {
+      "cwe": "CWE-829",
+      "owasp": "A08:2021",
+      "fix_commit": null,
+      "test": null,
+      "requires_human_action": true,
+      "accepted_reason": null,
+      "accepted_by": null,
+      "human_action": "Decide: remove PilotFox, or keep it and update the privacy policy/README/AGENTS.md to disclose it.",
+      "id": "SEC-004",
+      "category": "security",
+      "title": "Undisclosed third-party analytics script on every page, contradicting the privacy policy",
+      "severity": "medium",
+      "status": "open",
+      "locations": [
+        {
+          "file": "src/routes/__root.tsx",
+          "line": 64
+        },
+        {
+          "file": "src/routes/privacy.tsx",
+          "line": 61
+        },
+        {
+          "file": "README.md",
+          "line": 98
+        }
+      ],
+      "description": "__root.tsx loads https://pilotfox.app/api/s.js (no Subresource Integrity) on every page, including tool pages where users open private documents. The privacy page states 'There is no analytics script, no usage counter and no telemetry endpoint'; README says 'No Analytics'; AGENTS.md says zero third-party scripts.",
+      "impact": "Two risks: (1) the published privacy statement is factually wrong, a consumer-protection / GDPR transparency exposure; (2) the script runs with full access to the page, so a compromise of pilotfox.app could read documents users open, with no SRI to stop a modified script.",
+      "remediation": "Owner decision. Either remove the script (makes the published claims true again), or keep it and update the privacy page, README and AGENTS.md to disclose PilotFox (what it collects, cookies or not) and consider a Content-Security-Policy connect-src allow-list so no script can send document data elsewhere."
+    },
+    {
+      "cwe": "CWE-327",
+      "owasp": "A02:2021",
+      "fix_commit": null,
+      "test": null,
+      "requires_human_action": true,
+      "accepted_reason": null,
+      "accepted_by": null,
+      "human_action": "Decide whether to replace the encryption library with an AES-256 (R6) implementation.",
+      "id": "SEC-005",
+      "category": "security",
+      "title": "Protect PDF encrypts with RC4 128-bit (PDF 1.4 standard security handler)",
+      "severity": "low",
+      "status": "open",
+      "locations": [
+        {
+          "file": "src/lib/pdf/operations.ts",
+          "line": 351
+        },
+        {
+          "file": "src/lib/pdf/ops/security.ts",
+          "line": 164
+        }
+      ],
+      "description": "@pdfsmaller/pdf-encrypt-lite only supports RC4 128-bit (revision 3) encryption with MD5 key derivation. RC4 is deprecated; PDF 2.0 uses AES-256 (revision 6), which every current viewer opens.",
+      "impact": "Protected files resist casual opening but passwords are cheap to brute-force offline compared with AES-256/R6; users may over-trust the protection for sensitive documents.",
+      "remediation": "Owner decision: switch to an AES-256 capable encryptor (a library change) or keep RC4 and say so plainly in the tool text. README wording 'industry-standard RC4' was removed (61e842e)."
+    },
+    {
+      "cwe": "CWE-1021",
+      "owasp": "A05:2021",
+      "fix_commit": "78951ea",
+      "test": "Manual: curl on /, /tools/*, static, sitemap, 404; Playwright cross-origin framing refused; tool smoke tests pass",
+      "requires_human_action": false,
+      "accepted_reason": null,
+      "accepted_by": null,
+      "human_action": null,
+      "id": "SEC-003",
+      "category": "security",
+      "title": "No security headers (clickjacking, MIME sniffing, referrer, permissions)",
+      "severity": "low",
+      "status": "fixed",
+      "locations": [
+        {
+          "file": "vite.config.ts",
+          "line": 49
+        }
+      ],
+      "description": "No response set CSP frame-ancestors, X-Frame-Options, nosniff, Referrer-Policy, Permissions-Policy, HSTS or COOP.",
+      "impact": "Any site could frame pdfamaze.com and overlay the Sign/Protect/Redact UI (clickjacking); browsers got no hardening hints.",
+      "remediation": "Nitro routeRules apply the headers to SSR responses and write them to .output/public/_headers for static assets. Framing limited to 'self' (result previews use same-origin frames)."
+    },
+    {
+      "cwe": "CWE-359",
+      "owasp": null,
+      "fix_commit": null,
+      "test": null,
+      "requires_human_action": true,
+      "accepted_reason": null,
+      "accepted_by": null,
+      "human_action": "Optional: self-host fonts.",
+      "id": "SEC-006",
+      "category": "security",
+      "title": "Google Fonts loaded from fonts.googleapis.com",
+      "severity": "info",
+      "status": "open",
+      "locations": [
+        {
+          "file": "src/routes/__root.tsx",
+          "line": 55
+        }
+      ],
+      "description": "Every visit sends the visitor's IP and user agent to Google to fetch IBM Plex. Not mentioned on the privacy page.",
+      "impact": "Privacy/transparency only (some EU courts have treated undisclosed Google Fonts as a GDPR issue). No document data is involved.",
+      "remediation": "Recommendation: self-host the two IBM Plex families (e.g. @fontsource packages) and drop the preconnects."
+    },
+    {
+      "cwe": "CWE-755",
+      "owasp": null,
+      "fix_commit": "98e6d9a",
+      "test": "tests/theme-storage.test.ts",
+      "requires_human_action": false,
+      "accepted_reason": null,
+      "accepted_by": null,
+      "human_action": null,
+      "id": "REL-001",
+      "category": "reliability",
+      "title": "Whole site crashed when the browser blocks localStorage",
+      "severity": "medium",
+      "status": "fixed",
+      "locations": [
+        {
+          "file": "src/lib/theme.tsx",
+          "line": 16
+        },
+        {
+          "file": "src/lib/theme-script.ts",
+          "line": 1
+        }
+      ],
+      "description": "ThemeProvider read localStorage outside try/catch; browsers that block site storage throw a SecurityError, so every page rendered the error screen.",
+      "impact": "Visitors with 'block all cookies' or similar policies could not use the site at all. Reproduced in Chromium.",
+      "remediation": "readStoredTheme() never throws and validates the value."
+    },
+    {
+      "cwe": null,
+      "owasp": null,
+      "fix_commit": "1960c3b",
+      "test": "bun run lint (merge gate)",
+      "requires_human_action": false,
+      "accepted_reason": null,
+      "accepted_by": null,
+      "human_action": null,
+      "id": "REL-002",
+      "category": "reliability",
+      "title": "Lint gate silently broken (missing eslint-config-prettier) hiding 720 problems",
+      "severity": "low",
+      "status": "fixed",
+      "locations": [
+        {
+          "file": "eslint.config.js",
+          "line": 2
+        },
+        {
+          "file": "package.json",
+          "line": 40
+        }
+      ],
+      "description": "eslint-plugin-prettier/recommended requires eslint-config-prettier, which was not installed, so `bun run lint` crashed before linting.",
+      "impact": "No lint signal at all; 714 formatting and 6 real lint errors had accumulated.",
+      "remediation": "Added the dependency, applied Prettier, fixed the 6 errors and the react-refresh warning without suppressions."
+    },
+    {
+      "cwe": null,
+      "owasp": null,
+      "fix_commit": "61e842e",
+      "test": null,
+      "requires_human_action": false,
+      "accepted_reason": null,
+      "accepted_by": null,
+      "human_action": null,
+      "id": "DOC-001",
+      "category": "docs",
+      "title": "README listed 14 tools (site has 51), Radix UI, Cloudflare Pages, 'industry-standard RC4'",
+      "severity": "low",
+      "status": "fixed",
+      "locations": [
+        {
+          "file": "README.md",
+          "line": 20
+        }
+      ],
+      "description": "README was out of date.",
+      "impact": "Misleading for users and contributors.",
+      "remediation": "Tool list generated from the registry; stack corrected."
+    },
+    {
+      "cwe": null,
+      "owasp": null,
+      "fix_commit": "61e842e",
+      "test": null,
+      "requires_human_action": false,
+      "accepted_reason": null,
+      "accepted_by": null,
+      "human_action": null,
+      "id": "DOC-002",
+      "category": "docs",
+      "title": "CLAUDE.md missing",
+      "severity": "low",
+      "status": "fixed",
+      "locations": [
+        {
+          "file": "CLAUDE.md",
+          "line": 1
+        }
+      ],
+      "description": "Only AGENTS.md existed.",
+      "impact": "Claude Code sessions would not load project rules.",
+      "remediation": "CLAUDE.md imports @AGENTS.md."
+    },
+    {
+      "cwe": null,
+      "owasp": null,
+      "fix_commit": "61e842e",
+      "test": null,
+      "requires_human_action": false,
+      "accepted_reason": null,
+      "accepted_by": null,
+      "human_action": null,
+      "id": "DOC-003",
+      "category": "docs",
+      "title": "No .env.example",
+      "severity": "low",
+      "status": "fixed",
+      "locations": [
+        {
+          "file": ".env.example",
+          "line": 1
+        }
+      ],
+      "description": "APP_VARIANT (mobile build) undocumented.",
+      "impact": "Unclear build configuration.",
+      "remediation": "Added .env.example."
+    },
+    {
+      "cwe": null,
+      "owasp": null,
+      "fix_commit": "61e842e, 78951ea",
+      "test": null,
+      "requires_human_action": false,
+      "accepted_reason": null,
+      "accepted_by": null,
+      "human_action": null,
+      "id": "DOC-004",
+      "category": "docs",
+      "title": "AGENTS.md/README missing lint, test, format and audit gates; security conventions undocumented",
+      "severity": "low",
+      "status": "fixed",
+      "locations": [
+        {
+          "file": "AGENTS.md",
+          "line": 12
+        }
+      ],
+      "description": "Only tsc, build and react-doctor were listed.",
+      "impact": "Agents and contributors skip gates.",
+      "remediation": "All gates and security conventions documented."
+    },
+    {
+      "cwe": null,
+      "owasp": null,
+      "fix_commit": null,
+      "test": null,
+      "requires_human_action": true,
+      "accepted_reason": null,
+      "accepted_by": null,
+      "human_action": "Same decision as SEC-004.",
+      "id": "DOC-005",
+      "category": "docs",
+      "title": "README, privacy page and AGENTS.md claim no analytics while PilotFox is loaded",
+      "severity": "medium",
+      "status": "open",
+      "locations": [
+        {
+          "file": "src/routes/privacy.tsx",
+          "line": 61
+        },
+        {
+          "file": "README.md",
+          "line": 98
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 10
+        }
+      ],
+      "description": "See SEC-004.",
+      "impact": "Published privacy claims are inaccurate.",
+      "remediation": "Resolve together with SEC-004."
+    },
+    {
+      "cwe": null,
+      "owasp": null,
+      "fix_commit": "d512bd0",
+      "test": "check_seo.py",
+      "requires_human_action": false,
+      "accepted_reason": null,
+      "accepted_by": null,
+      "human_action": null,
+      "id": "SEO-001",
+      "category": "seo",
+      "title": "/tools meta description 166 characters (truncated in results)",
+      "severity": "low",
+      "status": "fixed",
+      "locations": [
+        {
+          "file": "src/routes/tools/index.tsx",
+          "line": 15
+        }
+      ],
+      "description": "Over ~160 characters.",
+      "impact": "Snippet cut off.",
+      "remediation": "Shortened to 144 characters."
+    }
+  ]
+}

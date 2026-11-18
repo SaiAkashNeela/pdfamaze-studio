@@ -1,33 +1,10 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 
-export type Theme = "light" | "dark" | "system";
-const STORAGE_KEY = "pdfamaze.theme";
-
-type ThemeContextValue = {
-  theme: Theme;
-  resolved: "light" | "dark";
-  setTheme: (t: Theme) => void;
-};
-
-const ThemeContext = createContext<ThemeContextValue>({
-  theme: "system",
-  resolved: "light",
-  setTheme: () => {},
-});
+import { ThemeContext, type Theme } from "@/lib/theme-context";
+import { THEME_STORAGE_KEY as STORAGE_KEY, readStoredTheme } from "@/lib/theme-script";
 
 function systemPrefersDark() {
-  return (
-    typeof window !== "undefined" &&
-    window.matchMedia("(prefers-color-scheme: dark)").matches
-  );
+  return typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches;
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
@@ -36,10 +13,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   // Read the stored preference after hydration so SSR markup stays stable.
   useEffect(() => {
-    const stored = window.localStorage.getItem(STORAGE_KEY) as Theme | null;
-    if (stored === "light" || stored === "dark" || stored === "system") {
-      setThemeState(stored);
-    }
+    const stored = readStoredTheme();
+    if (stored) setThemeState(stored);
   }, []);
 
   useEffect(() => {
@@ -68,8 +43,3 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const value = useMemo(() => ({ theme, resolved, setTheme }), [theme, resolved, setTheme]);
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
-
-export const useTheme = () => useContext(ThemeContext);
-
-/** Inline script: applies the stored theme before first paint (no flash). */
-export const themeInitScript = `(function(){try{var t=localStorage.getItem("${STORAGE_KEY}")||"system";var d=t==="dark"||(t==="system"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",d);document.documentElement.style.colorScheme=d?"dark":"light";}catch(e){}})();`;

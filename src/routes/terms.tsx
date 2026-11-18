@@ -4,7 +4,13 @@ import { siteConfig } from "@/lib/site-config";
 import { pageHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/terms")({
-  head: () => pageHead({ path: "/terms", title: `Terms of use — ${siteConfig.name}`, description: "Plain terms for using PDFamaze: acceptable use, your responsibility for your own files, availability and limitations." }),
+  head: () =>
+    pageHead({
+      path: "/terms",
+      title: `Terms of use — ${siteConfig.name}`,
+      description:
+        "Plain terms for using PDFamaze: acceptable use, your responsibility for your own files, availability and limitations.",
+    }),
   component: TermsPage,
 });
 
@@ -31,8 +37,9 @@ function TermsPage() {
           recover, restore or inspect anything for you.
         </p>
         <p>
-          <strong>Keep an original.</strong> Some operations are lossy by design (such as heavy compression
-          or raster rendering), and a failed or interrupted run may produce an incomplete file.
+          <strong>Keep an original.</strong> Some operations are lossy by design (such as heavy
+          compression or raster rendering), and a failed or interrupted run may produce an
+          incomplete file.
         </p>
       </Section>
 
@@ -48,15 +55,16 @@ function TermsPage() {
       <Section heading="Intellectual property and licensing">
         <p>
           {siteConfig.name} is open source software released under the <strong>MIT License</strong>.
-          Your documents remain entirely yours — processing them in your browser grants us zero rights to them.
+          Your documents remain entirely yours — processing them in your browser grants us zero
+          rights to them.
         </p>
       </Section>
 
       <Section heading="Availability">
         <p>
-          The service is hosted globally on serverless infrastructure. Tools may be added, improved or
-          updated over time. While we strive for continuous availability, no service level uptime guarantee
-          is promised.
+          The service is hosted globally on serverless infrastructure. Tools may be added, improved
+          or updated over time. While we strive for continuous availability, no service level uptime
+          guarantee is promised.
         </p>
       </Section>
 
@@ -72,8 +80,8 @@ function TermsPage() {
 
       <Section heading="Changes">
         <p>
-          These terms may be updated as the project evolves. The current version is always available on this
-          page; continuing to use the site means you accept the updated terms.
+          These terms may be updated as the project evolves. The current version is always available
+          on this page; continuing to use the site means you accept the updated terms.
         </p>
       </Section>
 

@@ -53,7 +53,12 @@ export const initialSignState: SignState = {
  * A new placement is a quarter of the page wide (capped so tall artwork stays reasonable),
  * centred on the point the reader clicked and kept inside the page.
  */
-function placementRect(sig: ActiveSignature, x: number, y: number, pageAspect: number): DisplayRect {
+function placementRect(
+  sig: ActiveSignature,
+  x: number,
+  y: number,
+  pageAspect: number,
+): DisplayRect {
   let w = 0.25;
   let h = (w * pageAspect) / sig.aspect;
   if (h > 0.18) {
@@ -68,7 +73,8 @@ function copyToAll(state: SignState, pageCount: number): SignaturePlacement[] {
   const source = state.placements.find((p) => p.id === state.selectedId);
   if (!source) return state.placements;
   const others = state.placements.filter(
-    (p) => !(p.dataUrl === source.dataUrl && p.page !== source.page && sameRect(p.rect, source.rect)),
+    (p) =>
+      !(p.dataUrl === source.dataUrl && p.page !== source.page && sameRect(p.rect, source.rect)),
   );
   const copies = Array.from({ length: pageCount }, (_, page) => page)
     .filter((page) => page !== source.page)
@@ -100,7 +106,9 @@ function editReducer(state: SignState, action: SignAction): SignState {
     case "MOVE":
       return {
         ...state,
-        placements: state.placements.map((p) => (p.id === action.id ? { ...p, rect: action.rect } : p)),
+        placements: state.placements.map((p) =>
+          p.id === action.id ? { ...p, rect: action.rect } : p,
+        ),
       };
     case "SELECT":
       return { ...state, selectedId: action.id };
@@ -138,7 +146,11 @@ export function signReducer(state: SignState, action: SignAction): SignState {
     default: {
       const next = editReducer(state, action);
       // Editing after a successful run makes the old download stale.
-      const edits = action.type === "PLACE" || action.type === "MOVE" || action.type === "REMOVE" || action.type === "COPY_TO_ALL";
+      const edits =
+        action.type === "PLACE" ||
+        action.type === "MOVE" ||
+        action.type === "REMOVE" ||
+        action.type === "COPY_TO_ALL";
       return edits && next !== state && state.status !== "working"
         ? { ...next, status: "idle", results: [], error: "" }
         : next;

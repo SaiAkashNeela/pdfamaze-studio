@@ -89,7 +89,9 @@ export async function openDocument(
   try {
     doc.getPages().forEach((page) => page.getSize());
   } catch {
-    fail(`"${file.name}" has damaged internal structure. Run it through Repair PDF first, then try again.`);
+    fail(
+      `"${file.name}" has damaged internal structure. Run it through Repair PDF first, then try again.`,
+    );
   }
   return doc;
 }
@@ -139,7 +141,11 @@ export async function renderPageToCanvas(
   return canvas;
 }
 
-export function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality?: number): Promise<Blob> {
+export function canvasToBlob(
+  canvas: HTMLCanvasElement,
+  type: string,
+  quality?: number,
+): Promise<Blob> {
   return new Promise<Blob>((resolve) =>
     canvas.toBlob((b) => resolve(b ?? new Blob()), type, quality),
   );
@@ -238,7 +244,10 @@ export async function saveClean(doc: import("pdf-lib").PDFDocument): Promise<Blo
  * work would be wrong or wasteful: rendering pages (each holds a full-page bitmap in memory),
  * feeding a single OCR worker, or steps that must see the previous step's result.
  */
-export function inSequence<T, R>(items: readonly T[], fn: (item: T, index: number) => Promise<R>): Promise<R[]> {
+export function inSequence<T, R>(
+  items: readonly T[],
+  fn: (item: T, index: number) => Promise<R>,
+): Promise<R[]> {
   return items.reduce<Promise<R[]>>(
     (chain, item, index) =>
       chain.then(async (acc) => {
@@ -259,7 +268,9 @@ export async function zipOutputs(files: OutputFile[], name: string): Promise<Out
   const { zip } = await import("fflate");
   const used = new Map<string, number>();
   const entries: Record<string, Uint8Array> = {};
-  const loaded = await Promise.all(files.map(async (f) => [f.name, new Uint8Array(await f.blob.arrayBuffer())] as const));
+  const loaded = await Promise.all(
+    files.map(async (f) => [f.name, new Uint8Array(await f.blob.arrayBuffer())] as const),
+  );
   for (const [n, bytes] of loaded) {
     const seen = used.get(n) ?? 0;
     used.set(n, seen + 1);
@@ -278,5 +289,9 @@ export function acceptsFile(accept: string, file: File): boolean {
   return accept
     .split(",")
     .map((t) => t.trim())
-    .some((t) => (t.endsWith("/*") ? file.type.startsWith(t.slice(0, -1)) : file.type === t || file.name.toLowerCase().endsWith(t)));
+    .some((t) =>
+      t.endsWith("/*")
+        ? file.type.startsWith(t.slice(0, -1))
+        : file.type === t || file.name.toLowerCase().endsWith(t),
+    );
 }

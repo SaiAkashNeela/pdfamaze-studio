@@ -1,19 +1,17 @@
 {
-	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "pdfamaze",
-	"main": ".output/server/index.mjs",
-	"compatibility_date": "2026-08-26",
-	"compatibility_flags": [
-		"nodejs_compat"
-	],
-	"assets": {
-		"directory": ".output/public",
-		"binding": "ASSETS"
-	},
-	"routes": [
-		{
-			"pattern": "pdfamaze.com",
-			"custom_domain": true
-		}
-	]
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "pdfamaze",
+  "main": ".output/server/index.mjs",
+  "compatibility_date": "2026-08-26",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": ".output/public",
+    "binding": "ASSETS"
+  },
+  "routes": [
+    {
+      "pattern": "pdfamaze.com",
+      "custom_domain": true
+    }
+  ]
 }

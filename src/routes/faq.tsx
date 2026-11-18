@@ -5,7 +5,13 @@ import { pageHead } from "@/lib/seo";
 import { tools } from "@/lib/tools";
 
 export const Route = createFileRoute("/faq")({
-  head: () => pageHead({ path: "/faq", title: `Frequently Asked Questions — ${siteConfig.name}`, description: "How PDFamaze processes PDFs in your browser: privacy, file size limits, supported formats and every available tool." }),
+  head: () =>
+    pageHead({
+      path: "/faq",
+      title: `Frequently Asked Questions — ${siteConfig.name}`,
+      description:
+        "How PDFamaze processes PDFs in your browser: privacy, file size limits, supported formats and every available tool.",
+    }),
   component: FaqPage,
 });
 
@@ -18,25 +24,28 @@ function FaqPage() {
     >
       <Section heading="How can PDF tools run without uploading my files?">
         <p>
-          Modern web browsers are capable runtime environments powered by WebAssembly and fast JavaScript engines.
-          When you select a document on {siteConfig.name}, the file is read into your browser tab's local memory.
-          Libraries like <code>pdf-lib</code> and <code>pdfjs-dist</code> parse, manipulate, and generate the final PDF file
-          directly on your CPU. No file data is ever transmitted over the network.
+          Modern web browsers are capable runtime environments powered by WebAssembly and fast
+          JavaScript engines. When you select a document on {siteConfig.name}, the file is read into
+          your browser tab's local memory. Libraries like <code>pdf-lib</code> and{" "}
+          <code>pdfjs-dist</code> parse, manipulate, and generate the final PDF file directly on
+          your CPU. No file data is ever transmitted over the network.
         </p>
       </Section>
 
       <Section heading="Can I use PDFamaze while offline?">
         <p>
           Yes! Once the page is loaded, you can disconnect from Wi-Fi or turn on Airplane Mode.
-          Every tool will continue to function normally because all execution code is already cached in your browser.
+          Every tool will continue to function normally because all execution code is already cached
+          in your browser.
         </p>
       </Section>
 
       <Section heading="Are there any file size limits?">
         <p>
-          Because operations run in your device's memory rather than on a remote server, limits depend on your computer
-          or phone's available RAM. Standard files (1 MB to 200 MB) process within seconds. Extremely large scanned files
-          (e.g., 500+ high-resolution pages) may take longer depending on hardware.
+          Because operations run in your device's memory rather than on a remote server, limits
+          depend on your computer or phone's available RAM. Standard files (1 MB to 200 MB) process
+          within seconds. Extremely large scanned files (e.g., 500+ high-resolution pages) may take
+          longer depending on hardware.
         </p>
       </Section>
 
@@ -56,7 +65,8 @@ function FaqPage() {
       <Section heading="Is PDFamaze free for commercial use?">
         <p>
           Yes. {siteConfig.name} is open source and licensed under the <strong>MIT License</strong>.
-          You can use it freely for personal, academic, business, and enterprise tasks without restrictions.
+          You can use it freely for personal, academic, business, and enterprise tasks without
+          restrictions.
         </p>
       </Section>
 

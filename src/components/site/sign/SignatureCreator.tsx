@@ -162,7 +162,11 @@ function UploadTab({ onDraft }: { onDraft: (d: string | null) => void }) {
       </label>
       {preview ? (
         <div className="border-border-strong grid h-24 place-items-center rounded-[4px] border border-dashed bg-white p-2">
-          <img src={preview} alt="Uploaded signature preview" className="max-h-full max-w-full object-contain" />
+          <img
+            src={preview}
+            alt="Uploaded signature preview"
+            className="max-h-full max-w-full object-contain"
+          />
         </div>
       ) : null}
     </div>
@@ -170,7 +174,11 @@ function UploadTab({ onDraft }: { onDraft: (d: string | null) => void }) {
 }
 
 /** Builds a signature image by drawing, typing or uploading, then hands it to the caller. */
-export function SignatureCreator({ onCreate }: { onCreate: (dataUrl: string, save: boolean) => void }) {
+export function SignatureCreator({
+  onCreate,
+}: {
+  onCreate: (dataUrl: string, save: boolean) => void;
+}) {
   const [mode, setMode] = useState<Mode>("draw");
   const [color, setColor] = useState<string>(INK_COLORS[0].value);
   const [draft, setDraft] = useState<string | null>(null);
@@ -193,7 +201,9 @@ export function SignatureCreator({ onCreate }: { onCreate: (dataUrl: string, sav
             onClick={() => switchMode(value)}
             className={cn(
               "inline-flex h-8 items-center justify-center gap-1.5 rounded-[3px] text-[12.5px] transition-colors",
-              mode === value ? "bg-surface-raised text-foreground shadow-sm" : "text-muted-foreground",
+              mode === value
+                ? "bg-surface-raised text-foreground shadow-sm"
+                : "text-muted-foreground",
             )}
           >
             <Icon className="h-3.5 w-3.5" /> {label}

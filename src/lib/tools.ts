@@ -14,7 +14,14 @@ export type Field =
       default: string;
       hint?: string;
     }
-  | { name: string; label: string; type: "text"; default: string; placeholder?: string; hint?: string }
+  | {
+      name: string;
+      label: string;
+      type: "text";
+      default: string;
+      placeholder?: string;
+      hint?: string;
+    }
   | { name: string; label: string; type: "password"; default: string; hint?: string }
   | {
       name: string;
@@ -28,7 +35,15 @@ export type Field =
       hint?: string;
     }
   | { name: string; label: string; type: "switch"; default: boolean; hint?: string }
-  | { name: string; label: string; type: "textarea"; default: string; placeholder?: string; hint?: string; rows?: number }
+  | {
+      name: string;
+      label: string;
+      type: "textarea";
+      default: string;
+      placeholder?: string;
+      hint?: string;
+      rows?: number;
+    }
   | { name: string; label: string; type: "color"; default: string; hint?: string };
 
 export type FieldValues = Record<string, string | number | boolean>;
@@ -147,9 +162,34 @@ const coreTools: Tool[] = [
         placeholder: "1-3, 5, 8-",
         hint: "Commas and ranges. Leave blank for every page.",
       },
-      { name: "every", label: "Pages per file", type: "range", min: 1, max: 100, step: 1, default: 2 },
-      { name: "count", label: "Number of documents", type: "range", min: 2, max: 50, step: 1, default: 2 },
-      { name: "size", label: "Maximum size per file", type: "range", min: 1, max: 100, step: 1, default: 5, unit: " MB" },
+      {
+        name: "every",
+        label: "Pages per file",
+        type: "range",
+        min: 1,
+        max: 100,
+        step: 1,
+        default: 2,
+      },
+      {
+        name: "count",
+        label: "Number of documents",
+        type: "range",
+        min: 2,
+        max: 50,
+        step: 1,
+        default: 2,
+      },
+      {
+        name: "size",
+        label: "Maximum size per file",
+        type: "range",
+        min: 1,
+        max: 100,
+        step: 1,
+        default: 5,
+        unit: " MB",
+      },
     ],
     fieldsFor: (v) => {
       const mode = String(v["mode"]);
@@ -163,7 +203,8 @@ const coreTools: Tool[] = [
     },
     run: async (files, v, p) => {
       const mode = String(v["mode"]);
-      if (SPLIT_RULES.has(mode)) return (await pagesOps()).splitByRule(files, { mode, value: Number(v[mode]) }, p);
+      if (SPLIT_RULES.has(mode))
+        return (await pagesOps()).splitByRule(files, { mode, value: Number(v[mode]) }, p);
       return (await ops()).splitPdf(files, { mode, ranges: String(v["ranges"]) }, p);
     },
   },
@@ -192,8 +233,26 @@ const coreTools: Tool[] = [
           { value: "raster", label: "Re-render pages — large savings, images only" },
         ],
       },
-      { name: "quality", label: "Image quality", type: "range", min: 30, max: 95, step: 5, default: 65, unit: "%" },
-      { name: "scale", label: "Render scale", type: "range", min: 1, max: 3, step: 0.5, default: 1.5, unit: "×" },
+      {
+        name: "quality",
+        label: "Image quality",
+        type: "range",
+        min: 30,
+        max: 95,
+        step: 5,
+        default: 65,
+        unit: "%",
+      },
+      {
+        name: "scale",
+        label: "Render scale",
+        type: "range",
+        min: 1,
+        max: 3,
+        step: 0.5,
+        default: 1.5,
+        unit: "×",
+      },
     ],
     fieldsFor: (v) => (v["mode"] === "raster" ? ["mode", "quality", "scale"] : ["mode"]),
     seo: {
@@ -213,7 +272,8 @@ const coreTools: Tool[] = [
     name: "Rotate PDF",
     action: "Rotate pages",
     summary: "Turn some or all pages by 90, 180 or 270 degrees.",
-    about: "Rotation is stored as page metadata, so nothing is re-encoded and quality is untouched.",
+    about:
+      "Rotation is stored as page metadata, so nothing is re-encoded and quality is untouched.",
     accept: "application/pdf",
     acceptLabel: "One PDF",
     multiple: false,
@@ -231,7 +291,14 @@ const coreTools: Tool[] = [
           { value: "270", label: "90° anticlockwise" },
         ],
       },
-      { name: "pages", label: "Pages", type: "text", default: "", placeholder: "All pages", hint: "Blank rotates everything." },
+      {
+        name: "pages",
+        label: "Pages",
+        type: "text",
+        default: "",
+        placeholder: "All pages",
+        hint: "Blank rotates everything.",
+      },
     ],
     seo: {
       title: "Rotate PDF pages in your browser",
@@ -279,12 +346,26 @@ const coreTools: Tool[] = [
         placeholder: "1-4, 9, 6-8",
         hint: "Pages left out are dropped. Blank keeps the current order.",
       },
-      { name: "copies", label: "Copies of each page", type: "range", min: 2, max: 10, step: 1, default: 2 },
+      {
+        name: "copies",
+        label: "Copies of each page",
+        type: "range",
+        min: 2,
+        max: 10,
+        step: 1,
+        default: 2,
+      },
     ],
-    fieldsFor: (v) => (v["mode"] === "custom" ? ["mode", "order"] : v["mode"] === "duplicate" ? ["mode", "copies"] : ["mode"]),
+    fieldsFor: (v) =>
+      v["mode"] === "custom"
+        ? ["mode", "order"]
+        : v["mode"] === "duplicate"
+          ? ["mode", "copies"]
+          : ["mode"],
     seo: {
       title: "Reorder and delete PDF pages",
-      description: "Rearrange, reverse or remove pages from a PDF on your device, then download the result.",
+      description:
+        "Rearrange, reverse or remove pages from a PDF on your device, then download the result.",
     },
     run: async (files, v, p) =>
       (await pagesOps()).rearrangePages(
@@ -298,16 +379,41 @@ const coreTools: Tool[] = [
     name: "Watermark PDF",
     action: "Add watermark",
     summary: "Stamp text across every page — draft, confidential, a name.",
-    about: "The text is drawn into each page as real PDF content, centred, with the opacity you choose.",
+    about:
+      "The text is drawn into each page as real PDF content, centred, with the opacity you choose.",
     accept: "application/pdf",
     acceptLabel: "One PDF",
     multiple: false,
     minFiles: 1,
     tag: "EDIT",
     fields: [
-      { name: "text", label: "Watermark text", type: "text", default: "DRAFT", placeholder: "CONFIDENTIAL" },
-      { name: "size", label: "Size", type: "range", min: 18, max: 96, step: 2, default: 52, unit: "pt" },
-      { name: "opacity", label: "Opacity", type: "range", min: 5, max: 60, step: 5, default: 20, unit: "%" },
+      {
+        name: "text",
+        label: "Watermark text",
+        type: "text",
+        default: "DRAFT",
+        placeholder: "CONFIDENTIAL",
+      },
+      {
+        name: "size",
+        label: "Size",
+        type: "range",
+        min: 18,
+        max: 96,
+        step: 2,
+        default: 52,
+        unit: "pt",
+      },
+      {
+        name: "opacity",
+        label: "Opacity",
+        type: "range",
+        min: 5,
+        max: 60,
+        step: 5,
+        default: 20,
+        unit: "%",
+      },
       { name: "diagonal", label: "Diagonal", type: "switch", default: true },
     ],
     seo: {
@@ -331,7 +437,8 @@ const coreTools: Tool[] = [
     name: "Images to PDF",
     action: "Build PDF",
     summary: "Turn JPEG and PNG images into a single paginated PDF.",
-    about: "Each image becomes one page, either fitted to A4 with margins or sized exactly to the image.",
+    about:
+      "Each image becomes one page, either fitted to A4 with margins or sized exactly to the image.",
     accept: "image/jpeg,image/png",
     acceptLabel: "JPEG or PNG images",
     multiple: true,
@@ -349,12 +456,22 @@ const coreTools: Tool[] = [
           { value: "image", label: "Match each image" },
         ],
       },
-      { name: "margin", label: "Margin", type: "range", min: 0, max: 72, step: 6, default: 36, unit: "pt" },
+      {
+        name: "margin",
+        label: "Margin",
+        type: "range",
+        min: 0,
+        max: 72,
+        step: 6,
+        default: 36,
+        unit: "pt",
+      },
     ],
     fieldsFor: (v) => (v["fit"] === "a4" ? ["fit", "margin"] : ["fit"]),
     seo: {
       title: "Convert images to a PDF in your browser",
-      description: "Combine JPEG and PNG images into one PDF. Nothing is uploaded — it all runs locally.",
+      description:
+        "Combine JPEG and PNG images into one PDF. Nothing is uploaded — it all runs locally.",
     },
     run: async (files, v, p) =>
       (await ops()).imagesToPdf(files, { fit: String(v["fit"]), margin: Number(v["margin"]) }, p),
@@ -364,7 +481,8 @@ const coreTools: Tool[] = [
     name: "PDF to Images",
     action: "Render images",
     summary: "Export pages as PNG or JPEG at the resolution you pick.",
-    about: "Pages are rendered by your browser's PDF engine, so what you get matches what you see on screen.",
+    about:
+      "Pages are rendered by your browser's PDF engine, so what you get matches what you see on screen.",
     accept: "application/pdf",
     acceptLabel: "One PDF",
     multiple: false,
@@ -381,7 +499,16 @@ const coreTools: Tool[] = [
           { value: "jpeg", label: "JPEG — smaller files" },
         ],
       },
-      { name: "scale", label: "Resolution", type: "range", min: 1, max: 4, step: 0.5, default: 2, unit: "×" },
+      {
+        name: "scale",
+        label: "Resolution",
+        type: "range",
+        min: 1,
+        max: 4,
+        step: 0.5,
+        default: 2,
+        unit: "×",
+      },
       { name: "pages", label: "Pages", type: "text", default: "", placeholder: "All pages" },
     ],
     seo: {
@@ -409,9 +536,27 @@ const coreTools: Tool[] = [
     featured: true,
     tag: "SECURITY",
     fields: [
-      { name: "password", label: "Document Password", type: "password", default: "", hint: "Password required to open the PDF" },
-      { name: "confirmPassword", label: "Confirm Password", type: "password", default: "", hint: "Re-enter the password to match" },
-      { name: "ownerPassword", label: "Permissions Password (Optional)", type: "password", default: "", hint: "Optional password for editing/printing restrictions" },
+      {
+        name: "password",
+        label: "Document Password",
+        type: "password",
+        default: "",
+        hint: "Password required to open the PDF",
+      },
+      {
+        name: "confirmPassword",
+        label: "Confirm Password",
+        type: "password",
+        default: "",
+        hint: "Re-enter the password to match",
+      },
+      {
+        name: "ownerPassword",
+        label: "Permissions Password (Optional)",
+        type: "password",
+        default: "",
+        hint: "Optional password for editing/printing restrictions",
+      },
     ],
     seo: {
       title: "Encrypt and password protect PDF online",
@@ -448,7 +593,8 @@ const coreTools: Tool[] = [
       description:
         "Unlock a password-protected PDF locally in your browser and download an unrestricted copy.",
     },
-    run: async (files, v, p) => (await ops()).decryptPdf(files, { password: String(v["password"]) }, p),
+    run: async (files, v, p) =>
+      (await ops()).decryptPdf(files, { password: String(v["password"]) }, p),
   },
   {
     slug: "page-numbers",
@@ -488,9 +634,35 @@ const coreTools: Tool[] = [
           { value: "Page {n}", label: "Page 1" },
         ],
       },
-      { name: "startNumber", label: "Start Number", type: "range", min: 1, max: 100, step: 1, default: 1 },
-      { name: "fontSize", label: "Font Size", type: "range", min: 8, max: 20, step: 1, default: 10, unit: "pt" },
-      { name: "margin", label: "Page Margin", type: "range", min: 10, max: 50, step: 5, default: 25, unit: "pt" },
+      {
+        name: "startNumber",
+        label: "Start Number",
+        type: "range",
+        min: 1,
+        max: 100,
+        step: 1,
+        default: 1,
+      },
+      {
+        name: "fontSize",
+        label: "Font Size",
+        type: "range",
+        min: 8,
+        max: 20,
+        step: 1,
+        default: 10,
+        unit: "pt",
+      },
+      {
+        name: "margin",
+        label: "Page Margin",
+        type: "range",
+        min: 10,
+        max: 50,
+        step: 5,
+        default: 25,
+        unit: "pt",
+      },
     ],
     seo: {
       title: "Add page numbers to PDF online free",
@@ -522,12 +694,25 @@ const coreTools: Tool[] = [
     minFiles: 1,
     tag: "CONVERT",
     fields: [
-      { name: "pageRange", label: "Pages", type: "text", default: "", placeholder: "All pages (e.g. 1-3, 5)", hint: "Blank extracts all pages" },
-      { name: "includePageHeaders", label: "Include page headers in output", type: "switch", default: true },
+      {
+        name: "pageRange",
+        label: "Pages",
+        type: "text",
+        default: "",
+        placeholder: "All pages (e.g. 1-3, 5)",
+        hint: "Blank extracts all pages",
+      },
+      {
+        name: "includePageHeaders",
+        label: "Include page headers in output",
+        type: "switch",
+        default: true,
+      },
     ],
     seo: {
       title: "Extract text from PDF online",
-      description: "Convert PDF text into clean plain text (.txt) without sending your files to any server.",
+      description:
+        "Convert PDF text into clean plain text (.txt) without sending your files to any server.",
     },
     run: async (files, v, p) =>
       (await ops()).extractText(
@@ -552,12 +737,31 @@ const coreTools: Tool[] = [
     minFiles: 1,
     tag: "OPTIMIZE",
     fields: [
-      { name: "scale", label: "Render Scale", type: "range", min: 1, max: 3, step: 0.5, default: 1.5, unit: "×" },
-      { name: "quality", label: "JPEG Quality", type: "range", min: 40, max: 95, step: 5, default: 75, unit: "%" },
+      {
+        name: "scale",
+        label: "Render Scale",
+        type: "range",
+        min: 1,
+        max: 3,
+        step: 0.5,
+        default: 1.5,
+        unit: "×",
+      },
+      {
+        name: "quality",
+        label: "JPEG Quality",
+        type: "range",
+        min: 40,
+        max: 95,
+        step: 5,
+        default: 75,
+        unit: "%",
+      },
     ],
     seo: {
       title: "Convert PDF to Grayscale / Black and White",
-      description: "Easily turn color PDFs into monochrome grayscale documents directly in your browser.",
+      description:
+        "Easily turn color PDFs into monochrome grayscale documents directly in your browser.",
     },
     run: async (files, v, p) =>
       (await ops()).grayscalePdf(
@@ -612,7 +816,8 @@ const coreTools: Tool[] = [
     ],
     seo: {
       title: "Convert HTML to PDF in your browser",
-      description: "Convert HTML files and markup into formatted PDF documents with zero server uploads.",
+      description:
+        "Convert HTML files and markup into formatted PDF documents with zero server uploads.",
     },
     run: async (files, v, p) =>
       (await ops()).htmlToPdf(
@@ -627,7 +832,13 @@ const coreTools: Tool[] = [
   },
 ];
 
-export const tools: Tool[] = [...coreTools, ...organizeTools, ...editTools, ...securityTools, ...convertTools];
+export const tools: Tool[] = [
+  ...coreTools,
+  ...organizeTools,
+  ...editTools,
+  ...securityTools,
+  ...convertTools,
+];
 
 /** Categories used by the landing page, the tools index and llms.txt. */
 export const CATEGORIES: { heading: string; tags: ToolTag[] }[] = [

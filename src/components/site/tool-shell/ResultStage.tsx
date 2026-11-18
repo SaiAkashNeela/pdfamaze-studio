@@ -8,7 +8,18 @@ import { handOff } from "@/lib/handoff";
 import { getTool, type Tool } from "@/lib/tools";
 
 /** Tools that make sense as a next step on a PDF result, in order of usefulness. */
-const NEXT_STEPS = ["compress", "sign", "protect-pdf", "merge", "page-numbers", "watermark", "organize", "split", "ocr", "redact"];
+const NEXT_STEPS = [
+  "compress",
+  "sign",
+  "protect-pdf",
+  "merge",
+  "page-numbers",
+  "watermark",
+  "organize",
+  "split",
+  "ocr",
+  "redact",
+];
 
 function nextTools(tool: Tool, results: OutputFile[]): Tool[] {
   if (!results.every((r) => r.blob.type === "application/pdf")) return [];
@@ -24,7 +35,9 @@ function FileLine({ file }: { file: OutputFile }) {
       <span className="flex min-w-0 items-center gap-2.5">
         <FileText className="text-accent h-4 w-4 shrink-0" />
         <span className="truncate text-[13.5px]">{file.name}</span>
-        <span className="text-muted-foreground shrink-0 font-mono text-[11.5px]">{formatBytes(file.blob.size)}</span>
+        <span className="text-muted-foreground shrink-0 font-mono text-[11.5px]">
+          {formatBytes(file.blob.size)}
+        </span>
       </span>
       <button
         type="button"
@@ -38,14 +51,24 @@ function FileLine({ file }: { file: OutputFile }) {
   );
 }
 
-function DownloadButton({ tool, results, sourceName }: { tool: Tool; results: OutputFile[]; sourceName?: string | undefined }) {
+function DownloadButton({
+  tool,
+  results,
+  sourceName,
+}: {
+  tool: Tool;
+  results: OutputFile[];
+  sourceName?: string | undefined;
+}) {
   const [zipping, setZipping] = useState(false);
   const single = results.length === 1 ? results[0] : undefined;
   const download = async () => {
     if (single) return downloadFile(single);
     setZipping(true);
     try {
-      downloadFile(await zipOutputs(results, `${baseName(sourceName ?? results[0]!.name)}-${tool.slug}.zip`));
+      downloadFile(
+        await zipOutputs(results, `${baseName(sourceName ?? results[0]!.name)}-${tool.slug}.zip`),
+      );
     } finally {
       setZipping(false);
     }
@@ -87,7 +110,10 @@ export function ResultStage({
     handOff(results.map((r) => new File([r.blob], r.name, { type: r.blob.type })));
 
   return (
-    <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start lg:gap-10" aria-live="polite">
+    <div
+      className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start lg:gap-10"
+      aria-live="polite"
+    >
       {/* Phones: status, preview, next steps. Desktop: preview left, a sticky action column right. */}
       <div className="contents lg:sticky lg:top-20 lg:col-start-2 lg:row-start-1 lg:flex lg:flex-col lg:gap-5">
         <div className="border-border bg-card order-1 flex flex-col items-center rounded-2xl border p-5 text-center sm:p-6 lg:order-none">
@@ -97,7 +123,9 @@ export function ResultStage({
           <h2 className="mt-3 text-[clamp(1.35rem,3.5vw,1.7rem)] font-semibold tracking-[-0.03em]">
             {results.length === 1 ? "Your file is ready" : `${results.length} files are ready`}
           </h2>
-          <p className="text-muted-foreground mt-1 text-[13.5px]">{formatBytes(total)} · made on your device, nothing was uploaded</p>
+          <p className="text-muted-foreground mt-1 text-[13.5px]">
+            {formatBytes(total)} · made on your device, nothing was uploaded
+          </p>
           <div className="mt-5 flex w-full flex-col items-center gap-2.5">
             <DownloadButton tool={tool} results={results} sourceName={sourceName} />
             {onBack ? (
@@ -109,7 +137,11 @@ export function ResultStage({
                 <ArrowLeft className="h-4 w-4" /> Back to editing
               </button>
             ) : null}
-            <button type="button" onClick={onStartOver} className="text-muted-foreground hover:text-foreground inline-flex h-10 items-center gap-1.5 rounded-lg px-3 text-[13px]">
+            <button
+              type="button"
+              onClick={onStartOver}
+              className="text-muted-foreground hover:text-foreground inline-flex h-10 items-center gap-1.5 rounded-lg px-3 text-[13px]"
+            >
               <RotateCcw className="h-3.5 w-3.5" /> Start over with a new file
             </button>
           </div>
@@ -124,7 +156,9 @@ export function ResultStage({
 
         {next.length ? (
           <div className="order-3 lg:order-none">
-            <h3 className="label-xs text-center lg:text-left">{results.length === 1 ? "Continue with this file" : "Continue with these files"}</h3>
+            <h3 className="label-xs text-center lg:text-left">
+              {results.length === 1 ? "Continue with this file" : "Continue with these files"}
+            </h3>
             <ul className="mt-3 grid grid-cols-2 gap-2">
               {next.map((t) => (
                 <li key={t.slug}>
@@ -155,14 +189,22 @@ export function ResultStage({
 export function ProcessingStage({ label, ratio }: { label: string; ratio?: number | undefined }) {
   const pct = ratio === undefined ? null : Math.round(Math.min(1, Math.max(0, ratio)) * 100);
   return (
-    <div className="mx-auto flex max-w-[480px] flex-col items-center py-14 text-center" role="status" aria-live="polite">
+    <div
+      className="mx-auto flex max-w-[480px] flex-col items-center py-14 text-center"
+      role="status"
+      aria-live="polite"
+    >
       <Loader2 className="text-accent h-10 w-10 animate-spin" />
       <p className="mt-5 text-[17px] font-semibold">{label || "Working…"}</p>
       <div className="bg-secondary mt-4 h-2 w-full overflow-hidden rounded-full">
-        <div className="bg-accent h-full rounded-full transition-[width] duration-300" style={{ width: `${pct ?? 35}%` }} />
+        <div
+          className="bg-accent h-full rounded-full transition-[width] duration-300"
+          style={{ width: `${pct ?? 35}%` }}
+        />
       </div>
       <p className="text-muted-foreground mt-3 text-[12.5px]">
-        {pct === null ? "Processing on your device" : `${pct}% · processing on your device`} — keep this tab open.
+        {pct === null ? "Processing on your device" : `${pct}% · processing on your device`} — keep
+        this tab open.
       </p>
     </div>
   );

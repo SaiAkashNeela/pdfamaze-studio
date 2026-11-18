@@ -24,7 +24,8 @@ export function usePdfDocument(file: File | null, password?: string): DocState {
       })
       .catch((e: unknown) => {
         if (!active) return;
-        const error = e instanceof PdfError ? e.message : "This PDF couldn't be opened for preview.";
+        const error =
+          e instanceof PdfError ? e.message : "This PDF couldn't be opened for preview.";
         setState({ doc: null, error });
       });
     return () => {

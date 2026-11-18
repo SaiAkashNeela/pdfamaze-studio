@@ -11,7 +11,20 @@ PDFamaze is a local-first, privacy-respecting PDF workbench that processes PDF d
 
 ## Standards & Quality Gates
 
-- **React Doctor**: Maintain a 100/100 code quality score via `bun x react-doctor src --yes`.
+Every change must pass all of these before it merges. Fix failures; never skip, delete or silence tests or lint rules to get green.
+
 - **TypeScript**: Strict type checking with zero errors via `bun x tsc --noEmit`.
-- **Build**: Production builds generated via `bun run build`.
+- **Lint & format**: `bun run lint` (ESLint + Prettier) with zero errors; `bun run format` applies Prettier.
+- **Tests**: `bun run test` (Bun's built-in runner over `./tests`). Every security or reliability fix gets a regression test there.
+- **Build**: Production builds generated via `bun run build`; `bun run preview` runs the build in wrangler.
+- **React Doctor**: Maintain a 100/100 code quality score via `bun x react-doctor src --yes`.
+- **Dependencies**: `bun audit --production` reports no critical, high or moderate advisories.
 - **Licensing**: Open source software under the MIT License.
+
+`mobile-app/` is a separate Expo project with its own `AGENTS.md`, tooling and lockfile; the root lint and tests ignore it.
+
+## Security Conventions
+
+- **Untrusted markup**: anything a user uploads or pastes (HTML, SVG, PDF text) is untrusted. Render it only in a sandboxed iframe — `createHtmlRenderFrame()` in `src/lib/pdf/html-sandbox.ts` (`sandbox="allow-same-origin"`, set before the frame is attached) or `sandbox=""` for display-only previews. Never combine `allow-scripts` with `allow-same-origin`, and never inject it into the main document.
+- **Security headers**: set once in `vite.config.ts` (`securityHeaders`, applied to every route via Nitro `routeRules` and written to `.output/public/_headers`). Framing is limited to `'self'` because result previews use same-origin frames. Change headers there, not per route.
+- **Dependencies**: `bun audit --production` must report no critical, high or moderate advisories. `bunfig.toml` holds back package versions published less than 24 hours ago; keep it.

@@ -11,7 +11,12 @@ function kindOf(file: OutputFile): Kind {
   if (type === "application/pdf" || /\.pdf$/i.test(file.name)) return "pdf";
   if (type.startsWith("image/")) return "image";
   if (type.startsWith("text/html")) return "html";
-  if (type.startsWith("text/") || type.includes("json") || /\.(txt|json|md|csv|js)$/i.test(file.name)) return "text";
+  if (
+    type.startsWith("text/") ||
+    type.includes("json") ||
+    /\.(txt|json|md|csv|js)$/i.test(file.name)
+  )
+    return "text";
   return "none";
 }
 
@@ -27,7 +32,15 @@ function useObjectUrl(blob: Blob): string | null {
 }
 
 /** One page, rendered only once it scrolls near the viewport so long results stay light. */
-function PreviewPage({ doc, index, width }: { doc: PDFDocumentProxy; index: number; width: number }) {
+function PreviewPage({
+  doc,
+  index,
+  width,
+}: {
+  doc: PDFDocumentProxy;
+  index: number;
+  width: number;
+}) {
   const holder = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [visible, setVisible] = useState(false);
@@ -36,7 +49,9 @@ function PreviewPage({ doc, index, width }: { doc: PDFDocumentProxy; index: numb
   useEffect(() => {
     const el = holder.current;
     if (!el) return undefined;
-    const io = new IntersectionObserver(([entry]) => entry?.isIntersecting && setVisible(true), { rootMargin: "600px 0px" });
+    const io = new IntersectionObserver(([entry]) => entry?.isIntersecting && setVisible(true), {
+      rootMargin: "600px 0px",
+    });
     io.observe(el);
     return () => io.disconnect();
   }, []);
@@ -69,15 +84,24 @@ function PreviewPage({ doc, index, width }: { doc: PDFDocumentProxy; index: numb
   }, [visible, doc, index, width]);
 
   return (
-    <div ref={holder} className="relative w-full overflow-hidden rounded-md bg-white shadow-sm ring-1 ring-black/10" style={{ aspectRatio: aspect }}>
+    <div
+      ref={holder}
+      className="relative w-full overflow-hidden rounded-md bg-white shadow-sm ring-1 ring-black/10"
+      style={{ aspectRatio: aspect }}
+    >
       <canvas ref={canvasRef} aria-label={`Page ${index + 1}`} className="block h-full w-full" />
-      <span className="bg-foreground/75 text-background absolute right-2 bottom-2 rounded px-1.5 py-0.5 font-mono text-[10.5px]">{index + 1}</span>
+      <span className="bg-foreground/75 text-background absolute right-2 bottom-2 rounded px-1.5 py-0.5 font-mono text-[10.5px]">
+        {index + 1}
+      </span>
     </div>
   );
 }
 
 function PdfPreview({ file, password }: { file: OutputFile; password?: string | undefined }) {
-  const asFile = useMemo(() => new File([file.blob], file.name, { type: "application/pdf" }), [file]);
+  const asFile = useMemo(
+    () => new File([file.blob], file.name, { type: "application/pdf" }),
+    [file],
+  );
   const { doc, error } = usePdfDocument(asFile, password);
   const boxRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
@@ -90,7 +114,8 @@ function PdfPreview({ file, password }: { file: OutputFile; password?: string | 
     return () => ro.disconnect();
   }, []);
 
-  if (error) return <Unavailable text="This result couldn't be previewed, but the download works." />;
+  if (error)
+    return <Unavailable text="This result couldn't be previewed, but the download works." />;
   return (
     <div ref={boxRef} className="space-y-4">
       {doc ? (
@@ -119,7 +144,10 @@ function TextPreview({ file }: { file: OutputFile }) {
     file.blob
       .slice(0, 200_000)
       .text()
-      .then((t) => active && setText(t), () => active && setText(""));
+      .then(
+        (t) => active && setText(t),
+        () => active && setText(""),
+      );
     return () => {
       active = false;
     };
@@ -142,15 +170,36 @@ function Unavailable({ text }: { text: string }) {
   );
 }
 
-function PreviewBody({ file, url, password }: { file: OutputFile; url: string | null; password?: string | undefined }) {
+function PreviewBody({
+  file,
+  url,
+  password,
+}: {
+  file: OutputFile;
+  url: string | null;
+  password?: string | undefined;
+}) {
   switch (kindOf(file)) {
     case "pdf":
       return <PdfPreview file={file} password={password} />;
     case "image":
-      return url ? <img src={url} alt={`Preview of ${file.name}`} className="mx-auto max-h-[75vh] rounded-md shadow-sm ring-1 ring-black/10" /> : null;
+      return url ? (
+        <img
+          src={url}
+          alt={`Preview of ${file.name}`}
+          className="mx-auto max-h-[75vh] rounded-md shadow-sm ring-1 ring-black/10"
+        />
+      ) : null;
     case "html":
       // No scripts, no same-origin access: the report is shown, nothing in it can run.
-      return url ? <iframe title={`Preview of ${file.name}`} src={url} sandbox="" className="h-[70vh] w-full rounded-md border-0 bg-white" /> : null;
+      return url ? (
+        <iframe
+          title={`Preview of ${file.name}`}
+          src={url}
+          sandbox=""
+          className="h-[70vh] w-full rounded-md border-0 bg-white"
+        />
+      ) : null;
     case "text":
       return <TextPreview file={file} />;
     default:
@@ -160,13 +209,22 @@ function PreviewBody({ file, url, password }: { file: OutputFile; url: string | 
 
 /** Shows what the tool produced; with several outputs, a picker chooses which one. */
 /** `password` opens a result the tool just locked (Protect PDF); it never leaves the tab. */
-export function ResultPreview({ results, password }: { results: OutputFile[]; password?: string | undefined }) {
+export function ResultPreview({
+  results,
+  password,
+}: {
+  results: OutputFile[];
+  password?: string | undefined;
+}) {
   const [index, setIndex] = useState(0);
   const file = results[Math.min(index, results.length - 1)]!;
   const url = useObjectUrl(file.blob);
 
   return (
-    <section aria-label="Preview" className="border-border bg-surface rounded-2xl border p-3 sm:p-4">
+    <section
+      aria-label="Preview"
+      className="border-border bg-surface rounded-2xl border p-3 sm:p-4"
+    >
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         {results.length > 1 ? (
           <select
@@ -185,7 +243,12 @@ export function ResultPreview({ results, password }: { results: OutputFile[]; pa
           <span className="truncate text-[13.5px] font-medium">{file.name}</span>
         )}
         {url && kindOf(file) !== "none" ? (
-          <a href={url} target="_blank" rel="noreferrer" className="text-muted-foreground hover:text-foreground inline-flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-[13px]">
+          <a
+            href={url}
+            target="_blank"
+            rel="noreferrer"
+            className="text-muted-foreground hover:text-foreground inline-flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-[13px]"
+          >
             <ExternalLink className="h-3.5 w-3.5" /> Open in new tab
           </a>
         ) : null}
